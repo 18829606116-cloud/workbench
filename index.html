@@ -836,31 +836,29 @@ function closeDrawer(){
   document.getElementById('drawer').classList.remove('open');
 }
 function switchPage(id){
-  // hide all pages
-  document.querySelectorAll('.module-page').forEach(function(p){p.classList.remove('active')});
-  // show target
+  // 先关抽屉遮罩，避免残留拦截后续点击
+  closeDrawer();
+  // 隐藏所有页面，并清除历史遗留的内联 display（否则旧页会残留 block 与新手页纵向叠加，看起来“不跳转”）
+  document.querySelectorAll('.module-page').forEach(function(p){p.classList.remove('active');p.style.display='';});
+  // 显示目标页（仅依赖 .active，由 CSS 控制 display:block）
   var target=document.getElementById('page-'+id);
   if(target)target.classList.add('active');
-  // update drawer active
+  // 更新抽屉高亮
   document.querySelectorAll('.drawer-item').forEach(function(d){d.classList.remove('active')});
   var di=document.querySelector('.drawer-item[data-page="'+id+'"]');
   if(di)di.classList.add('active');
-  // update bottom nav
+  // 更新底部导航高亮
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
   var ni=document.querySelector('.nav-item[data-mod="'+id+'"]');
   if(ni)ni.classList.add('active');
-  // scroll top
-  window.scrollTo({top:0,behavior:'smooth'});
-  closeDrawer();
-  // page-specific init (each wrapped so a failure can NEVER blank the page)
+  // 页面专属初始化（每个独立 try，失败也绝不让页面空白）
   try{ if(id==='gold')initGoldPage(); }catch(e){console.warn('initGoldPage:',e);}
   try{ if(id==='market')initMarketPage(); }catch(e){console.warn('initMarketPage:',e);}
   try{ if(id==='douyin')initDouyinPage(); }catch(e){console.warn('initDouyinPage:',e);}
   try{ if(id==='eng')renderVocab(); }catch(e){console.warn('renderVocab:',e);}
   try{ if(id==='weather')initWeather(); }catch(e){console.warn('initWeather:',e);}
-  // ensure target page is visible (defensive, always runs)
-  var tp=document.getElementById('page-'+id);
-  if(tp){tp.classList.add('active');tp.style.display='block';}
+  // 回到顶部（真机一定存在，但仍包 try 防止个别环境抛错阻断）
+  try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
 }
 
 // ============ WEIGHT MODULE ============
