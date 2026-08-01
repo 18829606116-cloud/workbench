@@ -848,13 +848,13 @@ function switchPage(id){
   // scroll top
   window.scrollTo({top:0,behavior:'smooth'});
   closeDrawer();
-  // page-specific init
-  if(id==='gold')initGoldPage();
-  if(id==='market')initMarketPage();
-  if(id==='douyin')initDouyinPage();
-  if(id==='eng'){renderVocab();}
-  if(id==='weather'){initWeather();}
-  // ensure target page is visible (defensive)
+  // page-specific init (each wrapped so a failure can NEVER blank the page)
+  try{ if(id==='gold')initGoldPage(); }catch(e){console.warn('initGoldPage:',e);}
+  try{ if(id==='market')initMarketPage(); }catch(e){console.warn('initMarketPage:',e);}
+  try{ if(id==='douyin')initDouyinPage(); }catch(e){console.warn('initDouyinPage:',e);}
+  try{ if(id==='eng')renderVocab(); }catch(e){console.warn('renderVocab:',e);}
+  try{ if(id==='weather')initWeather(); }catch(e){console.warn('initWeather:',e);}
+  // ensure target page is visible (defensive, always runs)
   var tp=document.getElementById('page-'+id);
   if(tp){tp.classList.add('active');tp.style.display='block';}
 }
@@ -3518,10 +3518,13 @@ function init(){
   renderSpkBank();renderMistakeBook();
   setupIrw();
   // Game
-  var tdn=new Date();
-  document.getElementById('todayDate').textContent=tdn.getFullYear()+'-'+(tdn.getMonth()+1)+'-'+tdn.getDate();
-  renderDailyTasks();renderWeekCal();renderEvents();renderWeekly();
-  calcBand();
+  try{
+    var tdn=new Date();
+    var tde=document.getElementById('todayDate');
+    if(tde)tde.textContent=tdn.getFullYear()+'-'+(tdn.getMonth()+1)+'-'+tdn.getDate();
+    renderDailyTasks();renderWeekCal();renderEvents();renderWeekly();
+    calcBand();
+  }catch(e){console.warn('game render error:',e);}
   // cloud auto-sync on load
   if(gLS('wb_sync_auto')==='1' && getSyncCfg() && !sessionStorage.getItem('wb_just_synced')){ syncDownload(); }
   sessionStorage.removeItem('wb_just_synced');
