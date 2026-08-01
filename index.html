@@ -2167,31 +2167,109 @@ function dictLookup(){
   resultDiv.innerHTML='<div style="padding:14px;color:var(--sub);font-size:13px;text-align:center">🔍 查询中...</div>';
   var vocab=getVocab();
   var ql=q.toLowerCase();
-  // 1) 精确匹配单词
-  var exact=null;
-  for(var i=0;i<vocab.length;i++){if(vocab[i].w.toLowerCase()===ql){exact=vocab[i];break;}}
-  // 2) 模糊匹配（中文释义包含搜索词）
-  var fuzzy=vocab.filter(function(w){return (w.mean||'').indexOf(q)>=0;}).slice(0,5);
-  if(exact){
-    autoAddToBank(exact);
-    resultDiv.innerHTML=renderDictCard(exact, true);
-    return;
-  }
-  if(fuzzy.length>0){
-    var html='<div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:8px">找到 '+fuzzy.length+' 个相关单词：</div>';
-    fuzzy.forEach(function(w){autoAddToBank(w);html+=renderDictCard(w, false);});
-    resultDiv.innerHTML=html;
-    return;
-  }
-  // 3) 词库都没有 → 联网查词典
-  resultDiv.innerHTML='<div style="padding:14px;color:var(--sub);font-size:13px;text-align:center">🌐 词库中没有，正在联网查询...</div>';
-  fetchDef(q, function(def){
-    if(def){
-      addWordObj(def);renderVocab();
-      resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
-    }else{
-      resultDiv.innerHTML='<div style="padding:16px;background:#fff3e0;border-radius:10px;font-size:13px">😕 没有找到「'+esc(q)+'」的释义<br><span style="color:var(--sub);font-size:12px">内置词库和在线词典均无结果。请检查拼写，或换个说法试试。</span></div>';
+  // 判断是否为句子（含空格且超过2个词）
+  var words=q.replace(/[^a-zA-Z\s']/g,'').split(/\s+/).filter(function(w){return w.length>0;});
+  var isSentence=words.length>=2;
+  // ===== 单词模式（原有逻辑）======
+  if(!isSentence){
+    // 1) 精确匹配单词
+    var exact=null;
+    for(var i=0;i<vocab.length;i++){if(vocab[i].w.toLowerCase()===ql){exact=vocab[i];break;}}
+    // 2) 模糊匹配（中文释义包含搜索词）
+    var fuzzy=vocab.filter(function(w){return (w.mean||'').indexOf(q)>=0;}).slice(0,5);
+    if(exact){
+      autoAddToBank(exact);
+      resultDiv.innerHTML=renderDictCard(exact, true);
+      return;
     }
+    if(fuzzy.length>0){
+      var html='<div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:8px">找到 '+fuzzy.length+' 个相关单词：</div>';
+      fuzzy.forEach(function(w){autoAddToBank(w);html+=renderDictCard(w, false);});
+      resultDiv.innerHTML=html;
+      return;
+    }
+    // 3) 词库都没有 → 联网查词典
+    resultDiv.innerHTML='<div style="padding:14px;color:var(--sub);font-size:13px;text-align:center">🌐 词库中没有，正在联网查询...</div>';
+    fetchDef(q, function(def){
+      if(def){
+        addWordObj(def);renderVocab();
+        resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+      }else{
+        resultDiv.innerHTML='<div style="padding:16px;background:#fff3e0;border-radius:10px;font-size:13px">😕 没有找到「'+esc(q)+'」的释义<br><span style="color:var(--sub);font-size:12px">内置词库和在线词典均无结果。请检查拼写，或换个说法试试。</span></div>';
+      }
+    });
+    return;
+  }
+  // ===== 句子模式：翻译整句 + 逐词查词典 ======
+  var STOP_WORDS={'the':1,'a':1,'an':1,'is':1,'are':1,'was':1,'were':1,'be':1,'been':1,'being':1,'have':1,'has':1,'had':1,'do':1,'does':1,'did':1,'will':1,'would':1,'could':1,'should':1,'may':1,'might':1,'can':1,'shall':1,'to':1,'of':1,'in':1,'on':1,'at':1,'by':1,'for':1,'with':1,'about':1,'from':1,'into':1,'through':1,'during':1,'before':1,'after':1,'above':1,'below':1,'between':1,'under':1,'again':1,'further':1,'then':1,'once':1,'here':1,'there':1,'when':1,'where':1,'why':1,'how':1,'all':1,'each':1,'every':1,'both':1,'few':1,'more':1,'most':1,'other':1,'some':1,'such':1,'no':1,'nor':1,'not':1,'only':1,'own':1,'same':1,'so':1,'than':1,'too':1,'very':1,'just':1,'because':1,'but':1,'and':1,'or':1,'if':1,'it':1,'its':1,'this':1,'that':1,'these':1,'those':1,'i':1,'you':1,'he':1,'she':1,'we':1,'they':1,'me':1,'him':1,'her':1,'us':1,'them':1,'my':1,'your':1,'his':1,'our':1,'their':1,'what':1,'which':1,'who':1,'whom':1};
+  // 提取有意义的词（过滤停用词和单字母）
+  var keyWords=words.filter(function(w){return w.length>1&&!STOP_WORDS[w.toLowerCase()];});
+  // 去重
+  var seen={};keyWords=keyWords.filter(function(w){var l=w.toLowerCase();if(seen[l])return false;seen[l]=true;return true;});
+  resultDiv.innerHTML='<div style="padding:14px;color:var(--sub);font-size:13px;text-align:center">🌐 正在翻译句子并查询生词...</div>';
+  // 1) 联网翻译整句 (MyMemory 免费API)
+  var transUrl='https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair=en|zh-CN';
+  fetch(transUrl).then(function(r){return r.json();}).then(function(trData){
+    var translation='';
+    try{translation=trData.responseData.translatedText||'';}catch(e){}
+    // 2) 对每个关键词查词典
+    var pending=keyWords.slice();
+    var wordResults=[];
+    if(pending.length===0)pending=words.slice(); // 如果全是停用词，就全部查
+    function checkDone(){
+      var html='';
+      // 翻译结果
+      if(translation){
+        html+='<div style="padding:14px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border-radius:12px;margin-bottom:12px;border-left:4px solid #4caf50">';
+        html+='<div style="font-size:12px;color:#2e7d32;font-weight:600;margin-bottom:6px">📝 整句翻译</div>';
+        html+='<div style="font-size:15px;color:var(--text);line-height:1.7">'+esc(q)+'</div>';
+        html+='<div style="font-size:16px;color:#2e7d32;font-weight:600;margin-top:6px">'+esc(translation)+'</div>';
+        html+='<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">';
+        html+='<button class="btn btn-sm" onclick="speakText(\''+esc(q.replace(/'/g,"\\'"))+'\')" style="background:#e3f2fd;color:#1565c0">🔊 朗读原句</button>';
+        html+='</div></div>';
+      }
+      // 生词卡片
+      if(wordResults.length>0){
+        html+='<div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:8px">📖 句中生词（'+wordResults.length+' 个）：</div>';
+        wordResults.forEach(function(item){
+          html+=renderDictCard(item.wd, false);
+          autoAddToBank(item.wd);
+        });
+      }
+      if(!html)html='<div style="padding:16px;background:#fff3e0;border-radius:10px;font-size:13px">😕 无法翻译该句子<br><span style="color:var(--sub);font-size:12px">请检查输入，或尝试只输入单个单词。</span></div>';
+      else if(!translation&&wordResults.length===0)html='<div style="padding:16px;background:#fff3e0;border-radius:10px;font-size:13px">😕 无法获取翻译和释义<br><span style="color:var(--sub);font-size:12px">网络可能不可用，请稍后重试。</span></div>';
+      resultDiv.innerHTML=html;
+    }
+    if(pending.length===0){checkDone();return;}
+    var doneCount=0;
+    pending.forEach(function(kw){
+      var kl=kw.toLowerCase();
+      // 先查内置词库
+      var found=null;
+      for(var j=0;j<vocab.length;j++){if(vocab[j].w.toLowerCase()===kl){found=vocab[j];break;}}
+      if(found){
+        wordResults.push({wd:found});doneCount++;
+        if(doneCount>=pending.length)checkDone();
+        return;
+      }
+      // 词库没有 → 联网查
+      fetchDef(kw, function(def){
+        if(def){
+          addWordObj(def);wordResults.push({wd:def});
+        }
+        doneCount++;
+        if(doneCount>=pending.length)checkDone();
+      });
+    });
+  }).catch(function(){
+    // 翻译 API 失败 → 只显示逐词结果
+    var html='<div style="padding:14px;background:#fff3e0;border-radius:10px;font-size:13px;margin-bottom:10px">⚠️ 翻译服务暂时不可用，以下是句中单词的释义：</div>';
+    keyWords.forEach(function(kw){
+      var kl=kw.toLowerCase();var found=null;
+      for(var j=0;j<vocab.length;j++){if(vocab[j].w.toLowerCase()===kl){found=vocab[j];break;}}
+      if(found){html+=renderDictCard(found,false);autoAddToBank(found);}
+    });
+    resultDiv.innerHTML=html||'<div style="padding:16px;background:#fff3e0;border-radius:10px;font-size:13px">😕 查询失败，请检查网络后重试</div>';
   });
 }
 function renderDictCard(w, isSingle){
