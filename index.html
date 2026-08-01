@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>个人工作台</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -25,7 +28,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 /* ===== DRAWER / SIDEBAR ===== */
 .drawer-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:299;display:none}
 .drawer-overlay.show{display:block}
-.drawer{position:fixed;top:0;left:0;bottom:0;width:280px;background:var(--card);z-index:300;transform:translateX(-100%);transition:transform .3s ease;box-shadow:4px 0 20px rgba(0,0,0,.15)}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:280px;background:var(--card);z-index:300;transform:translateX(-100%);transition:transform .3s ease;box-shadow:4px 0 20px rgba(0,0,0,.15);overflow-y:auto;-webkit-overflow-scrolling:touch}
 .drawer.open{transform:translateX(0)}
 .drawer-head{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
 .drawer-head h2{font-size:20px;font-weight:700}
@@ -271,7 +274,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <aside class="drawer" id="drawer">
   <div class="drawer-head">
     <h2>&#9776; 个人工作台</h2>
-    <p>选择模块</p>
+    <p>选择模块 · 构建 v20260801b</p>
   </div>
   <nav class="drawer-nav">
     <button class="drawer-item active" data-page="weight" onclick="switchPage('weight')"><span class="di-icon">&#9878;</span> 每日体重</button>
