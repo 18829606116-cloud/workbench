@@ -382,8 +382,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <input class="vocab-search" id="vocabSearch" placeholder="&#128269; 搜索单词 (支持中英文)..." oninput="filterVocab()">
 <!-- 搜词入库 -->
 <div style="margin-bottom:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-  <input class="vocab-search" id="wordSearchInput" placeholder="&#128270; 搜词入库：输入英文单词或中文意思..." style="flex:1;min-width:160px" onkeydown="if(event.key==='Enter')searchAndAdd()">
-  <button class="btn btn-primary btn-sm" onclick="searchAndAdd()">搜索并入库</button>
+  <input class="vocab-search" id="wordSearchInput" placeholder="&#128270; 查词典：输入不认识的单词或句子..." style="flex:1;min-width:160px" onkeydown="if(event.key==='Enter')dictLookup()">
+  <button class="btn btn-primary btn-sm" onclick="dictLookup()">查询</button>
 </div>
 <div id="searchAddResult" style="display:none;margin-bottom:10px"></div>
 <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
@@ -2158,67 +2158,69 @@ function markKnown(){var w=flashList[flashIdx];if(!w)return;myWords['w_'+w.w]=tr
 function addWord(){var w=prompt('单词 (英文):');if(!w)return;w=w.trim();if(!w)return;var ph=prompt('音标 (可留空):')||'';var pos=prompt('词性 (如 v./n./adj./adv.):')||'';var mean=prompt('中文释义:');if(mean==null)return;var ex=prompt('例句 (可留空):')||'';var level=prompt('级别 c4=四级/c6=六级(默认c4):','c4')||'c4';addWordObj({w:w,ph:ph,pos:pos,mean:mean,ex:ex,level:level==='c6'?'c6':'c4'});renderVocab();}
 function importVocab(){var inp=document.createElement('input');inp.type='file';inp.accept='.txt,.csv';inp.onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var lines=r.result.split(/\r?\n/);var added=0;lines.forEach(function(line){line=line.trim();if(!line)return;var p=line.split('|');if(p.length>=4){addWordObj({w:p[0].trim(),ph:(p[1]||'').trim(),pos:(p[2]||'').trim(),mean:p[3].trim(),ex:(p[4]||'').trim(),level:(p[5]||'c4').trim()==='c6'?'c6':'c4'});added++;}});renderVocab();alert('成功导入 '+added+' 个单词');};r.readAsText(f);};inp.click();}
 
-// ============ SEARCH & ADD (搜词入库) ============
-function searchAndAdd(){
+// ============ DICTIONARY LOOKUP (词典查询+自动入库) ============
+function dictLookup(){
   var q=(document.getElementById('wordSearchInput').value||'').trim();
-  if(!q){alert('请输入要搜索的单词或中文意思');return;}
+  if(!q){alert('请输入要查的单词或句子');return;}
   var resultDiv=document.getElementById('searchAddResult');
   resultDiv.style.display='block';
-  resultDiv.innerHTML='<div style="padding:10px;color:var(--sub);font-size:13px">🔍 搜索中...</div>';
+  resultDiv.innerHTML='<div style="padding:14px;color:var(--sub);font-size:13px;text-align:center">🔍 查询中...</div>';
   var vocab=getVocab();
   var ql=q.toLowerCase();
-  // search by word, meaning, or pos
-  var matches=vocab.filter(function(w){
-    return w.w.toLowerCase().indexOf(ql)>=0||(w.mean||'').indexOf(q)>=0||(w.pos||'').toLowerCase().indexOf(ql)>=0;
-  });
-  // limit to top 8 results
-  matches=matches.slice(0,8);
-  if(matches.length===0){
-    resultDiv.innerHTML='<div style="padding:12px;background:#fff3e0;border-radius:8px;font-size:13px">😕 词库中未找到「'+esc(q)+'」<br><span style="color:var(--sub);font-size:12px">提示：你可以手动添加这个单词</span><br><button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="manualAddWord(\''+esc(q)+'\')">+ 手动添加到词库</button></div>';
+  // 1) 精确匹配单词
+  var exact=null;
+  for(var i=0;i<vocab.length;i++){if(vocab[i].w.toLowerCase()===ql){exact=vocab[i];break;}}
+  // 2) 模糊匹配（中文释义包含搜索词）
+  var fuzzy=vocab.filter(function(w){return (w.mean||'').indexOf(q)>=0;}).slice(0,5);
+  if(exact){
+    autoAddToBank(exact);
+    resultDiv.innerHTML=renderDictCard(exact, true);
     return;
   }
-  var html='<div style="padding:8px 0;font-size:13px;color:var(--primary);font-weight:600">找到 '+matches.length+' 个结果：</div>';
-  html+='<div style="display:flex;flex-direction:column;gap:6px">';
-  matches.forEach(function(w){
-    var inLib=(gLS('wb_userwords')||[]).some(function(u){return u.w===w.w});
-    html+='<div style="display:flex;align-items:center;gap:8px;padding:8px;background:#f8f9fa;border-radius:8px;flex-wrap:wrap">';
-    html+='<span style="font-weight:600;color:var(--primary)">'+esc(w.w)+'</span>';
-    if(w.ph)html+='<span class="gq-ph" style="font-size:11px">'+esc(w.ph)+'</span>';
-    if(w.pos)html+='<span style="font-size:11px;color:var(--sub)">'+esc(w.pos)+'</span>';
-    html+='<span style="font-size:13px">'+esc(w.mean||'')+'</span>';
-    if(inLib){
-      html+='<span style="font-size:11px;color:#2e7d32;margin-left:auto">✓ 已在词库</span>';
+  if(fuzzy.length>0){
+    var html='<div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:8px">找到 '+fuzzy.length+' 个相关单词：</div>';
+    fuzzy.forEach(function(w){autoAddToBank(w);html+=renderDictCard(w, false);});
+    resultDiv.innerHTML=html;
+    return;
+  }
+  // 3) 词库都没有 → 联网查词典
+  resultDiv.innerHTML='<div style="padding:14px;color:var(--sub);font-size:13px;text-align:center">🌐 词库中没有，正在联网查询...</div>';
+  fetchDef(q, function(def){
+    if(def){
+      addWordObj(def);renderVocab();
+      resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
     }else{
-      html+='<button class="btn btn-primary btn-sm" style="margin-left:auto;font-size:11px;padding:3px 10px" onclick="addSearchResult(\''+esc(w.w)+'\')">+ 入库</button>';
+      resultDiv.innerHTML='<div style="padding:16px;background:#fff3e0;border-radius:10px;font-size:13px">😕 没有找到「'+esc(q)+'」的释义<br><span style="color:var(--sub);font-size:12px">内置词库和在线词典均无结果。请检查拼写，或换个说法试试。</span></div>';
     }
-    html+='</div>';
   });
+}
+function renderDictCard(w, isSingle){
+  var html='<div style="padding:12px 14px;background:linear-gradient(135deg,#f8f9fa,#fff);border:1px solid #e0e0e0;border-radius:10px;margin-bottom:8px'+(isSingle?';box-shadow:0 2px 8px rgba(0,0,0,.06)':'')+'">';
+  html+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">';
+  html+='<span style="font-size:18px;font-weight:700;color:var(--primary)">'+esc(w.w)+'</span>';
+  if(w.ph)html+='<span class="gq-ph" style="font-size:14px">'+esc(w.ph)+'</span>';
+  if(w.pos)html+='<span style="font-size:11px;background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:10px">'+esc(w.pos)+'</span>';
+  if(w.level)html+='<span style="font-size:11px;background:#fce4ec;color:#c62828;padding:2px 8px;border-radius:10px">'+levelLabel(w.level)+'</span>';
   html+='</div>';
-  resultDiv.innerHTML=html;
+  if(w.mean)html+='<div style="font-size:15px;color:var(--text);margin-bottom:6px;line-height:1.6">'+esc(w.mean)+'</div>';
+  if(w.ex){
+    html+='<div style="font-size:12px;color:var(--sub);margin-top:6px;padding:6px 8px;background:#fafafa;border-radius:6px;border-left:3px solid var(--primary)">';
+    html+='<span style="color:#888">例句：</span>'+esc(w.ex);
+    var cnEx=cnForEx(w.ex,w.mean);
+    if(cnEx&&cnEx!==w.ex)html+='<br><span style="color:var(--primary)">译文：'+esc(cnEx)+'</span>';
+    html+='</div>';
+  }
+  html+='<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">';
+  html+='<button class="btn btn-sm" onclick="speakWord(\''+esc(w.w)+'\')" style="background:#e3f2fd;color:#1565c0">🔊 朗读</button>';
+  html+='<button class="btn btn-sm" onclick="realVoice(\''+esc(w.w)+'\')" style="background:#e8f5e9;color:#2e7d32">🗣️ 真人发音</button>';
+  html+='</div></div>';
+  return html;
 }
-function addSearchResult(word){
-  var vocab=getVocab();
-  var found=null;
-  for(var i=0;i<vocab.length;i++){if(vocab[i].w===word){found=vocab[i];break;}}
-  if(!found)return;
-  // check if already in user words
+function autoAddToBank(w){
+  if(!w||!w.w)return;
   var user=gLS('wb_userwords')||[];
-  if(user.some(function(u){return u.w===word})){alert(word+' 已在词库中');return;}
-  addWordObj({w:found.w,ph:found.ph||'',pos:found.pos||'',mean:found.mean||'',ex:found.ex||'',level:found.level||'c4'});
-  renderVocab();
-  // re-run search to update UI
-  searchAndAdd();
-  alert('✅ 「'+word+'」已加入词汇库，可在游戏和练习中使用！');
-}
-function manualAddWord(q){
-  var w=prompt('英文单词:',q);if(!w||!w.trim())return;w=w.trim();
-  var ph=prompt('音标 (可留空):')||'';
-  var mean=prompt('中文释义:')||'';
-  if(!mean){alert('至少需要填写中文释义');return;}
-  addWordObj({w:w,ph:ph,pos:'',mean:mean,ex:'',level:'daily'});
-  renderVocab();
-  searchAndAdd();
-  alert('✅ 「'+w+'」已手动加入词汇库！');
+  if(user.some(function(u){return u.w===w.w;}))return;
+  addWordObj({w:w.w,ph:w.ph||'',pos:w.pos||'',mean:w.mean||'',ex:w.ex||'',level:w.level||'daily'});
 }
 
 
@@ -2965,45 +2967,45 @@ function renderLink(){
   var html='<div class="game-q">';
   html+='<div class="gq-top"><span>🔗 英语连连看</span><span>得分 '+L.score+' · 已配对 '+L.matched+'/'+L.total+'</span></div>';
   html+='<p style="font-size:12px;color:var(--sub);margin-bottom:10px">先点左侧英文，再点右侧中文释义进行配对</p>';
-  // two columns
   html+='<div style="display:flex;gap:12px;align-items:flex-start">';
-  // left column - English
+  // left - English
   html+='<div style="flex:1;display:flex;flex-direction:column;gap:6px">';
   L.en.forEach(function(item){
     var isDone=L.done.indexOf(item.matchId)>=0;
     var isSelected=L.selectedEn===item.id;
-    var bg=isDone?'#e8f5e9':(isSelected?'#e3f2fd':'#fff');
-    var color=isDone?'#2e7d32':(isSelected?'#1565c0':'var(--text)');
-    var cursor=isDone?'default':'pointer';
-    html+='<button class="link-item" data-id="'+item.id+'" data-side="en" onclick="linkClick(\''+item.id+'\','+'en'+'\')" style="background:'+bg+';color:'+cursor==='default'?'#2e7d32':color+';cursor:'+cursor+(isSelected?';box-shadow:0 0 0 2px #1565c0':'')+'">';
+    var cls='link-item'+(isDone?' link-done':'')+(isSelected?' link-sel':'');
+    html+='<button class="'+cls+'" data-id="'+item.id+'" data-side="en" onclick="linkClick(\''+item.id+'\','+'en'+'\')">';
     html+='<span style="font-weight:600">'+esc(item.text)+'</span>';
     if(item.ph)html+=' <span class="gq-ph" style="font-size:11px">'+esc(item.ph)+'</span>';
     if(isDone)html+=' ✓';
     html+='</button>';
   });
   html+='</div>';
-  // right column - Chinese
+  // right - Chinese
   html+='<div style="flex:1;display:flex;flex-direction:column;gap:6px">';
   L.cn.forEach(function(item){
     var isDone=L.done.indexOf(item.matchId)>=0;
     var isSelected=L.selectedCn===item.id;
-    var bg=isDone?'#e8f5e9':(isSelected?'#e3f2fd':'#fff');
-    var cursor=isDone?'default':'pointer';
-    html+='<button class="link-item" data-id="'+item.id+'" data-side="cn" onclick="linkClick(\''+item.id+'\','+'cn'+'\')" style="background:'+bg+';cursor:'+cursor+(isSelected?';box-shadow:0 0 0 2px #1565c0':'')+'">';
+    var cls='link-item'+(isDone?' link-done':'')+(isSelected?' link-sel':'');
+    html+='<button class="'+cls+'" data-id="'+item.id+'" data-side="cn" onclick="linkClick(\''+item.id+'\','+'cn'+'\')">';
     html+=esc(item.text);
     if(isDone)html+=' ✓';
     html+='</button>';
   });
   html+='</div></div>';
-  // feedback area
   html+='<div id="linkFb" style="margin-top:10px;text-align:center;font-size:13px;min-height:22px"></div>';
   html+='<button class="gm-btn2" onclick="quitGame()" style="margin-top:8px">退出</button>';
   html+='</div>';
   document.getElementById('gameStage').innerHTML=html;
-  // add link-item styles dynamically
+  // inject styles once
   if(!document.getElementById('linkStyles')){
     var s=document.createElement('style');s.id='linkStyles';
-    s.textContent='.link-item{display:block;width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;text-align:left;font-size:14px;background:#fff;color:var(--text);transition:all .2s}.link-item:hover{border-color:#999}';
+    s.textContent=[
+      '.link-item{display:block;width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;text-align:left;font-size:14px;background:#fff;color:var(--text);transition:all .2s;cursor:pointer}',
+      '.link-item:hover{border-color:#999}',
+      '.link-item.link-done{background:#e8f5e9;color:#2e7d32;cursor:not-allowed;border-color:#a5d6a7}',
+      '.link-item.link-sel{background:#e3f2fd;color:#1565c0;border-color:#90caf9;box-shadow:0 0 0 2px #1565c0}'
+    ].join('');
     document.head.appendChild(s);
   }
 }
