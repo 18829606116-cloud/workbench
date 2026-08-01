@@ -2969,15 +2969,27 @@ function renderSpell(word){
   var html='<div class="game-q">';
   html+='<div class="gq-top"><span>得分 '+G.score+'</span><span>第 '+G.total+' 题</span></div>';
   html+=speedBar();
-  var ph=word.ph||'—';
+  // 确保有音标：优先用 word.ph，否则从 _phMap 获取
+  var ph=word.ph||getPh(word.w)||'—';
   html+='<div class="gq-prompt">✍️ 根据音标和释义拼写单词</div>';
   html+='<div class="gq-ph-big">'+esc(ph)+'</div>';
   html+='<div class="gq-mean">'+esc(word.mean)+'</div>';
-  html+='<div class="gq-act-row"><button class="gm-act" onclick="speakWord(\''+esc(word.w)+'\')">🔊 听发音</button> <button class="gm-act" onclick="realVoice(\''+esc(word.w)+'\')">🗣️ 真人</button></div>';
+  html+='<div class="gq-act-row"><button class="gm-act" onclick="speakWord(\''+esc(word.w)+'\')">🔊 听发音</button> <button class="gm-act" onclick="realVoice(\''+esc(word.w)+'\')">🗣️ 真人</button> <button class="gm-act" id="revealAnsBtn" onclick="revealSpellAnswer()" style="background:#fff3e0;color:#e65100">💡 显示答案</button></div>';
   html+='<div class="spell-row"><input id="spellInput" class="spell-in" oninput="checkSpell()" autocomplete="off" placeholder="输入英文拼写..."><button class="gm-act" onclick="submitSpell()">提交</button></div>';
   html+='<div class="gq-fb" id="gqFb"></div><button class="gm-btn2" onclick="quitGame()">退出</button></div>';
   document.getElementById('gameStage').innerHTML=html;
+  G.spellRevealed=false;
   setTimeout(function(){var el=document.getElementById('spellInput'); if(el)el.focus();},50);
+}
+function revealSpellAnswer(){
+  if(G.spellRevealed)return;
+  G.spellRevealed=true;
+  var el=document.getElementById('spellInput');
+  var fb=document.getElementById('gqFb');
+  var btn=document.getElementById('revealAnsBtn');
+  if(el){el.value=G.cur.w;el.style.color='#e65100';el.style.fontWeight='700';}
+  if(fb)fb.innerHTML='<span style="color:#e65100;font-size:13px">💡 答案：<b>'+esc(G.cur.w)+'</b> · '+esc(G.cur.mean)+' · 记住后点「提交」进入下一题</span>';
+  if(btn){btn.disabled=true;btn.style.opacity='0.5';btn.textContent='✅ 已显示';}
 }
 function checkSpell(){
   var el=document.getElementById('spellInput'); if(!el||!G.cur)return;
@@ -2990,7 +3002,10 @@ function submitSpell(){
   var el=document.getElementById('spellInput'); if(!el||!G.cur)return;
   var v=el.value.trim().toLowerCase(); var ans=G.cur.w.toLowerCase();
   var fb=document.getElementById('gqFb');
-  if(v===ans){ G.correct++; G.combo++; G.score+=10+G.combo*2; fb.innerHTML='<span class="ok">✅ 正确！</span>'; }
+  if(v===ans){
+    G.correct++; G.combo++; G.score+=10+G.combo*2;
+    fb.innerHTML='<span class="ok">✅ 正确！'+(G.spellRevealed?'（看了答案再提交的）':'')+'</span>';
+  }
   else { G.combo=0; bumpWeak(G.cur.w); fb.innerHTML='<span class="bad">❌ 正确拼写：'+esc(G.cur.w)+'</span>'; }
   setTimeout(nextQuestion,900);
 }
@@ -3017,10 +3032,21 @@ function renderCloze(word){
 function answerClozeIdx(i){
   var cur=G.cur; if(!cur)return;
   var val=cur.opts[i]; var fb=document.getElementById('gqFb');
-  if(val===cur.answer){ G.correct++; G.combo++; G.score+=10+G.combo*2; fb.innerHTML='<span class="ok">✅ 正确！</span>'; }
-  else { G.combo=0; bumpWeak(cur.word.w); fb.innerHTML='<span class="bad">❌ 正确：'+esc(cur.answer)+'</span>'; }
+  // 锁定选项防止重复点
   lockOpts();
-  setTimeout(nextQuestion,700);
+  if(val===cur.answer){
+    G.correct++; G.combo++; G.score+=10+G.combo*2;
+    fb.innerHTML='<span class="ok">✅ 正确！</span>';
+  } else {
+    G.combo=0; bumpWeak(cur.word.w);
+    fb.innerHTML='<span class="bad">❌ 正确：'+esc(cur.answer)+'</span>';
+  }
+  // 显示句子释义，不再自动跳下一题
+  var fullCn=cnForEx(cur.ex, cur.word.mean);
+  fb.innerHTML+='<div style="margin-top:10px;padding:10px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border-radius:8px;border-left:3px solid #4caf50">';
+  fb.innerHTML+='<div style="font-size:12px;color:#2e7d32;font-weight:600;margin-bottom:4px">📝 这句话的意思：</div>';
+  fb.innerHTML+='<div style="font-size:15px;color:var(--text)">'+esc(fullCn)+'</div>';
+  fb.innerHTML+='<div style="margin-top:8px;text-align:center"><button class="gm-act" onclick="nextQuestion()" style="background:#1565c0;color:#fff;padding:8px 24px;border-radius:8px;font-size:14px">下一题 →</button></div></div>';
 }
 function startTimed(){
   G.idx=0;
@@ -3355,7 +3381,14 @@ function nextShadow(){
   html+=speedBar();
   // 整句逐词音标（替代原来的首词音标）
   html+='<div class="gq-sent" style="line-height:2.2;font-size:17px">'+phHtmlLite(it.text,12)+'</div>';
-  if(it.cn)html+='<div class="gq-mean" style="text-align:center">📝 '+esc(it.cn)+'</div>';
+  // 显示整句翻译：词库例句来源的 it.cn 只是单词释义，需要用 cnForEx 获取整句翻译
+  var showCn=it.cn||'';
+  if(it.kind==='word'){
+    // 词库例句：cn 是单词释义，用 cnForEx 获取整句翻译
+    showCn=cnForEx(it.text, it.cn);
+    if(showCn===it.text)showCn=it.cn; // 兜底：如果翻译失败就显示单词释义
+  }
+  if(showCn)html+='<div class="gq-mean" style="text-align:center">📝 '+esc(showCn)+'</div>';
   html+='<div class="gq-act-row" style="justify-content:center"><button class="gm-act" onclick="speakCurShadow()">🔊 听示范</button><button class="gm-act" id="micBtn" onclick="doShadow()">🎤 开始跟读</button></div>';
   html+='<div class="gq-fb" id="gqFb">点击「开始跟读」，大声朗读上面的内容 🎙️</div>';
   html+='<div style="text-align:center;margin-top:8px"><button class="gm-act" onclick="nextShadow()">下一段 →</button> <button class="gm-btn2" onclick="quitGame()">退出</button></div></div>';
