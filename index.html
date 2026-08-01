@@ -2193,7 +2193,11 @@ function dictLookup(){
     fetchDef(q, function(def){
       if(def){
         addWordObj(def);renderVocab();
-        resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+        // 翻译英文释义为中文
+        translateEnToZh(def.mean, function(zhMean){
+          def.zhMean=zhMean;
+          resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+        });
       }else{
         resultDiv.innerHTML='<div style="padding:16px;background:#fff3e0;border-radius:10px;font-size:13px">😕 没有找到「'+esc(q)+'」的释义<br><span style="color:var(--sub);font-size:12px">内置词库和在线词典均无结果。请检查拼写，或换个说法试试。</span></div>';
       }
@@ -2217,6 +2221,24 @@ function dictLookup(){
     var wordResults=[];
     if(pending.length===0)pending=words.slice(); // 如果全是停用词，就全部查
     function checkDone(){
+      // 批量翻译所有英文释义为中文
+      var itemsToTranslate=wordResults.filter(function(item){return item.wd&&item.wd.mean&&!item.wd.zhMean;});
+      if(itemsToTranslate.length===0){
+        renderSentenceResult();
+        return;
+      }
+      var translated=0;
+      itemsToTranslate.forEach(function(item){
+        translateEnToZh(item.wd.mean, function(zh){
+          item.wd.zhMean=zh;
+          translated++;
+          if(translated>=itemsToTranslate.length)renderSentenceResult();
+        });
+      });
+      // 超时保护：3秒后无论翻译是否完成都显示
+      setTimeout(function(){if(translated<itemsToTranslate.length)renderSentenceResult();},3000);
+    }
+    function renderSentenceResult(){
       var html='';
       // 翻译结果
       if(translation){
@@ -2280,7 +2302,11 @@ function renderDictCard(w, isSingle){
   if(w.pos)html+='<span style="font-size:11px;background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:10px">'+esc(w.pos)+'</span>';
   if(w.level)html+='<span style="font-size:11px;background:#fce4ec;color:#c62828;padding:2px 8px;border-radius:10px">'+levelLabel(w.level)+'</span>';
   html+='</div>';
-  if(w.mean)html+='<div style="font-size:15px;color:var(--text);margin-bottom:6px;line-height:1.6">'+esc(w.mean)+'</div>';
+  // 中文释义（优先显示，大字）
+  if(w.zhMean)html+='<div style="font-size:15px;color:var(--text);margin-bottom:4px;line-height:1.6;font-weight:500">'+esc(w.zhMean)+'</div>';
+  // 英文原文（缩小显示作参考）
+  if(w.mean&&w.mean!==w.zhMean)html+='<div style="font-size:12px;color:#888;margin-bottom:6px;line-height:1.5">📖 '+esc(w.mean)+'</div>';
+  else if(w.mean&&!w.zhMean)html+='<div style="font-size:15px;color:var(--text);margin-bottom:6px;line-height:1.6">'+esc(w.mean)+'</div>';
   if(w.ex){
     html+='<div style="font-size:12px;color:var(--sub);margin-top:6px;padding:6px 8px;background:#fafafa;border-radius:6px;border-left:3px solid var(--primary)">';
     html+='<span style="color:#888">例句：</span>'+esc(w.ex);
@@ -2668,9 +2694,25 @@ function fetchDef(word,cb){
       if(!ph&&e.phonetics&&e.phonetics[0])ph=e.phonetics[0].text||'';
       var defs=[];(e.meanings||[]).forEach(function(m){(m.definitions||[]).forEach(function(x){if(defs.length<3)defs.push((m.partOfSpeech?m.partOfSpeech+': ':'')+x.definition);});});
       var mean=defs.join(' | ');if(mean.length>300)mean=mean.slice(0,300)+'…';
-      cb({w:word,ph:ph||'',pos:'',mean:mean||'(未找到释义)',ex:'',level:'c4'});
+      // 提取词性（取第一个有定义的）
+      var pos='';
+      if(e.meanings&&e.meanings[0])pos=e.meanings[0].partOfSpeech||'';
+      cb({w:word,ph:ph||'',pos:pos,mean:mean||'(未找到释义)',ex:'',level:'c4'});
     }else cb(null);
   }).catch(function(){cb(null);});
+}
+// 翻译英文释义为中文（MyMemory 免费API）
+function translateEnToZh(enText,cb){
+  if(!enText||!enText.trim()){cb('');return;}
+  if(typeof fetch!=='function'){cb(enText);return;}
+  var url='https://api.mymemory.translated.net/get?q='+encodeURIComponent(enText)+'&langpair=en|zh-CN';
+  fetch(url).then(function(r){return r.json();}).then(function(d){
+    var zh='';
+    try{zh=d.responseData.translatedText||'';}catch(e){}
+    // 如果翻译结果和原文一样或为空，返回原文
+    if(!zh||zh.toLowerCase()===enText.toLowerCase())cb(enText);
+    else cb(zh);
+  }).catch(function(){cb(enText);});
 }
 
 // ============ LISTENING ============
