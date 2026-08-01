@@ -2974,7 +2974,7 @@ function renderLink(){
     var isDone=L.done.indexOf(item.matchId)>=0;
     var isSelected=L.selectedEn===item.id;
     var cls='link-item'+(isDone?' link-done':'')+(isSelected?' link-sel':'');
-    html+='<button class="'+cls+'" data-id="'+item.id+'" data-side="en" onclick="linkClick(\''+item.id+'\','+'en'+'\')">';
+    html+='<button class="'+cls+'" data-id="'+item.id+'" data-side="en" onclick="linkClick(this)">';
     html+='<span style="font-weight:600">'+esc(item.text)+'</span>';
     if(item.ph)html+=' <span class="gq-ph" style="font-size:11px">'+esc(item.ph)+'</span>';
     if(isDone)html+=' ✓';
@@ -2987,7 +2987,7 @@ function renderLink(){
     var isDone=L.done.indexOf(item.matchId)>=0;
     var isSelected=L.selectedCn===item.id;
     var cls='link-item'+(isDone?' link-done':'')+(isSelected?' link-sel':'');
-    html+='<button class="'+cls+'" data-id="'+item.id+'" data-side="cn" onclick="linkClick(\''+item.id+'\','+'cn'+'\')">';
+    html+='<button class="'+cls+'" data-id="'+item.id+'" data-side="cn" onclick="linkClick(this)">';
     html+=esc(item.text);
     if(isDone)html+=' ✓';
     html+='</button>';
@@ -3009,7 +3009,9 @@ function renderLink(){
     document.head.appendChild(s);
   }
 }
-function linkClick(id,side){
+function linkClick(btn){
+  var id=btn.getAttribute('data-id');
+  var side=btn.getAttribute('data-side');
   var L=G.link;
   var fb=document.getElementById('linkFb');
   // already matched?
