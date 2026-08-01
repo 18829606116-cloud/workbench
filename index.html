@@ -565,9 +565,10 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     <button class="btn btn-blue" onclick="syncUpload()">⬆️ 上传到云端</button>
     <button class="btn btn-blue" onclick="syncDownload()">⬇️ 从云端下载</button>
     <label class="sync-auto"><input type="checkbox" id="syncAuto" onchange="toggleAutoSync()" /> 自动同步</label>
+    <label class="sync-auto"><input type="checkbox" id="syncAutoDl" onchange="toggleAutoDl()" /> 打开时自动下载</label>
   </div>
   <div id="syncStatus" class="sync-status"></div>
-  <p class="sync-help">💡 自动同步：每次操作数据后 1.5 秒自动上传。建议只在主力设备开启。</p>
+  <p class="sync-help">💡 自动同步：每次操作数据后 1.5 秒自动上传（建议只在主力设备开）。打开时自动下载：每次打开自动从云端拉取最新数据（适合手机/副设备）。</p>
 </div>
 </div>
 </div>
@@ -2868,6 +2869,11 @@ function toggleAutoSync(){
   setSyncStatus(on?"已开启自动同步（每次操作后自动上传）":"已关闭自动同步","ok");
   if(on) syncUpload();
 }
+function toggleAutoDl(){
+  const on=document.getElementById('syncAutoDl').checked;
+  sLS("wb_sync_auto_dl",on?"1":"0");
+  setSyncStatus(on?"已开启「打开时自动下载」":"已关闭「打开时自动下载」","ok");
+}
 let _syncTimer=null;
 function scheduleAutoSync(){
   if(gLS("wb_sync_auto")!=="1") return;
@@ -2883,12 +2889,18 @@ function scheduleAutoSync(){
 (function(){
   const cb=document.getElementById('syncAuto');
   if(cb) cb.checked=gLS("wb_sync_auto")==="1";
+  const cbdl=document.getElementById('syncAutoDl');
+  if(cbdl) cbdl.checked=gLS("wb_sync_auto_dl")==="1";
   const cfg=getSyncCfg();
   if(cfg){
     const gi=document.getElementById('syncGistId');
     const tk=document.getElementById('syncToken');
     if(gi)gi.value=cfg.gistId||"";
     if(tk)tk.value=cfg.token||"";
+    // 打开时自动下载：刚下载完 reload 的不重复触发；只在配置了且开启时拉取云端
+    if(gLS("wb_sync_auto_dl")==="1" && !sessionStorage.getItem("wb_just_synced")){
+      syncDownload();
+    }
   }
 })();
 /* ===================== /Cloud Sync ===================== */
