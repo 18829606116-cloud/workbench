@@ -5105,7 +5105,7 @@ var DLG_SCENES = [
         "spk": "A",
         "role": "店员",
         "en": "How about this handmade scarf? It is a popular local product.",
-        "zh": "这条手织围巾怎么样？是受欢迎的本地产品。"
+        "zh": "这条手织围巾怎么样？是受欢��的本地产品。"
       },
       {
         "spk": "B",
@@ -5268,6 +5268,54 @@ var DLG_SCENES = [
       }
     ]
   }
+,
+  {
+    "id": "interview",
+    "title": "💼 求职面试",
+    "desc": "自我介绍、说明优势、谈期望薪资",
+    "lines": [
+      { "spk": "A", "role": "面试官", "en": "Good morning. Please have a seat. Could you tell me a little about yourself?", "zh": "早上好，请坐。能简单介绍一下自己吗？" },
+      { "spk": "B", "role": "你", "en": "Sure. I graduated in computer science and have three years of experience in software development.", "zh": "当然。我计算机专业毕业，有三年的软件开发经验。" },
+      { "spk": "A", "role": "面试官", "en": "Why do you want to work for our company?", "zh": "你为什么想加入我们公司？" },
+      { "spk": "B", "role": "你", "en": "I admire your products and I believe I can grow here.", "zh": "我很欣赏你们的产品，也相信能在这里成长。" },
+      { "spk": "A", "role": "面试官", "en": "What are your strengths?", "zh": "你的优势是什么？" },
+      { "spk": "B", "role": "你", "en": "I am a good team player and I learn quickly.", "zh": "我善于团队协作，并且学得快。" },
+      { "spk": "A", "role": "面试官", "en": "What is your expected salary?", "zh": "你的期望薪资是多少？" },
+      { "spk": "B", "role": "你", "en": "I am open to discussion based on the role.", "zh": "我愿意根据岗位进行协商。" },
+      { "spk": "A", "role": "面试官", "en": "Great. We will contact you within a week.", "zh": "好的，我们会在一周内联系你。" }
+    ]
+  },
+  {
+    "id": "takeout",
+    "title": "🥡 点外卖",
+    "desc": "电话/线上点餐、选规格、问总价、报地址",
+    "lines": [
+      { "spk": "B", "role": "你", "en": "Hello, I would like to order a pizza and a coke.", "zh": "你好，我想点一个披萨和一杯可乐。" },
+      { "spk": "A", "role": "店员", "en": "Sure. What size pizza would you like, medium or large?", "zh": "好的。披萨要中份还是大份？" },
+      { "spk": "B", "role": "你", "en": "Large, please. And no onions.", "zh": "大份，谢谢。不要洋葱。" },
+      { "spk": "A", "role": "店员", "en": "Anything else? We have a discount on fries today.", "zh": "还要别的吗？今天薯条有折扣。" },
+      { "spk": "B", "role": "你", "en": "Then add a small fries. How much is it in total?", "zh": "那加一份小薯条。一共多少钱？" },
+      { "spk": "A", "role": "店员", "en": "That is 68 yuan. Where should we deliver?", "zh": "一共 68 元。送哪里？" },
+      { "spk": "B", "role": "你", "en": "Room 502, Green Apartment. Please make it quick.", "zh": "绿园公寓 502 室。请快一点。" },
+      { "spk": "A", "role": "店员", "en": "Got it. It will arrive in about 30 minutes.", "zh": "收到，大约 30 分钟送达。" }
+    ]
+  },
+  {
+    "id": "bank",
+    "title": "🏦 银行办事",
+    "desc": "开储蓄账户、办借记卡、设密码、查余额",
+    "lines": [
+      { "spk": "A", "role": "柜员", "en": "Good afternoon. How can I help you?", "zh": "下午好，有什么可以帮您？" },
+      { "spk": "B", "role": "你", "en": "I would like to open a savings account.", "zh": "我想开一个储蓄账户。" },
+      { "spk": "A", "role": "柜员", "en": "Sure. Do you have your ID card with you?", "zh": "可以，您带身份证了吗？" },
+      { "spk": "B", "role": "你", "en": "Yes, here it is.", "zh": "带了，给您。" },
+      { "spk": "A", "role": "柜员", "en": "Would you like to apply for a debit card as well?", "zh": "您也要办一张借记卡吗？" },
+      { "spk": "B", "role": "你", "en": "Yes, and I need to set a password.", "zh": "要，我还需要设置密码。" },
+      { "spk": "A", "role": "柜员", "en": "Alright. Please enter your PIN on the keypad.", "zh": "好的，请在密码键盘上输入密码。" },
+      { "spk": "B", "role": "你", "en": "Done. How can I check my balance later?", "zh": "好了。以后怎么查余额？" },
+      { "spk": "A", "role": "柜员", "en": "You can use the mobile app or the ATM.", "zh": "您可以用手机银行或 ATM。" }
+    ]
+  }
 ];
 
 
@@ -5275,7 +5323,7 @@ var DLG_CUR='airport';
 var DLG_ZH=true;
 function dlgEnsureCss(){
   if(window.DLG_CSS_DONE) return;
-  var css='.dlg-chip{display:inline-block;padding:6px 12px;margin:4px 6px 4px 0;border:1px solid var(--border,#ddd);border-radius:18px;background:var(--card,#fff);color:var(--text,#222);font-size:13px;cursor:pointer}.dlg-chip.on{background:#2b6cb0;color:#fff;border-color:#2b6cb0}.dlg-line{margin:10px 0;padding:10px 12px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--border,#eee)}.dlg-me{background:#eef5ff}.dlg-role{font-size:12px;color:#888;margin-bottom:3px}.dlg-en{font-size:16px;line-height:1.75;color:var(--text,#222)}.dlg-w{color:#2b6cb0;cursor:pointer;border-bottom:1px dashed #2b6cb0}.dlg-w:active{opacity:.5}.dlg-zh{font-size:13px;color:#888;margin-top:5px;line-height:1.6}.dlg-zh.hide{display:none}.dlg-act{margin:12px 0 4px}';
+  var css='.dlg-chip{display:inline-block;padding:6px 12px;margin:4px 6px 4px 0;border:1px solid var(--border,#ddd);border-radius:18px;background:var(--card,#fff);color:var(--text,#222);font-size:13px;cursor:pointer}.dlg-chip.on{background:#2b6cb0;color:#fff;border-color:#2b6cb0}.dlg-line{margin:10px 0;padding:10px 12px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--border,#eee)}.dlg-me{background:#eef5ff}.dlg-role{font-size:12px;color:#888;margin-bottom:3px}.dlg-en{font-size:16px;line-height:1.75;color:var(--text,#222)}.dlg-w{color:#2b6cb0;cursor:pointer;border-bottom:1px dashed #2b6cb0}.dlg-w:active{opacity:.5}.dlg-zh{font-size:13px;color:#888;margin-top:5px;line-height:1.6}.dlg-zh.hide{display:none}.dlg-act{margin:12px 0 4px}.dlg-pop{position:fixed;z-index:1200;display:none;max-width:240px;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:12px;font-size:14px}.dlg-pop-w{font-size:17px;font-weight:700;color:#2b6cb0}.dlg-pop-m{font-size:13px;color:#555;margin:6px 0 10px;line-height:1.5}.dlg-pop-act{display:flex;gap:8px}.dlg-book-ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35);z-index:1300}.dlg-book{background:#fff;border-radius:16px;width:min(440px,92vw);max-height:80vh;overflow:auto;padding:16px}.dlg-book-h{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:700;margin-bottom:10px}.dlg-book-e{padding:24px 8px;text-align:center;color:#999;font-size:14px}.dlg-book-list{display:flex;flex-direction:column;gap:8px}.dlg-book-i{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #eee;border-radius:10px}.dlg-bi-w{font-weight:600;color:#2b6cb0;cursor:pointer;min-width:120px}.dlg-bi-m{flex:1;font-size:13px;color:#555}';
   document.head.insertAdjacentHTML('beforeend','<style>'+css+'</style>');
   window.DLG_CSS_DONE=true;
 }
@@ -5294,19 +5342,75 @@ function renderDialog(){
   for(var j=0;j<s.lines.length;j++){
     var ln=s.lines[j];
     var toks=esc(ln.en).split(' ');
-    var enHtml=toks.map(function(t){ var clean=t.replace(/[^A-Za-z']/g,''); if(clean.length<1) return t; return '<span class="dlg-w" onclick="dlgWord(this)" data-w="'+clean+'">'+t+'</span>'; }).join(' ');
+    var enHtml=toks.map(function(t){ var clean=t.replace(/[^A-Za-z']/g,''); if(clean.length<1) return t; return '<span class="dlg-w" onclick="dlgWord(this,event)" data-w="'+clean+'">'+t+'</span>'; }).join(' ');
     lines+='<div class="dlg-line'+(ln.spk==='B'?' dlg-me':'')+'"><div class="dlg-role">'+esc(ln.role)+'</div><div class="dlg-en">'+enHtml+'</div><div class="dlg-zh'+(DLG_ZH?'':' hide')+'">'+esc(ln.zh)+'</div></div>';
   }
-  el.innerHTML='<div class="dlg-act"><button class="gm-btn" onclick="dlgToggleZh()">'+(DLG_ZH?'👁 隐藏中文（自测）':'👁 显示中文')+'</button></div><p class="desc">'+esc(s.desc)+'</p><div class="dlg-chips">'+chips+'</div>'+lines;
+  el.innerHTML='<div class="dlg-act"><button class="gm-btn" onclick="dlgToggleZh()">'+(DLG_ZH?'👁 隐藏中文（自测）':'👁 显示中文')+'</button> <button class="gm-btn" onclick="dlgBook()">📒 生词本 ('+dlgGetFav().length+')</button></div><p class="desc">'+esc(s.desc)+'</p><div class="dlg-chips">'+chips+'</div>'+lines;
 }
 function dlgSelect(id){ DLG_CUR=id; renderDialog(); }
-function dlgWord(el){
+function dlgWord(el, ev){
   var w=el.getAttribute('data-w'); if(w) speakWord(w);
-  var v=getVocab()||[]; var m=null;
-  for(var i=0;i<v.length;i++){ if(v[i] && v[i].w && v[i].w.toLowerCase()===String(w).toLowerCase()){ m=v[i].mean; break; } }
-  if(m) toast(w+'：'+m); else toast('🔊 '+w);
+  var m=dlgMeanOf(w);
+  var pop=document.getElementById('dlgPop');
+  if(!pop){ pop=document.createElement('div'); pop.id='dlgPop'; pop.className='dlg-pop'; document.body.appendChild(pop); }
+  var fav=dlgGetFav();
+  var isFav=false; for(var i=0;i<fav.length;i++){ if(fav[i].w.toLowerCase()===String(w).toLowerCase()){isFav=true;break;} }
+  pop.innerHTML='<div class="dlg-pop-w">'+esc(w)+'</div>'+(m?'<div class="dlg-pop-m">'+esc(m)+'</div>':'<div class="dlg-pop-m" style="color:#aaa">词库暂无释义</div>')+'<div class="dlg-pop-act"><button class="gm-btn2" id="dlgSpeakBtn">🔊 朗读</button><button class="gm-btn2" id="dlgFavBtn">'+(isFav?'⭐ 已收藏':'☆ 收藏')+'</button></div>';
+  pop.style.display='block';
+  document.getElementById('dlgSpeakBtn').onclick=function(){ speakWord(w); };
+  document.getElementById('dlgFavBtn').onclick=function(){ dlgToggleFav(w); };
+  var x=ev&&typeof ev.clientX==='number'?ev.clientX:window.innerWidth/2;
+  var y=ev&&typeof ev.clientY==='number'?ev.clientY:window.innerHeight/2;
+  pop.style.left=Math.min(x, window.innerWidth-250)+'px';
+  pop.style.top=Math.min(y+14, window.innerHeight-170)+'px';
+  if(window.__dlgClosePop) document.removeEventListener('click', window.__dlgClosePop);
+  window.__dlgClosePop=function(e){ if(pop.style.display==='block' && !pop.contains(e.target)){ pop.style.display='none'; document.removeEventListener('click', window.__dlgClosePop); } };
+  setTimeout(function(){ document.addEventListener('click', window.__dlgClosePop); }, 0);
 }
 function dlgToggleZh(){ DLG_ZH=!DLG_ZH; renderDialog(); }
+window.__dlgRender=renderDialog;
+function dlgGetFav(){ try{ return JSON.parse(localStorage.getItem('wb_dlgbook')||'[]'); }catch(e){ return []; } }
+function dlgMeanOf(w){ var v=getVocab()||[]; for(var i=0;i<v.length;i++){ if(v[i] && v[i].w && v[i].w.toLowerCase()===String(w).toLowerCase()){ return v[i].mean; } } return ''; }
+function dlgToggleFav(w){
+  var fav=dlgGetFav(); var idx=-1;
+  for(var i=0;i<fav.length;i++){ if(fav[i].w.toLowerCase()===String(w).toLowerCase()){ idx=i; break; } }
+  if(idx>=0){ fav.splice(idx,1); toast('已取消收藏'); }
+  else { fav.push({w:w, mean:dlgMeanOf(w)||''}); toast('⭐ 已加入生词本'); }
+  localStorage.setItem('wb_dlgbook', JSON.stringify(fav));
+  var btn=document.getElementById('dlgFavBtn');
+  if(btn) btn.innerHTML=(idx>=0?'☆ 收藏':'⭐ 已收藏');
+  if(window.__dlgRender) window.__dlgRender();
+}
+function dlgBook(){
+  var fav=dlgGetFav();
+  var ov=document.getElementById('dlgBookOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='dlgBookOv'; ov.className='dlg-book-ov'; document.body.appendChild(ov); }
+  ov.innerHTML='';
+  var box=document.createElement('div'); box.className='dlg-book';
+  var h=document.createElement('div'); h.className='dlg-book-h';
+  var ht=document.createElement('span'); ht.textContent='📒 我的生词本（'+fav.length+'）'; h.appendChild(ht);
+  var close=document.createElement('button'); close.className='gm-act'; close.textContent='✕'; close.onclick=function(){ ov.style.display='none'; }; h.appendChild(close);
+  box.appendChild(h);
+  if(fav.length===0){ var e=document.createElement('div'); e.className='dlg-book-e'; e.textContent='还没有收藏单词。在对话里点单词，再点「☆ 收藏」即可。'; box.appendChild(e); }
+  else {
+    var list=document.createElement('div'); list.className='dlg-book-list';
+    fav.forEach(function(f){
+      var it=document.createElement('div'); it.className='dlg-book-i';
+      var wsp=document.createElement('span'); wsp.className='dlg-bi-w'; wsp.textContent='🔊 '+f.w; wsp.onclick=function(){ speakWord(f.w); };
+      var msp=document.createElement('span'); msp.className='dlg-bi-m'; msp.textContent=f.mean||'—';
+      var del=document.createElement('button'); del.className='gm-act'; del.textContent='✕'; del.onclick=function(){ dlgBookDel(f.w); };
+      it.appendChild(wsp); it.appendChild(msp); it.appendChild(del); list.appendChild(it);
+    });
+    box.appendChild(list);
+  }
+  ov.appendChild(box); ov.style.display='flex';
+  ov.onclick=function(e){ if(e.target===ov) ov.style.display='none'; };
+}
+function dlgBookDel(w){
+  var fav=dlgGetFav().filter(function(x){ return x.w.toLowerCase()!==String(w).toLowerCase(); });
+  localStorage.setItem('wb_dlgbook', JSON.stringify(fav));
+  dlgBook();
+}
 
 <!-- DIALOG MODULE END -->
 /* ===================== /Cloud Sync ===================== */
