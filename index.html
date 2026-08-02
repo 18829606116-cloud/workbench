@@ -287,6 +287,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     <button class="drawer-item" data-page="market" onclick="switchPage('market')"><span class="di-icon">&#128202;</span> 市场复盘</button>
     <button class="drawer-item" data-page="douyin" onclick="switchPage('douyin')"><span class="di-icon">&#127925;</span> 抖音话题</button>
     <button class="drawer-item" data-page="weather" onclick="switchPage('weather')"><span class="di-icon">&#127782;</span> 天气预报</button>
+    <button class="drawer-item" data-page="cultivate" onclick="switchPage('cultivate')"><span class="di-icon">&#127775;</span> 养成小游戏</button>
   </nav>
 </aside>
 
@@ -811,9 +812,19 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 </div>
 
+<!-- ===== PAGE: CULTIVATE (养成小游戏) ===== -->
+<div class="module-page" id="page-cultivate">
+<div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">🌟 养成小游戏</span></div>
+<div class="sec-card">
+  <p class="desc">把学习变成养小镇：玩游戏、背单词、打卡都会获得经验/金币/材料。等级<b>永无上限</b>，建造建筑解锁加成。无断签惩罚、无转生加成。</p>
+  <div id="cultBody"></div>
+</div>
+</div>
+
 <!-- ===== BOTTOM NAV ===== -->
 <nav class="bottom-nav">
 <div class="nav-item active" data-mod="weight" onclick="switchPage('weight')"><span class="nav-icon">&#9878;</span>体重</div>
+<div class="nav-item" data-mod="cultivate" onclick="switchPage('cultivate')"><span class="nav-icon">&#127775;</span>养成</div>
 <div class="nav-item" data-mod="med" onclick="switchPage('med')"><span class="nav-icon">&#128138;</span>吃药</div>
 <div class="nav-item" data-mod="eng" onclick="switchPage('eng')"><span class="nav-icon">&#128218;</span>英语</div>
 <div class="nav-item" data-mod="game" onclick="switchPage('game')"><span class="nav-icon">&#127918;</span>游戏</div>
@@ -864,6 +875,7 @@ function switchPage(id){
   try{ if(id==='douyin')initDouyinPage(); }catch(e){console.warn('initDouyinPage:',e);}
   try{ if(id==='eng')renderVocab(); }catch(e){console.warn('renderVocab:',e);}
   try{ if(id==='weather')initWeather(); }catch(e){console.warn('initWeather:',e);}
+  try{ if(id==='cultivate')renderCultivate(); }catch(e){console.warn('renderCultivate:',e);}
   // 回到顶部（真机一定存在，但仍包 try 防止个别环境抛错阻断）
   try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
 }
@@ -973,6 +985,7 @@ function toggleMed(idx){
   else{
     if(!store[ts])store[ts]={};
     store[ts][key]=true;
+    try{cultGainFromCheckin();}catch(e){}
   }
   sLS('med_new',store);
   renderMedication();
@@ -3124,6 +3137,7 @@ function lockOpts(){
 function gameOver(){
   if(G.timer){clearInterval(G.timer);G.timer=null;}
   document.getElementById('gameStage').innerHTML='<div class="game-over"><h3>🎉 本轮完成！</h3><p>答对 '+G.correct+'/'+G.total+' · 得分 <b>'+G.score+'</b></p><button class="gm-btn" onclick="startGame(\''+G.mode+'\')">再来一轮</button> <button class="gm-btn2" onclick="quitGame()">退出</button></div>';
+  try{cultGainFromGame(G.mode,G.score,G.correct,G.total);}catch(e){console.warn('cultGainFromGame:',e);}
 }
 function startMatch(){
   var pairs=G.pool.slice(0,8);
@@ -3400,6 +3414,7 @@ function rateSRS(grade){
   srsUpdate(G.cur.w, grade);
   if(grade<3) bumpWeak(G.cur.w);
   G.correct++;
+  try{cultGainFromVocab(1);}catch(e){}
   var fb=document.getElementById('gqFb');
   if(fb)fb.innerHTML='<span class="ok">已记录，下次间隔约 '+Math.max(1,Math.round((srsGet(G.cur.w).due-Date.now())/86400000))+' 天</span>';
   setTimeout(nextSRS,800);
@@ -3925,6 +3940,7 @@ function init(){
     renderDailyTasks();renderWeekCal();renderEvents();renderWeekly();
     calcBand();
   }catch(e){console.warn('game render error:',e);}
+  try{cultDailyLogin();}catch(e){console.warn('cultDailyLogin:',e);}
   // cloud auto-sync on load
   if(gLS('wb_sync_auto')==='1' && getSyncCfg() && !sessionStorage.getItem('wb_just_synced')){ syncDownload(); }
   sessionStorage.removeItem('wb_just_synced');
@@ -4050,6 +4066,159 @@ function scheduleAutoSync(){
     }
   }
 })();
+// ============ 养成小游戏 (CULTIVATE) ============
+// 设计：等级无上限；经验曲线随等级增长；建筑一次性建造，提供加成闭环；
+// 全部复用现有 localStorage 与游戏/背词/打卡数据，无断签惩罚、无转生加成。
+var CULT_KEY='wb_cultivate';
+var CULT_DEFS=[
+  {id:'library', name:'图书馆', icon:'📚', cost:{wood:20,stone:10}, effect:'背词/复习经验 +20%', req:0},
+  {id:'training', name:'训练场', icon:'⚔️', cost:{wood:30,stone:20}, effect:'战力 +50', req:0},
+  {id:'market',  name:'市集',  icon:'🏪', cost:{wood:25,stone:25}, effect:'游戏金币 +50%', req:0},
+  {id:'inn',     name:'旅店',  icon:'🏨', cost:{wood:15,stone:15}, effect:'每日登录金币 +5', req:0},
+  {id:'plaza',   name:'广场',  icon:'🏛️', cost:{wood:10,stone:30}, effect:'每日登录经验 +10', req:0},
+  {id:'academy', name:'学院',  icon:'🎓', cost:{wood:50,stone:50}, effect:'全部经验 +10%', req:8}
+];
+function cultLoad(){
+  var d=gLS(CULT_KEY);
+  if(!d)d={};
+  return Object.assign({exp:0,level:1,gold:0,wood:0,stone:0,buildings:{},log:[],streak:0,lastLogin:''}, d);
+}
+function cultSave(d){ sLS(CULT_KEY,d); }
+// 升级所需经验：随等级增长，但永无上限（纯正反馈，越高越慢而非封顶）
+function cultNeed(L){ return Math.round(50*Math.pow(L,1.25)); }
+function cultBuilt(d,id){ return !!(d.buildings&&d.buildings[id]); }
+function cultMult(d){ var m=1; if(cultBuilt(d,'library'))m+=0.2; if(cultBuilt(d,'academy'))m+=0.1; return m; }
+function cultPower(d){ var p=d.level*10+Math.floor(d.exp/50); if(cultBuilt(d,'training'))p+=50; if(cultBuilt(d,'academy'))p+=100; return p; }
+function cultAddExp(d,base){
+  var gain=Math.max(1,Math.round(base*cultMult(d)));
+  d.exp+=gain; var leveled=0;
+  while(d.exp>=cultNeed(d.level)){ d.exp-=cultNeed(d.level); d.level++; leveled++; }
+  return {gain:gain, leveled:leveled};
+}
+function cultLog(d,text){ d.log=d.log||[]; d.log.unshift({t:Date.now(),text:text}); if(d.log.length>40)d.log.length=40; }
+function cultModeName(m){
+  var map={match:'连连看',link:'英语连连看',srs:'间隔复习',timed:'限时挑战',spell:'拼写闯关',cloze:'例句填空',listen:'听力选择',read:'主题闯关',shadow:'跟读评分',topic:'主题闯关'};
+  return map[m]||'游戏';
+}
+function cultPageActive(){ var p=document.getElementById('page-cultivate'); return p&&p.classList.contains('active'); }
+function cultGainFromGame(mode,score,correct,total){
+  if(!score&&!correct)return;
+  var d=cultLoad();
+  var expBase=Math.max(1,Math.round((score||0)/5));
+  var r=cultAddExp(d,expBase);
+  var goldGain=Math.round((score||0)/10); if(cultBuilt(d,'market'))goldGain=Math.round(goldGain*1.5); d.gold+=goldGain;
+  if(correct>0){ d.wood+=Math.min(correct,5); d.stone+=Math.floor(correct/2); }
+  cultLog(d,'🎮 完成「'+cultModeName(mode)+'」 +'+r.gain+'经验 +'+goldGain+'金币'+(r.leveled?(' 升到Lv.'+d.level):''));
+  cultSave(d); if(cultPageActive())renderCultivate();
+}
+function cultGainFromVocab(n){
+  var d=cultLoad(); var r=cultAddExp(d,2*n); d.gold+=n;
+  cultLog(d,'📖 复习 '+n+' 词 +'+r.gain+'经验'+(r.leveled?(' 升到Lv.'+d.level):''));
+  cultSave(d); if(cultPageActive())renderCultivate();
+}
+function cultGainFromCheckin(){
+  var d=cultLoad(); d.wood+=3; d.stone+=2;
+  cultLog(d,'💊 吃药打卡 +3木材 +2石料');
+  cultSave(d); if(cultPageActive())renderCultivate();
+}
+function cultDailyLogin(){
+  var d=cultLoad(); var ts=todayStr();
+  if(d.lastLogin===ts)return;
+  var g=5; if(cultBuilt(d,'inn'))g+=5; d.gold+=g;
+  var e=10; if(cultBuilt(d,'plaza'))e+=10; var r=cultAddExp(d,e);
+  // 连续天数：断了从 1 重算，仅作展示，无任何惩罚
+  if(d.lastLogin){ var diff=Math.round((new Date(ts)-new Date(d.lastLogin))/86400000); d.streak=(diff===1)?(d.streak+1):1; }
+  else d.streak=1;
+  d.lastLogin=ts;
+  cultLog(d,'🌅 每日登录 +'+e+'经验 +'+g+'金币 (连续'+d.streak+'天)');
+  cultSave(d);
+}
+function buildBuilding(id){
+  var d=cultLoad(); var def=null;
+  for(var i=0;i<CULT_DEFS.length;i++){ if(CULT_DEFS[i].id===id){def=CULT_DEFS[i];break;} }
+  if(!def)return;
+  if(cultBuilt(d,id)){ toast('已建造'); return; }
+  if(def.req && d.level<def.req){ toast('需要 Lv.'+def.req+' 解锁'); return; }
+  if(d.wood<(def.cost.wood||0) || d.stone<(def.cost.stone||0)){ toast('资源不足'); renderCultivate(); return; }
+  d.wood-=(def.cost.wood||0); d.stone-=(def.cost.stone||0); d.buildings[id]=true;
+  cultLog(d,def.icon+' 建造了'+def.name+'！'+def.effect);
+  cultSave(d); renderCultivate(); toast(def.name+' 建成！');
+}
+function fmtTime(dt){ function p(n){return (n<10?'0':'')+n;} return p(dt.getMonth()+1)+'-'+p(dt.getDate())+' '+p(dt.getHours())+':'+p(dt.getMinutes()); }
+function renderCultivate(){
+  var d=cultLoad(); var el=document.getElementById('cultBody'); if(!el)return;
+  var need=cultNeed(d.level); var pct=Math.min(100,Math.round(d.exp/need*100));
+  var html='';
+  html+='<div class="cult-card">';
+  html+='<div class="cult-avatar">🦊</div>';
+  html+='<div class="cult-info"><div class="cult-name">学习精灵 <span class="cult-lv">Lv.'+d.level+'</span></div>';
+  html+='<div class="cult-expbar"><div class="cult-expfill" style="width:'+pct+'%"></div></div>';
+  html+='<div class="cult-exptxt">EXP '+d.exp+' / '+need+'（升级所需，永无上限）</div>';
+  html+='<div class="cult-stats"><span>⚔️ 战力 '+cultPower(d)+'</span><span>💰 '+d.gold+'</span><span>🪵 '+d.wood+'</span><span>🪨 '+d.stone+'</span><span>🔥 连续'+d.streak+'天</span></div>';
+  html+='</div></div>';
+  html+='<div class="cult-actions"><button class="gm-btn" onclick="cultStudy(1)">📚 学习 +1词</button><button class="gm-btn" onclick="cultStudy(5)">📚 学习 +5词</button><button class="gm-btn2" onclick="cultReset()">重置存档</button></div>';
+  html+='<h4 style="margin:16px 0 8px">🏘️ 我的小镇</h4>';
+  html+='<div class="cult-grid">';
+  for(var i=0;i<CULT_DEFS.length;i++){
+    var def=CULT_DEFS[i]; var built=cultBuilt(d,def.id); var locked=def.req&&d.level<def.req;
+    html+='<div class="cult-bld'+(built?' built':'')+'">';
+    html+='<div class="bld-icon">'+def.icon+'</div>';
+    html+='<div class="bld-name">'+def.name+(locked?(' 🔒Lv.'+def.req):'')+'</div>';
+    html+='<div class="bld-eff">'+def.effect+'</div>';
+    if(built) html+='<div class="bld-done">已建成 ✓</div>';
+    else if(locked) html+='<button class="gm-btn2" disabled style="opacity:.5">未解锁</button>';
+    else html+='<button class="gm-btn" onclick="buildBuilding(\''+def.id+'\')">建造<br><small>🪵'+def.cost.wood+' 🪨'+def.cost.stone+'</small></button>';
+    html+='</div>';
+  }
+  html+='</div>';
+  html+='<h4 style="margin:16px 0 8px">📜 成长记录</h4><div class="cult-log">';
+  if(!d.log||!d.log.length) html+='<div class="empty-hint">还没有记录，去玩游戏或背单词吧！</div>';
+  else { for(var j=0;j<Math.min(d.log.length,15);j++){ var l=d.log[j]; html+='<div class="log-item">'+esc(l.text)+' <span class="log-t">'+fmtTime(new Date(l.t))+'</span></div>'; } }
+  html+='</div>';
+  el.innerHTML=html;
+  if(!document.getElementById('cultStyles')){
+    var s=document.createElement('style'); s.id='cultStyles';
+    s.textContent=[
+      '.cult-card{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:14px;padding:16px;margin-bottom:6px}',
+      '.cult-avatar{font-size:40px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.1);flex-shrink:0}',
+      '.cult-info{flex:1;min-width:0}',
+      '.cult-name{font-size:16px;font-weight:700;color:var(--text)}',
+      '.cult-lv{background:#ff7043;color:#fff;font-size:12px;padding:2px 8px;border-radius:10px;margin-left:6px}',
+      '.cult-expbar{height:10px;background:#eee;border-radius:6px;margin:8px 0 4px;overflow:hidden}',
+      '.cult-expfill{height:100%;background:linear-gradient(90deg,#66bb6a,#43a047);transition:width .4s}',
+      '.cult-exptxt{font-size:11px;color:var(--sub)}',
+      '.cult-stats{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12px;color:#5d4037;margin-top:8px}',
+      '.cult-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}',
+      '.cult-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}',
+      '.cult-bld{border:1px solid #eee;border-radius:12px;padding:12px;text-align:center;background:#fff}',
+      '.cult-bld.built{border-color:#a5d6a7;background:#f1f8f4}',
+      '.bld-icon{font-size:30px}',
+      '.bld-name{font-weight:700;margin:6px 0 2px;font-size:14px;color:var(--text)}',
+      '.bld-eff{font-size:11px;color:var(--sub);min-height:30px}',
+      '.bld-done{color:#2e7d32;font-weight:600;font-size:13px;margin-top:6px}',
+      '.cult-log{background:#fafafa;border-radius:10px;padding:10px;font-size:12px}',
+      '.log-item{padding:4px 0;border-bottom:1px dashed #eee;color:var(--text)}',
+      '.log-t{color:#bbb;font-size:10px;margin-left:6px}'
+    ].join('');
+    document.head.appendChild(s);
+  }
+}
+function cultStudy(n){
+  var d=cultLoad(); var r=cultAddExp(d,2*n); d.gold+=n; d.wood+=Math.floor(n/2);
+  cultLog(d,'📚 主动学习 '+n+' 词 +'+r.gain+'经验'+(r.leveled?(' 升到Lv.'+d.level):''));
+  cultSave(d); renderCultivate(); toast('+'+r.gain+' 经验');
+}
+function cultReset(){
+  if(typeof confirm==='function' && !confirm('确定重置养成存档？游戏/背词/打卡数据不受影响。'))return;
+  try{localStorage.removeItem(CULT_KEY);}catch(e){}
+  renderCultivate(); toast('已重置');
+}
+function toast(msg){
+  var t=document.getElementById('cultToast');
+  if(!t){ t=document.createElement('div'); t.id='cultToast'; t.style.cssText='position:fixed;left:50%;top:18%;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;padding:8px 16px;border-radius:20px;font-size:14px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1'; clearTimeout(t._tm); t._tm=setTimeout(function(){t.style.opacity='0';},1200);
+}
+
 /* ===================== /Cloud Sync ===================== */
 
 if(document.readyState!=='loading'){init();}else{document.addEventListener('DOMContentLoaded',init);}
