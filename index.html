@@ -5358,6 +5358,174 @@ var DLG_SCENES = [
       { "spk": "A", "role": "挂号员", "en": "About twenty minutes.", "zh": "大约二十分钟。" }
     ]
   }
+,
+  {
+    "id": "interview2",
+    "title": "💼 面试追问",
+    "desc": "挑战经历 / 应对压力 / 为什么录用你 / 反问面试官",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "面试官",
+        "en": "Could you tell me about a challenge you faced?",
+        "zh": "能讲讲你遇到过的一个挑战吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I led a project under a very tight deadline.",
+        "zh": "我曾在很紧的期限下主导过一个项目。"
+      },
+      {
+        "spk": "A",
+        "role": "面试官",
+        "en": "How did you handle the pressure?",
+        "zh": "你是怎么应对那种压力的？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I prioritized tasks and communicated closely with the team.",
+        "zh": "我对任务排了优先级，并和团队保持紧密沟通。"
+      },
+      {
+        "spk": "A",
+        "role": "面试官",
+        "en": "Why should we hire you?",
+        "zh": "我们为什么要录用你？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I am a quick learner and a reliable team player.",
+        "zh": "我学得快，也是个靠谱的团队成员。"
+      },
+      {
+        "spk": "A",
+        "role": "面试官",
+        "en": "Do you have any questions for us?",
+        "zh": "你有什么问题想问我们吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, what does career growth look like here?",
+        "zh": "有，这里的职业发展路径是怎样的？"
+      }
+    ]
+  },
+
+  {
+    "id": "transfer",
+    "title": "✈️ 机场转机",
+    "desc": "找转机柜台 / 停留时长 / 行李直挂 / 下一班登机口",
+    "lines": [
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Excuse me, where is the transfer desk?",
+        "zh": "打扰一下，转机柜台在哪里？"
+      },
+      {
+        "spk": "A",
+        "role": "地勤",
+        "en": "Go to gate B12 and follow the signs.",
+        "zh": "去 B12 登机口，跟着指示牌走。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "How long is the layover?",
+        "zh": "中转停留时间是多久？"
+      },
+      {
+        "spk": "A",
+        "role": "地勤",
+        "en": "Your layover is two hours.",
+        "zh": "您的转机时间是两小时。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Do I need to recheck my luggage?",
+        "zh": "我需要重新托运行李吗？"
+      },
+      {
+        "spk": "A",
+        "role": "地勤",
+        "en": "No, it is checked through to your final stop.",
+        "zh": "不用，行李会直挂到您的最终目的地。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Which gate is my next flight?",
+        "zh": "我下一班飞机在哪个登机口？"
+      },
+      {
+        "spk": "A",
+        "role": "地勤",
+        "en": "Gate C5, boarding starts at 3 p.m.",
+        "zh": "C5 登机口，下午三点开始登机。"
+      }
+    ]
+  },
+
+  {
+    "id": "returnfood",
+    "title": "🍽️ 餐厅退菜",
+    "desc": "菜凉了 / 多加了料 / 退掉饮料 / 改单",
+    "lines": [
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Excuse me, this dish is cold.",
+        "zh": "打扰一下，这道菜是凉的。"
+      },
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "I am sorry, let me bring a hot one.",
+        "zh": "抱歉，我给您换一份热的。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Also, I ordered it without onions.",
+        "zh": "而且我点的是不加洋葱的。"
+      },
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "My mistake, I will remake it.",
+        "zh": "是我的疏忽，我重新做一份。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "How long will it take?",
+        "zh": "要等多久？"
+      },
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "About five minutes.",
+        "zh": "大约五分钟。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Please cancel this drink, I changed my mind.",
+        "zh": "请取消这杯饮料，我改主意了。"
+      },
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "Sure, I will remove it from the bill.",
+        "zh": "好的，我会从账单上划掉。"
+      }
+    ]
+  }
 ];
 
 
@@ -5365,7 +5533,7 @@ var DLG_CUR='airport';
 var DLG_ZH=true;
 function dlgEnsureCss(){
   if(window.DLG_CSS_DONE) return;
-  var css='.dlg-chip{display:inline-block;padding:6px 12px;margin:4px 6px 4px 0;border:1px solid var(--border,#ddd);border-radius:18px;background:var(--card,#fff);color:var(--text,#222);font-size:13px;cursor:pointer}.dlg-chip.on{background:#2b6cb0;color:#fff;border-color:#2b6cb0}.dlg-line{margin:10px 0;padding:10px 12px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--border,#eee)}.dlg-me{background:#eef5ff}.dlg-role{font-size:12px;color:#888;margin-bottom:3px}.dlg-en{font-size:16px;line-height:1.75;color:var(--text,#222)}.dlg-w{color:#2b6cb0;cursor:pointer;border-bottom:1px dashed #2b6cb0}.dlg-w:active{opacity:.5}.dlg-zh{font-size:13px;color:#888;margin-top:5px;line-height:1.6}.dlg-zh.hide{display:none}.dlg-act{margin:12px 0 4px}.dlg-pop{position:fixed;z-index:1200;display:none;max-width:240px;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:12px;font-size:14px}.dlg-pop-w{font-size:17px;font-weight:700;color:#2b6cb0}.dlg-pop-m{font-size:13px;color:#555;margin:6px 0 10px;line-height:1.5}.dlg-pop-act{display:flex;gap:8px}.dlg-book-ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35);z-index:1300}.dlg-book{background:#fff;border-radius:16px;width:min(440px,92vw);max-height:80vh;overflow:auto;padding:16px}.dlg-book-h{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:700;margin-bottom:10px}.dlg-book-e{padding:24px 8px;text-align:center;color:#999;font-size:14px}.dlg-book-list{display:flex;flex-direction:column;gap:8px}.dlg-book-i{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #eee;border-radius:10px}.dlg-bi-w{font-weight:600;color:#2b6cb0;cursor:pointer;min-width:120px}.dlg-bi-m{flex:1;font-size:13px;color:#555}.dlg-pop-act{flex-wrap:wrap}';
+  var css='.dlg-chip{display:inline-block;padding:6px 12px;margin:4px 6px 4px 0;border:1px solid var(--border,#ddd);border-radius:18px;background:var(--card,#fff);color:var(--text,#222);font-size:13px;cursor:pointer}.dlg-chip.on{background:#2b6cb0;color:#fff;border-color:#2b6cb0}.dlg-line{margin:10px 0;padding:10px 12px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--border,#eee)}.dlg-me{background:#eef5ff}.dlg-role{font-size:12px;color:#888;margin-bottom:3px}.dlg-en{font-size:16px;line-height:1.75;color:var(--text,#222)}.dlg-w{color:#2b6cb0;cursor:pointer;border-bottom:1px dashed #2b6cb0}.dlg-w:active{opacity:.5}.dlg-zh{font-size:13px;color:#888;margin-top:5px;line-height:1.6}.dlg-zh.hide{display:none}.dlg-act{margin:12px 0 4px}.dlg-pop{position:fixed;z-index:1200;display:none;max-width:240px;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:12px;font-size:14px}.dlg-pop-w{font-size:17px;font-weight:700;color:#2b6cb0}.dlg-pop-m{font-size:13px;color:#555;margin:6px 0 10px;line-height:1.5}.dlg-pop-act{display:flex;gap:8px}.dlg-book-ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35);z-index:1300}.dlg-book{background:#fff;border-radius:16px;width:min(440px,92vw);max-height:80vh;overflow:auto;padding:16px}.dlg-book-h{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:700;margin-bottom:10px}.dlg-book-e{padding:24px 8px;text-align:center;color:#999;font-size:14px}.dlg-book-list{display:flex;flex-direction:column;gap:8px}.dlg-book-i{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #eee;border-radius:10px}.dlg-bi-w{font-weight:600;color:#2b6cb0;cursor:pointer;min-width:120px}.dlg-bi-m{flex:1;font-size:13px;color:#555}.dlg-pop-act{flex-wrap:wrap}' + ".dlg-group-h{display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px;font-size:14px;font-weight:700;color:#333;border-top:1px solid #eee;padding-top:10px}.dlg-fc-ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.4);z-index:1400}.dlg-fc{background:#fff;border-radius:16px;width:min(420px,92vw);padding:20px;text-align:center}.dlg-fc-t{font-size:13px;color:#888;margin-bottom:6px}.dlg-fc-w{font-size:26px;font-weight:700;color:#2b6cb0;cursor:pointer;margin:6px 0}.dlg-fc-m{font-size:15px;color:#555;min-height:22px;margin:10px 0}.dlg-fc-m.hide{visibility:hidden}";
   document.head.insertAdjacentHTML('beforeend','<style>'+css+'</style>');
   window.DLG_CSS_DONE=true;
 }
@@ -5418,7 +5586,7 @@ function dlgToggleFav(w){
   var fav=dlgGetFav(); var idx=-1;
   for(var i=0;i<fav.length;i++){ if(fav[i].w.toLowerCase()===String(w).toLowerCase()){ idx=i; break; } }
   if(idx>=0){ fav.splice(idx,1); toast('已取消收藏'); }
-  else { fav.push({w:w, mean:dlgMeanOf(w)||''}); toast('⭐ 已加入生词本'); }
+  else { fav.push({w:w, mean:dlgMeanOf(w)||'', from: DLG_CUR||''}); toast('⭐ 已加入生词本'); }
   localStorage.setItem('wb_dlgbook', JSON.stringify(fav));
   var btn=document.getElementById('dlgFavBtn');
   if(btn) btn.innerHTML=(idx>=0?'☆ 收藏':'⭐ 已收藏');
@@ -5431,25 +5599,60 @@ function dlgBook(){
   ov.innerHTML='';
   var box=document.createElement('div'); box.className='dlg-book';
   var h=document.createElement('div'); h.className='dlg-book-h';
-  var ht=document.createElement('span'); ht.textContent='📒 我的生词本（'+fav.length+'）'; h.appendChild(ht);
+  var ht=document.createElement('span'); ht.textContent='📛 我的生词本（'+fav.length+'）'; h.appendChild(ht);
   var close=document.createElement('button'); close.className='gm-act'; close.textContent='✕'; close.onclick=function(){ ov.style.display='none'; }; h.appendChild(close);
   box.appendChild(h);
   if(fav.length===0){ var e=document.createElement('div'); e.className='dlg-book-e'; e.textContent='还没有收藏单词。在对话里点单词，再点「☆ 收藏」即可。'; box.appendChild(e); }
   else {
-    var list=document.createElement('div'); list.className='dlg-book-list';
-    fav.forEach(function(f){
-      var it=document.createElement('div'); it.className='dlg-book-i';
-      var wsp=document.createElement('span'); wsp.className='dlg-bi-w'; wsp.textContent='🔊 '+f.w; wsp.onclick=function(){ speakWord(f.w); };
-      var msp=document.createElement('span'); msp.className='dlg-bi-m'; msp.textContent=f.mean||'—';
-      var rev=document.createElement('button'); rev.className='gm-act'; rev.textContent='📚'; rev.title='加入背词计划'; rev.onclick=function(){ dlgAddToReview(f.w); };
-      var del=document.createElement('button'); del.className='gm-act'; del.textContent='✕'; del.onclick=function(){ dlgBookDel(f.w); };
-      it.appendChild(wsp); it.appendChild(msp); it.appendChild(rev); it.appendChild(del); list.appendChild(it);
-    });
-    box.appendChild(list);
+    var groups={}; var order=[];
+    for(var i=0;i<fav.length;i++){ var scId=(fav[i].from||''); if(!groups[scId]){ groups[scId]={title:dlgSceneTitle(scId), items:[]}; order.push(scId); } groups[scId].items.push(fav[i]); }
+    for(var g=0; g<order.length; g++){
+      var sid=order[g]; var grp=groups[sid];
+      var gh=document.createElement('div'); gh.className='dlg-group-h';
+      var gts=document.createElement('span'); gts.textContent=grp.title+'（'+grp.items.length+'）'; gh.appendChild(gts);
+      if(sid){ var rb=document.createElement('button'); rb.className='gm-act'; rb.textContent='🔁 复习本组'; rb.onclick=(function(id){ return function(){ dlgReviewGroup(id); }; })(sid); gh.appendChild(rb); }
+      box.appendChild(gh);
+      var list=document.createElement('div'); list.className='dlg-book-list';
+      grp.items.forEach(function(f){
+        var it=document.createElement('div'); it.className='dlg-book-i';
+        var wsp=document.createElement('span'); wsp.className='dlg-bi-w'; wsp.textContent='🔊 '+f.w; wsp.onclick=function(){ speakWord(f.w); };
+        var msp=document.createElement('span'); msp.className='dlg-bi-m'; msp.textContent=f.mean||'—';
+        var rev=document.createElement('button'); rev.className='gm-act'; rev.textContent='📚'; rev.title='加入背词计划'; rev.onclick=function(){ dlgAddToReview(f.w); };
+        var del=document.createElement('button'); del.className='gm-act'; del.textContent='✕'; del.onclick=function(){ dlgBookDel(f.w); };
+        it.appendChild(wsp); it.appendChild(msp); it.appendChild(rev); it.appendChild(del); list.appendChild(it);
+      });
+      box.appendChild(list);
+    }
   }
   ov.appendChild(box); ov.style.display='flex';
   ov.onclick=function(e){ if(e.target===ov) ov.style.display='none'; };
 }
+function dlgSceneTitle(id){ for(var i=0;i<DLG_SCENES.length;i++){ if(DLG_SCENES[i].id===id) return DLG_SCENES[i].title; } return '未分类'; }
+function dlgReviewGroup(sceneId){
+  var fav=dlgGetFav().filter(function(x){ return (x.from||'')===sceneId; });
+  if(fav.length===0){ toast('本组暂无收藏'); return; }
+  var ov=document.getElementById('dlgRevOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='dlgRevOv'; ov.className='dlg-fc-ov'; document.body.appendChild(ov); }
+  var idx=0;
+  function show(){
+    ov.innerHTML='';
+    var box=document.createElement('div'); box.className='dlg-fc';
+    var t=document.createElement('div'); t.className='dlg-fc-t'; t.textContent=dlgSceneTitle(sceneId)+' · 闪卡复习'; box.appendChild(t);
+    var w=document.createElement('div'); w.className='dlg-fc-w'; w.textContent=fav[idx].w; w.onclick=function(){ speakWord(fav[idx].w); }; box.appendChild(w);
+    var m=document.createElement('div'); m.className='dlg-fc-m hide'; m.textContent=fav[idx].mean||'词库暂无释义'; box.appendChild(m);
+    var row=document.createElement('div'); row.className='dlg-pop-act'; row.style.justifyContent='center';
+    var sb=document.createElement('button'); sb.className='gm-btn2'; sb.textContent='🔊 朗读'; sb.onclick=function(){ speakWord(fav[idx].w); };
+    var mb=document.createElement('button'); mb.className='gm-btn2'; mb.textContent='👁 释义'; mb.onclick=function(){ m.classList.toggle('hide'); };
+    var nb=document.createElement('button'); nb.className='gm-btn2'; nb.textContent=(idx<fav.length-1?'下一个 →':'完成 ✓');
+    nb.onclick=function(){ idx++; if(idx<fav.length){ show(); } else { ov.style.display='none'; toast('本组复习完成 🎉'); } };
+    row.appendChild(sb); row.appendChild(mb); row.appendChild(nb); box.appendChild(row);
+    ov.appendChild(box); ov.style.display='flex';
+    try{ speakWord(fav[idx].w); }catch(e){}
+  }
+  show();
+  ov.onclick=function(e){ if(e.target===ov) ov.style.display='none'; };
+}
+
 function dlgBookDel(w){
   var fav=dlgGetFav().filter(function(x){ return x.w.toLowerCase()!==String(w).toLowerCase(); });
   localStorage.setItem('wb_dlgbook', JSON.stringify(fav));
