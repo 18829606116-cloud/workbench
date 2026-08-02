@@ -917,7 +917,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 27;
+var APP_VERSION = 28;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -1380,23 +1380,31 @@ function dictLookup(){
         // 先显示英文数据 + 翻译中提示
         def.zhMean='⏳ 翻译中...';
         resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
-        // 用 MyMemory / Google Translate（均有 CORS）翻译英文释义为中文
+        // 多级翻译英文释义为中文（MyMemory → Google → Lingva）
         translateEnToZh(def.mean, function(zhMean){
-          def.zhMean=zhMean||def.mean;
-          // 刷新中文释义
+          // 如果翻译结果等于原文（说明翻译失败），添加提示
+          if(zhMean && zhMean !== def.mean && zhMean.toLowerCase() !== def.mean.toLowerCase()){
+            def.zhMean = zhMean;
+          } else {
+            def.zhMean = def.mean + ' ⚠️（翻译暂不可用，显示原文）';
+          }
+          // 刷新显示
           resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
-          // 如果有例句，翻译为中文
+          // 翻译例句为中文（双语）
           if(def.ex&&Array.isArray(def.ex)&&def.ex.length>0){
             var tDone=0;
+            var exTotal = def.ex.length;
             def.ex.forEach(function(item){
               if(item.en&&!item.zh){
                 translateEnToZh(item.en, function(zhEx){
-                  item.zh=zhEx;tDone++;
-                  if(tDone>=def.ex.length)resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+                  item.zh = zhEx && zhEx !== item.en ? zhEx : '';
+                  tDone++;
+                  if(tDone >= exTotal) resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
                 });
-              }else{tDone++;}
+              } else { tDone++; }
             });
-            setTimeout(function(){resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';},5000);
+            // 超时保护：6秒后无论翻译是否完成都刷新
+            setTimeout(function(){resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';},6000);
           }
         });
       }else{
@@ -1413,7 +1421,7 @@ function dictLookup(){
   var seen={};keyWords=keyWords.filter(function(w){var l=w.toLowerCase();if(seen[l])return false;seen[l]=true;return true;});
   resultDiv.innerHTML='<div style="padding:14px;color:var(--sub);font-size:13px;text-align:center">🌐 正在翻译句子并查询生词...</div>';
   // 1) 联网翻译整句 (MyMemory 免费API)
-  var transUrl='https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair=en|zh-CN';
+  var transUrl='https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair=en%7Czh-CN';
   fetch(transUrl).then(function(r){return r.json();}).then(function(trData){
     var translation='';
     try{translation=trData.responseData.translatedText||'';}catch(e){}
@@ -1922,6 +1930,47 @@ function doImportLookup(lines,existing){
   }
   step();
 }
+// 根据单词和词性生成模板例句（当在线词典无例句时使用）
+function generateTemplateExamples(word, pos){
+  var w = word.charAt(0).toUpperCase() + word.slice(1);
+  var templates = {
+    'n.': [
+      'I need a '+word+' for my project.',
+      'The '+word+' is very important.'
+    ],
+    'v.': [
+      'I '+word+' something every day.',
+      'She '+word+(word.endsWith('e')?'d':'ed')+' it yesterday.'
+    ],
+    'adj.': [
+      'It is very '+word+'.',
+      'He feels '+word+' today.'
+    ],
+    'adv.': [
+      'She speaks very '+word+'.',
+      'He runs '+word+'.'
+    ],
+    'prep.': [
+      'It is '+word+' the table.',
+      'I sit '+word+' the window.'
+    ],
+    'conj.': [
+      'I will go '+word+' he comes.',
+      'She stayed '+word+' it was late.'
+    ],
+    'pron.': [
+      w+' is my friend.',
+      'I saw '+w.toLowerCase()+' yesterday.'
+    ]
+  };
+  // 默认模板（通用）
+  var defTemplates = [
+    'I use the word "'+word+'" in this sentence.',
+    'The meaning of "'+word+'" is important to learn.'
+  ];
+  var t = (pos && templates[pos]) ? templates[pos] : defTemplates;
+  return t.map(function(s){return {en: s, zh: ''};});
+}
 function fetchDef(word,cb){
   var url='https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word.toLowerCase());
   if(typeof fetch!=='function'){cb(null);return;}
@@ -1937,38 +1986,43 @@ function fetchDef(word,cb){
       // 提取英文例句（从 definitions[].example，最多 3 条）
       var exList=[];
       (e.meanings||[]).forEach(function(m){(m.definitions||[]).forEach(function(x){if(exList.length<3&&x.example)exList.push({en:x.example,zh:''});});});
-      cb({w:word,ph:ph||'',pos:pos,mean:mean||'(未找到释义)',ex:exList.length?exList:'',level:'c4'});
+      // 如果 API 没有例句，用模板自动生成 2 条（后续会翻译成中文）
+      if(!exList.length){
+        exList = generateTemplateExamples(word, pos);
+      }
+      cb({w:word,ph:ph||'',pos:pos,mean:mean||'(未找到释义)',ex:exList,level:'c4'});
     }else cb(null);
   }).catch(function(){cb(null);});
 }
-// 翻译英文释义为中文（MyMemory 免费API）
+// 翻译英文为中文（多级备选，确保在严格 Tracking Prevention 下也能工作）
 function translateEnToZh(enText,cb){
   if(!enText||!enText.trim()){cb('');return;}
   if(typeof fetch!=='function'){cb(enText);return;}
-  // 主翻译：MyMemory 免费API
-  tryTranslate('https://api.mymemory.translated.net/get?q='+encodeURIComponent(enText)+'&langpair=en|zh-CN', function(zh){
-    if(zh&&zh!==enText&&zh.toLowerCase()!==enText.toLowerCase()){cb(zh);return;}
-    // 备用：Google Translate 免费接口（多语言资源）
-    tryTranslate('https://translate.googleapis.com/translate_a/single?client=gsl&sl=en&tl=zh-CN&q='+encodeURIComponent(enText), function(zh2){
-      if(zh2&&zh2!==enText){cb(zh2);return;}
-      cb(enText);
-    });
-  });
-  function tryTranslate(url, callback){
-    return fetch(url).then(function(r){return r.text();}).then(function(txt){
-      var zh='';
-      try{
-        // MyMemory 格式
-        var j=JSON.parse(txt);
-        zh=j.responseData?j.responseData.translatedText:'';
-      }catch(e){
-        // Google Translate 格式：[[["译文","原文",...],...],...]
-        try{var m=txt.match(/\[\[\[\"([^\"]*)\"/);if(m)zh=m[1];}catch(e2){}
-      }
-      if(!zh)zh='';
-      callback(zh);
-    }).catch(function(){callback('');});
+  var q = encodeURIComponent(enText);
+  // 已按优先级排序的翻译源（均有 CORS 或 JSONP 支持）
+  var sources = [
+    // 1) MyMemory 免费 API（最稳定，| 已编码为 %7C）
+    {url:'https://api.mymemory.translated.net/get?q='+q+'&langpair=en%7Czh-CN', parse:function(t){try{var j=JSON.parse(t);return j.responseData?j.responseData.translatedText:'';}catch(e){return '';}}},
+    // 2) Google Translate 免费接口
+    {url:'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q='+q, parse:function(t){var m=t.match(/"([^"]+)"/);return m?m[1]:'';}},
+    // 3) Lingva（开源翻译前端，CORS 友好）
+    {url:'https://lingva.ml/api/v1/en/zh-CN/'+q, parse:function(t){try{var j=JSON.parse(t);return j.translation||'';}catch(e){return '';}}}
+  ];
+  var idx = 0;
+  function tryNext(){
+    if(idx >= sources.length){cb(enText); return;}
+    var src = sources[idx++];
+    fetch(src.url).then(function(r){
+      if(!r.ok){tryNext(); return;}
+      return r.text();
+    }).then(function(txt){
+      if(!txt){tryNext(); return;}
+      var zh = src.parse(txt);
+      if(zh && zh !== enText && zh.toLowerCase() !== enText.toLowerCase()){cb(zh);}
+      else{tryNext();}
+    }).catch(function(){tryNext();});
   }
+  tryNext();
 }
 
 // 有道词典 API（中文释义 + 双语例句，专为中文用户优化）
@@ -2876,7 +2930,7 @@ window.cnForExAsync=function(ex,mean,callback){
   if(sync){callback(sync);return;}
   // 联网翻译
   if(typeof fetch!=='function'){callback(mean||'（无法翻译）');return;}
-  fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(ex)+'&langpair=en|zh-CN')
+  fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(ex)+'&langpair=en%7Czh-CN')
     .then(function(r){return r.json();})
     .then(function(d){
       var text='';
