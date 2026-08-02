@@ -917,7 +917,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 24;
+var APP_VERSION = 25;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -1374,7 +1374,22 @@ function dictLookup(){
         // 翻译英文释义为中文
         translateEnToZh(def.mean, function(zhMean){
           def.zhMean=zhMean;
-          resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+          // 翻译例句为中文（双语例句）
+          if(def.ex&&Array.isArray(def.ex)&&def.ex.length>0){
+            var translated=0;
+            def.ex.forEach(function(item){
+              if(item.en&&!item.zh){
+                translateEnToZh(item.en, function(zhEx){
+                  item.zh=zhEx;translated++;
+                  if(translated>=def.ex.length)resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+                });
+              }else{translated++;}
+            });
+            // 超时保护：4秒后无论翻译是否完成都显示
+            setTimeout(function(){if(translated<def.ex.length)resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';},4000);
+          }else{
+            resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+          }
         });
       }else{
         resultDiv.innerHTML='<div style="padding:16px;background:#fff3e0;border-radius:10px;font-size:13px">😕 没有找到「'+esc(q)+'」的释义<br><span style="color:var(--sub);font-size:12px">内置词库和在线词典均无结果。请检查拼写，或换个说法试试。</span></div>';
@@ -1401,20 +1416,38 @@ function dictLookup(){
     function checkDone(){
       // 批量翻译所有英文释义为中文
       var itemsToTranslate=wordResults.filter(function(item){return item.wd&&item.wd.mean&&!item.wd.zhMean;});
-      if(itemsToTranslate.length===0){
+      // 收集所有需要翻译的例句
+      var exToTranslate=[];
+      wordResults.forEach(function(item){if(item.wd&&item.wd.ex&&Array.isArray(item.wd.ex)){item.wd.ex.forEach(function(e){if(e.en&&!e.zh)exToTranslate.push({item:item,ex:e});});}});
+      var totalTasks=itemsToTranslate.length+(exToTranslate.length>0?1:0);
+      if(totalTasks===0){
         renderSentenceResult();
         return;
       }
-      var translated=0;
-      itemsToTranslate.forEach(function(item){
-        translateEnToZh(item.wd.mean, function(zh){
-          item.wd.zhMean=zh;
-          translated++;
-          if(translated>=itemsToTranslate.length)renderSentenceResult();
+      var doneTasks=0;
+      function taskDone(){doneTasks++;if(doneTasks>=totalTasks)renderSentenceResult();}
+      // 翻译释义
+      if(itemsToTranslate.length>0){
+        var tCount=0;
+        itemsToTranslate.forEach(function(item){
+          translateEnToZh(item.wd.mean, function(zh){
+            item.wd.zhMean=zh;tCount++;
+            if(tCount>=itemsToTranslate.length)taskDone();
+          });
         });
-      });
-      // 超时保护：3秒后无论翻译是否完成都显示
-      setTimeout(function(){if(translated<itemsToTranslate.length)renderSentenceResult();},3000);
+      }else{taskDone();}
+      // 翻译例句
+      if(exToTranslate.length>0){
+        var eDone=0;
+        exToTranslate.forEach(function(pair){
+          translateEnToZh(pair.ex.en, function(zhEx){
+            pair.ex.zh=zhEx;eDone++;
+            if(eDone>=exToTranslate.length)taskDone();
+          });
+        });
+      }
+      // 超时保护：4秒后无论翻译是否完成都显示
+      setTimeout(function(){if(doneTasks<totalTasks)renderSentenceResult();},4000);
     }
     function renderSentenceResult(){
       var html='';
@@ -1486,10 +1519,28 @@ function renderDictCard(w, isSingle){
   if(w.mean&&w.mean!==w.zhMean)html+='<div style="font-size:12px;color:#888;margin-bottom:6px;line-height:1.5">📖 '+esc(w.mean)+'</div>';
   else if(w.mean&&!w.zhMean)html+='<div style="font-size:15px;color:var(--text);margin-bottom:6px;line-height:1.6">'+esc(w.mean)+'</div>';
   if(w.ex){
-    html+='<div style="font-size:12px;color:var(--sub);margin-top:6px;padding:6px 8px;background:#fafafa;border-radius:6px;border-left:3px solid var(--primary)">';
-    html+='<span style="color:#888">例句：</span>'+formatExHtml(w.ex);
-    var cnEx=cnForEx(firstExEn(w.ex),w.mean);
-    if(cnEx&&cnEx!==w.ex&&cnEx.indexOf('例句见上文')<0&&cnEx.indexOf('参见上方')<0)html+='<br><span style="color:var(--primary)">译文：'+esc(cnEx)+'</span>';
+    html+='<div style="margin-top:8px;padding:8px 10px;background:#f8f9fa;border-radius:8px;border-left:3px solid var(--primary)">';
+    html+='<div style="font-size:11px;color:#888;font-weight:600;margin-bottom:6px">📝 双语例句</div>';
+    // 渲染双语例句（支持 {en,zh} 数组、{en,cn} 数组、纯字符串）
+    if(Array.isArray(w.ex)){
+      w.ex.forEach(function(item,idx){
+        if(idx>0)html+='<div style="margin-top:8px;border-top:1px dashed #eee;padding-top:6px"></div>';
+        if(typeof item==='string'){
+          html+='<div style="font-size:13px;color:var(--text);line-height:1.7">'+esc(item)+'</div>';
+          var cnS=cnForEx(item,w.mean);
+          if(cnS&&cnS!==item&&cnS.indexOf('例句见上文')<0&&cnS.indexOf('参见上方')<0)html+='<div style="font-size:13px;color:var(--primary);line-height:1.7;margin-top:2px">'+esc(cnS)+'</div>';
+        }else if(item&&item.en){
+          html+='<div style="font-size:13px;color:var(--text);line-height:1.7">'+esc(item.en)+'</div>';
+          var exZh=item.zh||item.cn||'';
+          if(exZh)html+='<div style="font-size:13px;color:var(--primary);line-height:1.7;margin-top:2px">'+esc(exZh)+'</div>';
+          else{var cnS2=cnForEx(item.en,w.mean);if(cnS2&&cnS2.indexOf('例句见上文')<0&&cnS2.indexOf('参见上方')<0)html+='<div style="font-size:13px;color:var(--primary);line-height:1.7;margin-top:2px">'+esc(cnS2)+'</div>';}
+        }
+      });
+    }else{
+      html+='<div style="font-size:13px;color:var(--text);line-height:1.7">'+formatExHtml(w.ex)+'</div>';
+      var cnEx=cnForEx(firstExEn(w.ex),w.mean);
+      if(cnEx&&cnEx!==w.ex&&cnEx.indexOf('例句见上文')<0&&cnEx.indexOf('参见上方')<0)html+='<div style="font-size:13px;color:var(--primary);line-height:1.7;margin-top:2px">'+esc(cnEx)+'</div>';
+    }
     html+='</div>';
   }
   html+='<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">';
@@ -1875,7 +1926,10 @@ function fetchDef(word,cb){
       // 提取词性（取第一个有定义的）
       var pos='';
       if(e.meanings&&e.meanings[0])pos=e.meanings[0].partOfSpeech||'';
-      cb({w:word,ph:ph||'',pos:pos,mean:mean||'(未找到释义)',ex:'',level:'c4'});
+      // 提取英文例句（从 definitions[].example，最多 3 条）
+      var exList=[];
+      (e.meanings||[]).forEach(function(m){(m.definitions||[]).forEach(function(x){if(exList.length<3&&x.example)exList.push({en:x.example,zh:''});});});
+      cb({w:word,ph:ph||'',pos:pos,mean:mean||'(未找到释义)',ex:exList.length?exList:'',level:'c4'});
     }else cb(null);
   }).catch(function(){cb(null);});
 }
