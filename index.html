@@ -1215,7 +1215,7 @@ function migrateVocab(){
 }
 
 // ============ 例句格式化工具（兼容字符串 & 双语对象数组） ============
-function formatExText(ex){if(!ex)return '';if(typeof ex==='string')return ex;if(Array.isArray(ex)){var p=[];for(var i=0;i<ex.length;i++){if(typeof ex[i]==='string')p.push(ex[i]);else if(ex[i]&&ex[i].en)p.push(ex[i].en);}return p.join('；');}return String(ex);}
+function formatExText(ex){if(!ex)return '';if(typeof ex==='string')return ex;if(Array.isArray(ex)){var p=[];for(var i=0;i<ex.length;i++){if(typeof ex[i]==='string')p.push(ex[i]);else if(ex[i]&&ex[i].en){var s=ex[i].en;if(ex[i].zh)s+='（'+ex[i].zh+'）';p.push(s);}}return p.join('；');}return String(ex);}
 function formatExHtml(ex){if(!ex)return '';if(typeof ex==='string')return esc(ex);if(Array.isArray(ex)){var h='';for(var i=0;i<ex.length;i++){if(i>0)h+='<br>';if(typeof ex[i]==='string')h+=esc(ex[i]);else if(ex[i]&&ex[i].en){h+='<span style="color:var(--text)">'+esc(ex[i].en)+'</span>';if(ex[i].zh)h+=' <span style="color:var(--sub)">('+esc(ex[i].zh)+')</span>';}}return h;}return esc(String(ex));}
 function firstExEn(ex){if(!ex)return '';if(typeof ex==='string')return ex;if(Array.isArray(ex)){for(var i=0;i<ex.length;i++){if(typeof ex[i]==='string'&&ex[i])return ex[i];if(ex[i]&&ex[i].en)return ex[i].en;}}return '';}
 
@@ -1979,6 +1979,12 @@ var rlwState={words:[],idx:0,step:'read',// read|listen|write
 results:{correct:0,wrong:0,skip:0},sessionWords:[]};
 
 function renderRLW(){
+  var panel=document.getElementById('panel-rlw');
+  if(!panel)return;
+  panel.style.display='block';
+  panel.style.visibility='visible';
+  panel.style.minHeight='200px';
+  panel.classList.add('active');
   var setup=document.getElementById('rlwSetup');
   if(setup){
     setup.style.display='flex';
@@ -1989,8 +1995,9 @@ function renderRLW(){
   }
   var stage=document.getElementById('rlwStage');
   if(stage){
-    stage.innerHTML='<div style="padding-top:40px;color:#999"><div style="font-size:48px;margin-bottom:10px">📖</div><div style="font-size:16px">选择上方学习量开始综合学习</div><div style="font-size:12px;color:#aaa;margin-top:6px">看例句 → 听发音 → 测拼写，三步闭环</div></div>';
     stage.style.display='block';
+    stage.style.minHeight='150px';
+    stage.innerHTML='<div style="padding-top:40px;color:#999"><div style="font-size:48px;margin-bottom:10px">📖</div><div style="font-size:16px">选择上方学习量开始综合学习</div><div style="font-size:12px;color:#aaa;margin-top:6px">看例句 → 听发音 → 测拼写，三步闭环</div></div>';
   }
 }
 
