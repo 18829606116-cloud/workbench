@@ -5526,6 +5526,172 @@ var DLG_SCENES = [
       }
     ]
   }
+,
+  {
+    "id": "thankyou",
+    "title": "✉️ 面试感谢信",
+    "desc": "写感谢邮件 / 表达兴趣 / 提及亮点 / 问下一步",
+    "lines": [
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Dear Mr. Smith, thank you for the interview yesterday.",
+        "zh": "尊敬的史密斯先生，感谢您昨天的面试。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I really enjoyed learning about the team and the role.",
+        "zh": "我很高兴了解团队和这个职位的情况。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Our conversation confirmed my interest in this position.",
+        "zh": "我们的谈话让我更加确定对这个职位的兴趣。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I am confident that my experience in project management would be a great fit.",
+        "zh": "我相信我的项目管理经验非常适合这个岗位。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Please let me know if you need any additional information.",
+        "zh": "如果您需要任何其他信息，请告诉我。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I look forward to hearing from you soon.",
+        "zh": "期待尽快收到您的回复。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Best regards, Li Hua.",
+        "zh": "此致，李华。"
+      }
+    ]
+  },
+  {
+    "id": "security",
+    "title": "🛂 机场安检",
+    "desc": "出示证件 / 取出电子设备 / 液体规定 / 鞋子 / 安检门",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "安检员",
+        "en": "Please place your bag on the belt.",
+        "zh": "请把包放在传送带上。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Do I need to take out my laptop?",
+        "zh": "我需要把笔记本电脑拿出来吗？"
+      },
+      {
+        "spk": "A",
+        "role": "安检员",
+        "en": "Yes, and all electronic devices larger than a phone.",
+        "zh": "是的，还有所有比手机大的电子设备。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "What about liquids?",
+        "zh": "液体呢？"
+      },
+      {
+        "spk": "A",
+        "role": "安检员",
+        "en": "Each container must be under one hundred milliliters.",
+        "zh": "每个容器不能超过一百毫升。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Do I need to take off my shoes?",
+        "zh": "我需要脱鞋吗？"
+      },
+      {
+        "spk": "A",
+        "role": "安检员",
+        "en": "Only if the alarm goes off.",
+        "zh": "只有警报4响了才需要。"
+      },
+      {
+        "spk": "A",
+        "role": "安检员",
+        "en": "Please step through the metal detector.",
+        "zh": "请走过金属探测门。"
+      }
+    ]
+  },
+  {
+    "id": "reserve",
+    "title": "📞 餐厅预订",
+    "desc": "打电话订位 / 选时间人数 / 特殊要求 / 确认预订",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "Good evening, this is The Garden Restaurant.",
+        "zh": "晚上好，这里是花园餐厅。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Hi, I would like to make a reservation for tonight.",
+        "zh": "你好，我想预订今晚的位置。"
+      },
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "For how many people?",
+        "zh": "几位？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Four people, around seven o'clock.",
+        "zh": "四个人，大概七点左右。"
+      },
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "Do you have any special requirements?",
+        "zh": "有什么特殊要求吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, we need a quiet table near the window.",
+        "zh": "是的，我们需要靠窗安静的位置。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Also, one of us has a nut allergy.",
+        "zh": "另外，我们中有一个人对堅果过敏。"
+      },
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "Noted. Your table is reserved under what name?",
+        "zh": "记下了。请问用哪个名字预留？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Li, L-I-I.",
+        "zh": "李，L-I-I。"
+      }
+    ]
+  }
 ];
 
 
@@ -5546,7 +5712,7 @@ function renderDialog(){
   var chips='';
   for(var i=0;i<DLG_SCENES.length;i++){
     var sc=DLG_SCENES[i];
-    chips+='<span class="dlg-chip'+(sc.id===DLG_CUR?' on':'')+'" onclick="dlgSelect('+sc.id+')">'+esc(sc.title)+'</span>';
+    chips+='<span class="dlg-chip'+(sc.id===DLG_CUR?' on':'')+'" onclick="dlgSelect(this)" data-sid="'+esc(sc.id)+'">'+esc(sc.title)+'</span>';
   }
   var lines='';
   for(var j=0;j<s.lines.length;j++){
@@ -5557,7 +5723,7 @@ function renderDialog(){
   }
   el.innerHTML='<div class="dlg-act"><button class="gm-btn" onclick="dlgToggleZh()">'+(DLG_ZH?'👁 隐藏中文（自测）':'👁 显示中文')+'</button> <button class="gm-btn" onclick="dlgBook()">📒 生词本 ('+dlgGetFav().length+')</button></div><p class="desc">'+esc(s.desc)+'</p><div class="dlg-chips">'+chips+'</div>'+lines;
 }
-function dlgSelect(id){ DLG_CUR=id; renderDialog(); }
+function dlgSelect(el){ DLG_CUR=el.getAttribute('data-sid'); renderDialog(); }
 function dlgWord(el, ev){
   var w=el.getAttribute('data-w'); if(w) speakWord(w);
   var m=dlgMeanOf(w);
@@ -5610,7 +5776,7 @@ function dlgBook(){
       var sid=order[g]; var grp=groups[sid];
       var gh=document.createElement('div'); gh.className='dlg-group-h';
       var gts=document.createElement('span'); gts.textContent=grp.title+'（'+grp.items.length+'）'; gh.appendChild(gts);
-      if(sid){ var rb=document.createElement('button'); rb.className='gm-act'; rb.textContent='🔁 复习本组'; rb.onclick=(function(id){ return function(){ dlgReviewGroup(id); }; })(sid); gh.appendChild(rb); }
+      if(sid){ var rb=document.createElement('button'); rb.className='gm-act'; rb.textContent='🔁 复习本组'; rb.onclick=(function(id){ return function(){ dlgReviewGroup(id); }; })(sid); gh.appendChild(rb); } var hrb=document.createElement('button'); hrb.className='gm-act'; hrb.textContent='⚡ 复习难点'; hrb.onclick=function(){ dlgShowHard(); }; gh.appendChild(hrb);
       box.appendChild(gh);
       var list=document.createElement('div'); list.className='dlg-book-list';
       grp.items.forEach(function(f){
@@ -5625,6 +5791,35 @@ function dlgBook(){
     }
   }
   ov.appendChild(box); ov.style.display='flex';
+  ov.onclick=function(e){ if(e.target===ov) ov.style.display='none'; }
+}
+function dlgHardAdd(w){
+  var hard=JSON.parse(localStorage.getItem('wb_dlg_hard')||'[]');
+  var lw=String(w).toLowerCase();
+  if(hard.indexOf(lw)<0){ hard.push(lw); localStorage.setItem('wb_dlg_hard', JSON.stringify(hard)); toast('\u2b50 \u6807\u8bb0\u4e3a\u96be\u70b9'); }
+}
+function dlgShowHard(){
+  var hard=JSON.parse(localStorage.getItem('wb_dlg_hard')||'[]');
+  if(hard.length===0){ toast('\u6682\u65e0\u96be\u70b9\u8bcd'); return; }
+  var ov=document.getElementById('dlgRevOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='dlgRevOv'; ov.className='dlg-fc-ov'; document.body.appendChild(ov); }
+  var idx=0;
+  function show(){
+    ov.innerHTML=''; var box=document.createElement('div'); box.className='dlg-fc';
+    var t=document.createElement('div'); t.className='dlg-fc-t'; t.textContent='\u26a1 \u96be\u70b9\u5355\u8bcd\u590d\u4e60 ('+(idx+1)+'/'+hard.length+')'; box.appendChild(t);
+    var w=hard[idx]; var mean=dlgMeanOf(w);
+    var wd=document.createElement('div'); wd.className='dlg-fc-w'; wd.textContent=w; wd.onclick=function(){ speakWord(w); }; box.appendChild(wd);
+    var m=document.createElement('div'); m.className='dlg-fc-m hide'; m.textContent=mean||'\u8bcd\u5e93\u6682\u65e0\u91ca\u4e49'; box.appendChild(m);
+    var row=document.createElement('div'); row.className='dlg-pop-act'; row.style.justifyContent='center';
+    var sb=document.createElement('button'); sb.className='gm-btn2'; sb.textContent='\ud83d\udd0a \u6717\u8bfb'; sb.onclick=function(){ speakWord(w); };
+    var mb=document.createElement('button'); mb.className='gm-btn2'; mb.textContent='\ud83d\udc41 \u91ca\u4e49'; mb.onclick=function(){ m.classList.toggle('hide'); };
+    var ub=document.createElement('button'); ub.className='gm-btn2'; ub.textContent='\u53d6\u6d88\u96be\u70b9'; ub.onclick=function(){ hard.splice(idx,1); localStorage.setItem('wb_dlg_hard', JSON.stringify(hard)); if(hard.length===0){ ov.style.display='none'; toast('\u5df2\u6e05\u7a7a\u96be\u70b9'); return; } if(idx>=hard.length) idx=hard.length-1; show(); };
+    var nb=document.createElement('button'); nb.className='gm-btn2'; nb.textContent=(idx<hard.length-1?'\u4e0b\u4e00\u4e2a \u2192':'\u5b8c\u6210 \u2713');
+    nb.onclick=function(){ idx++; if(idx<hard.length){ show(); } else { ov.style.display='none'; toast('\u96be\u70b9\u590d\u4e60\u5b8c\u6210 \ud83c\udf89'); } };
+    row.appendChild(sb); row.appendChild(mb); row.appendChild(ub); row.appendChild(nb); box.appendChild(row);
+    ov.appendChild(box); ov.style.display='flex'; try{ speakWord(w); }catch(e){}
+  }
+  show();
   ov.onclick=function(e){ if(e.target===ov) ov.style.display='none'; };
 }
 function dlgSceneTitle(id){ for(var i=0;i<DLG_SCENES.length;i++){ if(DLG_SCENES[i].id===id) return DLG_SCENES[i].title; } return '未分类'; }
@@ -5645,7 +5840,9 @@ function dlgReviewGroup(sceneId){
     var mb=document.createElement('button'); mb.className='gm-btn2'; mb.textContent='👁 释义'; mb.onclick=function(){ m.classList.toggle('hide'); };
     var nb=document.createElement('button'); nb.className='gm-btn2'; nb.textContent=(idx<fav.length-1?'下一个 →':'完成 ✓');
     nb.onclick=function(){ idx++; if(idx<fav.length){ show(); } else { ov.style.display='none'; toast('本组复习完成 🎉'); } };
-    row.appendChild(sb); row.appendChild(mb); row.appendChild(nb); box.appendChild(row);
+    row.appendChild(sb); row.appendChild(mb); row.appendChild(nb);
+    var hb=document.createElement('button'); hb.className='gm-btn2'; hb.textContent='⭐ 难点'; hb.onclick=function(){ dlgHardAdd(fav[idx].w); };
+    row.appendChild(hb); box.appendChild(row);
     ov.appendChild(box); ov.style.display='flex';
     try{ speakWord(fav[idx].w); }catch(e){}
   }
