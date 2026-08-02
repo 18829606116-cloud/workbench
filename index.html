@@ -2961,7 +2961,6 @@ function renderMC(cur, isListen){
     speakWord(cur.word.w);
   } else {
     html+='<div class="gq-word">'+esc(cur.word.w)+' <span class="gq-ph">'+esc(ph)+'</span></div>';
-    html+='<div class="gq-mean">'+esc(cur.word.mean)+'</div>';
     html+='<div class="gq-act-row"><button class="gm-act" onclick="speakWord(\''+esc(cur.word.w)+'\')">🔊 朗读</button> <button class="gm-act" onclick="realVoice(\''+esc(cur.word.w)+'\')">🗣️ 真人发音</button></div>';
   }
   html+='<div class="gq-opts">';
