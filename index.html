@@ -425,12 +425,12 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 </div>
 <div class="flashcard-wrap hidden" id="flashArea">
-<div class="flashcard" id="flashCard" onclick="flipCard()">
+<div class="flashcard" id="flashCard" onclick="fcFlip()">
 <div class="fc-face fc-front"><div class="fc-word" id="fcWord"></div><div class="fc-pos" id="fcPos"></div></div>
 <div class="fc-face fc-back"><div class="fc-mean" id="fcMean"></div><div class="fc-ex" id="fcEx"></div></div>
 </div>
 <div style="text-align:center;margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-<button class="btn btn-sm" onclick="flipCard()">👁 翻面</button>
+<button class="btn btn-sm" onclick="fcFlip()">👁 翻面</button>
 <button class="btn btn-sm" onclick="fcForget()" style="background:#ffebee;color:#c62828">🔁 还不会</button>
 <button class="btn btn-primary btn-sm" onclick="fcRemember()">✅ 记住了</button>
 </div>
@@ -2889,7 +2889,7 @@ function showMyWords(){
   renderFlash();
 }
 function renderFlash(){var w=flashList[flashIdx];if(!w)return;document.getElementById('fcWord').textContent=w.w;document.getElementById('fcPos').textContent=(w.ph||'')+'  '+(w.pos||'');document.getElementById('fcMean').textContent=w.mean;document.getElementById('fcEx').textContent=w.ex||'';document.getElementById('flashCard').classList.remove('flipped');}
-function flipCard(){document.getElementById('flashCard').classList.toggle('flipped');}
+function fcFlip(){document.getElementById('flashCard').classList.toggle('flipped');}
 function nextCard(){flashIdx=(flashIdx+1)%Math.max(flashList.length,1);renderFlash();}
 function markKnown(){var w=flashList[flashIdx];if(!w)return;myWords['w_'+w.w]=true;sLS('wb_mywords',myWords);renderMasteredList();nextCard();}
 function fcReview(grade){var w=flashList[flashIdx];if(!w)return;srsUpdate(w.w,grade);if(grade>=3){myWords['w_'+w.w]=true;sLS('wb_mywords',myWords);renderMasteredList();}flashList.splice(flashIdx,1);if(flashIdx>=flashList.length)flashIdx=0;if(!flashList.length){document.getElementById('flashArea').classList.remove('hidden');document.getElementById('fcWord').textContent='🎉 今日完成';document.getElementById('fcPos').textContent='';document.getElementById('fcMean').textContent='今天的待复习都搞定啦！明天按遗忘曲线还会有新词。继续去对话收藏或开始学习加词吧。';document.getElementById('fcEx').textContent='';document.getElementById('flashCard').classList.remove('flipped');renderSrsReminder();return;}renderFlash();renderSrsReminder();}
