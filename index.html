@@ -605,11 +605,11 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <!-- RLW 综合学习面板 -->
-<div class="tab-panel" id="panel-rlw">
+<div class="tab-panel active" id="panel-rlw" style="display:block;visibility:visible;min-height:200px">
 <div class="rlw-info">📖 <b>综合学习模式</b>：集合「看(阅读例句) → 听(发音听力) → 写(拼写测试)」三步闭环，配合遗忘曲线高效记忆</div>
 
 <!-- 设置区 -->
-<div class="rlw-setup" id="rlwSetup">
+<div class="rlw-setup" id="rlwSetup" style="display:flex;flex-wrap:wrap;gap:8px;padding:14px 0">
   <button class="btn btn-primary btn-sm" onclick="startRLW(10)">🎯 快速复习 (10词)</button>
   <button class="btn btn-primary btn-sm" onclick="startRLW(20)">📚 标准学习 (20词)</button>
   <button class="btn btn-primary btn-sm" onclick="startRLW(50)">🔥 深度学习 (50词)</button>
@@ -617,7 +617,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <!-- 学习区域 -->
-<div class="rlw-stage" id="rlwStage">
+<div class="rlw-stage" id="rlwStage" style="display:block;min-height:150px">
   <div style="padding-top:40px;color:#999">
     <div style="font-size:48px;margin-bottom:10px">📖</div>
     <div style="font-size:16px">选择上方学习量开始综合学习</div>
