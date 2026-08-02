@@ -98,6 +98,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 .flashcard-wrap{perspective:800px;margin:12px 0}
 .flashcard{width:100%;height:180px;position:relative;transform-style:preserve-3d;transition:transform .5s;cursor:pointer;border-radius:var(--radius);box-shadow:var(--shadow)}
 .flashcard.flipped{transform:rotateY(180deg)}
+.srs-reminder{margin:6px 0 10px;padding:8px 12px;background:#e3f2fd;border-radius:10px;font-size:13px;color:#1565c0}
 .fc-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;border-radius:var(--radius);border:1px solid var(--border)}
 .fc-front{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
 .fc-back{background:var(--card);transform:rotateY(180deg);border-color:var(--primary)}
@@ -389,11 +390,12 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 <div id="searchAddResult" style="display:none;margin-bottom:10px"></div>
 <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-<button class="btn btn-primary btn-sm" onclick="showFlashcard()">&#127912; 今日闪卡</button>
+<button class="btn btn-primary btn-sm" onclick="showFlashcard()">📅 今日待复习</button>
 <button class="btn btn-sm" onclick="showMyWords()" style="background:#f0f0f0">&#128214; 我的词库</button>
 <button class="btn btn-sm" onclick="startStudy()" style="background:#fff3e0;color:#e65100">&#128218; 开始学习</button>
 <span style="font-size:12px;color:var(--sub);align-self:center" id="vocabCount"></span>
 </div>
+<div id="srsReminder" class="srs-reminder"></div>
 <div class="chip-row" id="levelFilter">
 <span class="chip active" data-lv="" onclick="setLevelFilter('')">全部</span>
 <span class="chip" data-lv="c4" onclick="setLevelFilter('c4')">四级</span>
@@ -427,9 +429,10 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <div class="fc-face fc-front"><div class="fc-word" id="fcWord"></div><div class="fc-pos" id="fcPos"></div></div>
 <div class="fc-face fc-back"><div class="fc-mean" id="fcMean"></div><div class="fc-ex" id="fcEx"></div></div>
 </div>
-<div style="text-align:center;margin-top:10px;display:flex;gap:8px;justify-content:center">
-<button class="btn btn-primary btn-sm" onclick="nextCard()">下一个 &rarr;</button>
-<button class="btn btn-sm" onclick="markKnown()" style="background:#e8f5e9;color:#2e7d32">✓ 已掌握</button>
+<div style="text-align:center;margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+<button class="btn btn-sm" onclick="flipCard()">👁 翻面</button>
+<button class="btn btn-sm" onclick="fcForget()" style="background:#ffebee;color:#c62828">🔁 还不会</button>
+<button class="btn btn-primary btn-sm" onclick="fcRemember()">✅ 记住了</button>
 </div>
 </div>
 <div class="vocab-list" id="vocabList"></div>
@@ -2822,14 +2825,61 @@ var audioSpeed=parseFloat(gLS('wb_audio_speed'))||1;
 function setAudioSpeed(s){audioSpeed=s;sLS('wb_audio_speed',String(s));var els=document.querySelectorAll('.spd-val');els.forEach(function(e){e.textContent=s+'x'});}
 function speakWord(w){if('speechSynthesis' in window){var u=new SpeechSynthesisUtterance(w);u.lang='en-US';u.rate=audioSpeed*0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}}
 function speakText(t){if('speechSynthesis' in window){var u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=audioSpeed*0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}}
+var SRS_NEW_PER_DAY=10;
+function srsNewToday(){var k='wb_srs_new_'+new Date().toISOString().slice(0,10);return gLS(k)||[];}
+function srsSeedToday(n){
+  var k='wb_srs_new_'+new Date().toISOString().slice(0,10);
+  var nt=gLS(k)||[]; var seen={}; nt.forEach(function(x){seen[x.toLowerCase()]=1;});
+  var all=getVocab(); var us={};
+  for(var i=0;i<all.length && nt.length<n;i++){
+    var w=all[i].w; if(!w)continue; var lw=w.toLowerCase(); if(seen[lw]||us[lw])continue; us[lw]=1;
+    if(srsGet(w).reps>0)continue;
+    nt.push(w); seen[lw]=1;
+    var m=srsMap(); var st=m[w]||{ease:2.5,interval:0,reps:0,due:0}; st.due=Date.now(); m[w]=st; sLS('wb_srs',m);
+  }
+  sLS(k,nt);
+}
+function srsDueWords(){
+  var now=Date.now(); var all=getVocab(); var us={}; var uniq=[];
+  for(var i=0;i<all.length;i++){ var w=all[i].w; if(!w)continue; var lw=w.toLowerCase(); if(us[lw])continue; us[lw]=1; uniq.push(all[i]); }
+  var due=uniq.filter(function(w){var st=srsGet(w.w);return st.reps>0 && st.due<=now;});
+  var nt=srsNewToday(); var ns={}; nt.forEach(function(x){ns[x.toLowerCase()]=1;});
+  var fresh=uniq.filter(function(w){return ns[(w.w||'').toLowerCase()] && srsGet(w.w).due<=now;});
+  return due.concat(fresh);
+}
+function renderSrsReminder(){
+  var el=document.getElementById('srsReminder'); if(!el)return;
+  var n=srsDueWords().length;
+  if(n>0){ el.innerHTML='📅 今日待复习 <b>'+n+'</b> 词 · 点上方「📅 今日待复习」按遗忘曲线复习'; }
+  else { el.innerHTML='✅ 今日复习已完成，明天会有新词待复习'; }
+  el.style.display='block';
+}
+function srsDailyTip(){
+  try{ var n=srsDueWords().length; if(n<=0)return;
+    var k='wb_srs_tip_'+new Date().toISOString().slice(0,10);
+    if(gLS(k))return; sLS(k,1);
+    toast('📅 今日待复习 '+n+' 词，点「今日待复习」开始');
+  }catch(e){}
+}
 function showFlashcard(){
-  var v=getVocab();
-  var unknown=v.filter(function(w){return !myWords['w_'+w.w];});
-  flashList=unknown.length?v:unknown;
-  if(!flashList.length)flashList=v;
-  flashIdx=0;
+  var due=srsDueWords();
+  if(due.length < SRS_NEW_PER_DAY) srsSeedToday(SRS_NEW_PER_DAY);
+  due=srsDueWords();
+  if(!due.length){
+    flashList=[]; flashIdx=0;
+    document.getElementById('flashArea').classList.remove('hidden');
+    document.getElementById('fcWord').textContent='🎉 全搞定';
+    document.getElementById('fcPos').textContent='';
+    document.getElementById('fcMean').textContent='今天的复习词都完成啦！去「💬 对话」收藏生词，或用「开始学习」加新词，明天会有新词待复习。';
+    document.getElementById('fcEx').textContent='';
+    document.getElementById('flashCard').classList.remove('flipped');
+    renderSrsReminder();
+    return;
+  }
+  flashList=due; flashIdx=0;
   document.getElementById('flashArea').classList.remove('hidden');
   renderFlash();
+  renderSrsReminder();
 }
 function showMyWords(){
   var v=getVocab().filter(function(w){return myWords['w_'+w.w];});
@@ -2842,6 +2892,9 @@ function renderFlash(){var w=flashList[flashIdx];if(!w)return;document.getElemen
 function flipCard(){document.getElementById('flashCard').classList.toggle('flipped');}
 function nextCard(){flashIdx=(flashIdx+1)%Math.max(flashList.length,1);renderFlash();}
 function markKnown(){var w=flashList[flashIdx];if(!w)return;myWords['w_'+w.w]=true;sLS('wb_mywords',myWords);renderMasteredList();nextCard();}
+function fcReview(grade){var w=flashList[flashIdx];if(!w)return;srsUpdate(w.w,grade);if(grade>=3){myWords['w_'+w.w]=true;sLS('wb_mywords',myWords);renderMasteredList();}flashList.splice(flashIdx,1);if(flashIdx>=flashList.length)flashIdx=0;if(!flashList.length){document.getElementById('flashArea').classList.remove('hidden');document.getElementById('fcWord').textContent='🎉 今日完成';document.getElementById('fcPos').textContent='';document.getElementById('fcMean').textContent='今天的待复习都搞定啦！明天按遗忘曲线还会有新词。继续去对话收藏或开始学习加词吧。';document.getElementById('fcEx').textContent='';document.getElementById('flashCard').classList.remove('flipped');renderSrsReminder();return;}renderFlash();renderSrsReminder();}
+function fcRemember(){fcReview(5);}
+function fcForget(){fcReview(1);}
 function addWord(){var w=prompt('单词 (英文):');if(!w)return;w=w.trim();if(!w)return;var ph=prompt('音标 (可留空):')||'';var pos=prompt('词性 (如 v./n./adj./adv.):')||'';var mean=prompt('中文释义:');if(mean==null)return;var ex=prompt('例句 (可留空):')||'';var level=prompt('级别 c4=四级/c6=六级(默认c4):','c4')||'c4';addWordObj({w:w,ph:ph,pos:pos,mean:mean,ex:ex,level:level==='c6'?'c6':'c4'});renderVocab();}
 function importVocab(){var inp=document.createElement('input');inp.type='file';inp.accept='.txt,.csv';inp.onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var lines=r.result.split(/\r?\n/);var added=0;lines.forEach(function(line){line=line.trim();if(!line)return;var p=line.split('|');if(p.length>=4){addWordObj({w:p[0].trim(),ph:(p[1]||'').trim(),pos:(p[2]||'').trim(),mean:p[3].trim(),ex:(p[4]||'').trim(),level:(p[5]||'c4').trim()==='c6'?'c6':'c4'});added++;}});renderVocab();alert('成功导入 '+added+' 个单词');};r.readAsText(f);};inp.click();}
 
@@ -4601,6 +4654,7 @@ function init(){
   }
   // Render English panels
   renderVocab();
+  renderSrsReminder(); srsDailyTip();
   renderListening();
   renderSentenceBank();
   renderSpkBank();renderMistakeBook();
@@ -5796,7 +5850,8 @@ function dlgBook(){
 function dlgHardAdd(w){
   var hard=JSON.parse(localStorage.getItem('wb_dlg_hard')||'[]');
   var lw=String(w).toLowerCase();
-  if(hard.indexOf(lw)<0){ hard.push(lw); localStorage.setItem('wb_dlg_hard', JSON.stringify(hard)); toast('\u2b50 \u6807\u8bb0\u4e3a\u96be\u70b9'); }
+  if(hard.indexOf(lw)<0){ hard.push(lw); localStorage.setItem('wb_dlg_hard', JSON.stringify(hard)); toast('⭐ 标记为难点'); }
+  var m=srsMap(); var st=m[w]||{ease:2.5,interval:0,reps:0,due:0}; if(st.reps===0) st.due=Date.now(); m[w]=st; sLS('wb_srs',m);
 }
 function dlgShowHard(){
   var hard=JSON.parse(localStorage.getItem('wb_dlg_hard')||'[]');
@@ -5816,7 +5871,9 @@ function dlgShowHard(){
     var ub=document.createElement('button'); ub.className='gm-btn2'; ub.textContent='\u53d6\u6d88\u96be\u70b9'; ub.onclick=function(){ hard.splice(idx,1); localStorage.setItem('wb_dlg_hard', JSON.stringify(hard)); if(hard.length===0){ ov.style.display='none'; toast('\u5df2\u6e05\u7a7a\u96be\u70b9'); return; } if(idx>=hard.length) idx=hard.length-1; show(); };
     var nb=document.createElement('button'); nb.className='gm-btn2'; nb.textContent=(idx<hard.length-1?'\u4e0b\u4e00\u4e2a \u2192':'\u5b8c\u6210 \u2713');
     nb.onclick=function(){ idx++; if(idx<hard.length){ show(); } else { ov.style.display='none'; toast('\u96be\u70b9\u590d\u4e60\u5b8c\u6210 \ud83c\udf89'); } };
-    row.appendChild(sb); row.appendChild(mb); row.appendChild(ub); row.appendChild(nb); box.appendChild(row);
+    var kb=document.createElement('button'); kb.className='gm-btn2'; kb.style.cssText='background:#e8f5e9;color:#2e7d32'; kb.textContent='✅ 记住'; kb.onclick=function(){ srsUpdate(w,5); toast('✅ 已按遗忘曲线安排复习'); };
+    var fb=document.createElement('button'); fb.className='gm-btn2'; fb.style.cssText='background:#ffebee;color:#c62828'; fb.textContent='🔁 忘了'; fb.onclick=function(){ srsUpdate(w,1); toast('🔁 已提前到近期复习'); };
+    row.appendChild(sb); row.appendChild(mb); row.appendChild(kb); row.appendChild(fb); row.appendChild(ub); row.appendChild(nb); box.appendChild(row);
     ov.appendChild(box); ov.style.display='flex'; try{ speakWord(w); }catch(e){}
   }
   show();
@@ -5838,9 +5895,11 @@ function dlgReviewGroup(sceneId){
     var row=document.createElement('div'); row.className='dlg-pop-act'; row.style.justifyContent='center';
     var sb=document.createElement('button'); sb.className='gm-btn2'; sb.textContent='🔊 朗读'; sb.onclick=function(){ speakWord(fav[idx].w); };
     var mb=document.createElement('button'); mb.className='gm-btn2'; mb.textContent='👁 释义'; mb.onclick=function(){ m.classList.toggle('hide'); };
+    var kb=document.createElement('button'); kb.className='gm-btn2'; kb.style.cssText='background:#e8f5e9;color:#2e7d32'; kb.textContent='✅ 记住'; kb.onclick=function(){ srsUpdate(fav[idx].w,5); toast('✅ 已按遗忘曲线安排复习'); };
+    var fb=document.createElement('button'); fb.className='gm-btn2'; fb.style.cssText='background:#ffebee;color:#c62828'; fb.textContent='🔁 忘了'; fb.onclick=function(){ srsUpdate(fav[idx].w,1); toast('🔁 已提前到近期复习'); };
     var nb=document.createElement('button'); nb.className='gm-btn2'; nb.textContent=(idx<fav.length-1?'下一个 →':'完成 ✓');
     nb.onclick=function(){ idx++; if(idx<fav.length){ show(); } else { ov.style.display='none'; toast('本组复习完成 🎉'); } };
-    row.appendChild(sb); row.appendChild(mb); row.appendChild(nb);
+    row.appendChild(sb); row.appendChild(mb); row.appendChild(kb); row.appendChild(fb); row.appendChild(nb);
     var hb=document.createElement('button'); hb.className='gm-btn2'; hb.textContent='⭐ 难点'; hb.onclick=function(){ dlgHardAdd(fav[idx].w); };
     row.appendChild(hb); box.appendChild(row);
     ov.appendChild(box); ov.style.display='flex';
