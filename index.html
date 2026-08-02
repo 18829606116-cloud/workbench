@@ -288,6 +288,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     <button class="drawer-item" data-page="douyin" onclick="switchPage('douyin')"><span class="di-icon">&#127925;</span> 抖音话题</button>
     <button class="drawer-item" data-page="weather" onclick="switchPage('weather')"><span class="di-icon">&#127782;</span> 天气预报</button>
     <button class="drawer-item" data-page="cultivate" onclick="switchPage('cultivate')"><span class="di-icon">&#127775;</span> 养成小游戏</button>
+    <button class="drawer-item" data-page="dialog" onclick="switchPage('dialog')"><span class="di-icon">&#128172;</span> 场景对话</button>
   </nav>
 </aside>
 
@@ -821,6 +822,14 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 </div>
 
+<div class="module-page" id="page-dialog">
+<div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">&#128172; 场景对话</span></div>
+<div class="sec-card">
+  <p class="desc">把单词放进真实对话里，才知道「什么时候用、怎么用」。点句子里的<b>任意单词</b>可听发音并看中文释义；想自测就点「隐藏中文」。</p>
+  <div id="dlgBody"></div>
+</div>
+</div>
+
 <!-- ===== BOTTOM NAV ===== -->
 <nav class="bottom-nav">
 <div class="nav-item active" data-mod="weight" onclick="switchPage('weight')"><span class="nav-icon">&#9878;</span>体重</div>
@@ -831,6 +840,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <div class="nav-item" data-mod="gold" onclick="switchPage('gold')"><span class="nav-icon">&#128176;</span>财经</div>
 <div class="nav-item" data-mod="douyin" onclick="switchPage('douyin')"><span class="nav-icon">&#127925;</span>话题</div>
 <div class="nav-item" data-mod="weather" onclick="switchPage('weather')"><span class="nav-icon">&#127782;</span>天气</div>
+<div class="nav-item" data-mod="dialog" onclick="switchPage('dialog')"><span class="nav-icon">&#128172;</span>对话</div>
 </nav>
 
 <script>
@@ -876,6 +886,7 @@ function switchPage(id){
   try{ if(id==='eng')renderVocab(); }catch(e){console.warn('renderVocab:',e);}
   try{ if(id==='weather')initWeather(); }catch(e){console.warn('initWeather:',e);}
   try{ if(id==='cultivate')renderCultivate(); }catch(e){console.warn('renderCultivate:',e);}
+  try{ if(id==='dialog')renderDialog(); }catch(e){console.warn('renderDialog:',e);}
   // 回到顶部（真机一定存在，但仍包 try 防止个别环境抛错阻断）
   try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
 }
@@ -4881,6 +4892,423 @@ function toast(msg){
   t.textContent=msg; t.style.opacity='1'; clearTimeout(t._tm); t._tm=setTimeout(function(){t.style.opacity='0';},1200);
 }
 
+<!-- DIALOG MODULE START -->
+var DLG_SCENES = [
+  {
+    "id": "airport",
+    "title": "✈️ 机场值机",
+    "desc": "办理登机、托运行李、找登机口",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "地勤",
+        "en": "Good morning! May I see your passport and boarding pass, please?",
+        "zh": "早上好！能看一下您的护照和登机牌吗？"
+      },
+      {
+        "spk": "B",
+        "role": "旅客",
+        "en": "Sure, here you are. I would like a window seat if possible.",
+        "zh": "当然，给您。如果可以的话，我想要一个靠窗的座位。"
+      },
+      {
+        "spk": "A",
+        "role": "地勤",
+        "en": "Let me check. Yes, a window seat is available. Any luggage to check in?",
+        "zh": "我查一下。可以，有靠窗座位。有行李要托运吗？"
+      },
+      {
+        "spk": "B",
+        "role": "旅客",
+        "en": "Just one suitcase. Is it overweight?",
+        "zh": "只有一个行李箱。它会超重吗？"
+      },
+      {
+        "spk": "A",
+        "role": "地勤",
+        "en": "No, it is within the limit. Here is your boarding pass. Your flight departs from gate 12.",
+        "zh": "不会，在限额内。这是您的登机牌。航班从 12 号登机口起飞。"
+      },
+      {
+        "spk": "B",
+        "role": "旅客",
+        "en": "Thank you. What time does the boarding begin?",
+        "zh": "谢谢。登机什么时候开始？"
+      },
+      {
+        "spk": "A",
+        "role": "地勤",
+        "en": "Boarding begins at 10:20. Have a pleasant flight!",
+        "zh": "登机 10:20 开始。祝您旅途愉快！"
+      }
+    ]
+  },
+  {
+    "id": "restaurant",
+    "title": "🍽️ 餐厅点餐",
+    "desc": "进餐厅、看菜单、点菜点饮料",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "Welcome! Do you have a reservation?",
+        "zh": "欢迎！您有预订吗？"
+      },
+      {
+        "spk": "B",
+        "role": "顾客",
+        "en": "No, a table for two by the window, please.",
+        "zh": "没有，请给我靠窗的两人桌。"
+      },
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "Sure. Here is the menu. Today's special is grilled beef with vegetables.",
+        "zh": "好的。这是菜单。今天的特色菜是烤牛肉配蔬菜。"
+      },
+      {
+        "spk": "B",
+        "role": "顾客",
+        "en": "Great. I will have the beef, and a bowl of soup to start.",
+        "zh": "太好了。我要牛肉，先来一碗汤。"
+      },
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "And to drink?",
+        "zh": "喝点什么呢？"
+      },
+      {
+        "spk": "B",
+        "role": "顾客",
+        "en": "A cup of coffee, please.",
+        "zh": "请来一杯咖啡。"
+      },
+      {
+        "spk": "A",
+        "role": "服务员",
+        "en": "OK. I will bring your soup first.",
+        "zh": "好的。我先给您上汤。"
+      }
+    ]
+  },
+  {
+    "id": "hotel",
+    "title": "🏨 酒店入住",
+    "desc": "办入住、问早餐、拿房卡、找电梯",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "前台",
+        "en": "Good evening. How may I help you?",
+        "zh": "晚上好。有什么可以帮您？"
+      },
+      {
+        "spk": "B",
+        "role": "旅客",
+        "en": "I have a reservation under the name Li.",
+        "zh": "我用 Li 的名字预订了房间。"
+      },
+      {
+        "spk": "A",
+        "role": "前台",
+        "en": "Let me check. Yes, a deluxe room for three nights.",
+        "zh": "我查一下。是的，一间豪华房，住三晚。"
+      },
+      {
+        "spk": "B",
+        "role": "旅客",
+        "en": "That is right. Is breakfast included?",
+        "zh": "没错。含早餐吗？"
+      },
+      {
+        "spk": "A",
+        "role": "前台",
+        "en": "Yes, breakfast is from 7 to 10 in the restaurant. Here is your key card.",
+        "zh": "含，早餐 7 点到 10 点在餐厅。这是您的房卡。"
+      },
+      {
+        "spk": "B",
+        "role": "旅客",
+        "en": "Thank you. Where is the elevator?",
+        "zh": "谢谢。电梯在哪？"
+      },
+      {
+        "spk": "A",
+        "role": "前台",
+        "en": "It is just around the corner, on your right.",
+        "zh": "就在拐角处，您的右边。"
+      }
+    ]
+  },
+  {
+    "id": "directions",
+    "title": "🗺️ 街头问路",
+    "desc": "问地点、听方向、判断是否走路去",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "你",
+        "en": "Excuse me, could you tell me how to get to the museum?",
+        "zh": "打扰一下，能告诉我怎么去博物馆吗？"
+      },
+      {
+        "spk": "B",
+        "role": "路人",
+        "en": "Sure. Go straight along this street, then turn left at the second intersection.",
+        "zh": "可以。沿这条街一直走，然后在第二个路口左转。"
+      },
+      {
+        "spk": "A",
+        "role": "你",
+        "en": "Is it far from here?",
+        "zh": "离这儿远吗？"
+      },
+      {
+        "spk": "B",
+        "role": "路人",
+        "en": "Not really. It is about a ten-minute walk. You will not miss it.",
+        "zh": "不远。步行大约十分钟，您不会错过的。"
+      },
+      {
+        "spk": "A",
+        "role": "你",
+        "en": "Do I need to take a bus?",
+        "zh": "我需要坐公交吗？"
+      },
+      {
+        "spk": "B",
+        "role": "路人",
+        "en": "No, it is easier to walk. The museum is next to the park.",
+        "zh": "不用，走路更方便。博物馆就在公园旁边。"
+      }
+    ]
+  },
+  {
+    "id": "shopping",
+    "title": "🛍️ 商场购物",
+    "desc": "找纪念品、问价格、砍价、刷卡",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "Can I help you find something?",
+        "zh": "需要帮您找什么吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I am looking for a souvenir for my friend.",
+        "zh": "我在给朋友找一份纪念品。"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "How about this handmade scarf? It is a popular local product.",
+        "zh": "这条手织围巾怎么样？是受欢迎的本地产品。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "It is lovely. How much is it?",
+        "zh": "很漂亮。多少钱？"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "120 yuan. But if you take two, I can give you a discount.",
+        "zh": "120 元。但您拿两条的话，我可以给折扣。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "OK, I will take two. Can I pay by card?",
+        "zh": "好，我要两条。可以刷卡吗？"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "Sure. The card machine is right here.",
+        "zh": "当然。刷卡机就在这儿。"
+      }
+    ]
+  },
+  {
+    "id": "doctor",
+    "title": "🩺 看病就医",
+    "desc": "说症状、量体温、开药、问用法用量",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "医生",
+        "en": "What seems to be the problem?",
+        "zh": "您哪里不舒服？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I have a fever and a sore throat since yesterday.",
+        "zh": "我从昨天起发烧、喉咙痛。"
+      },
+      {
+        "spk": "A",
+        "role": "医生",
+        "en": "Let me check your temperature. Have you taken any medicine?",
+        "zh": "我量一下您的体温。您吃过什么药吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Just some cold medicine this morning.",
+        "zh": "今天早上只吃了点感冒药。"
+      },
+      {
+        "spk": "A",
+        "role": "医生",
+        "en": "You should drink more water and rest. I will prescribe some pills.",
+        "zh": "您应该多喝水、多休息。我给您开点药片。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "How often should I take them?",
+        "zh": "多久吃一次？"
+      },
+      {
+        "spk": "A",
+        "role": "医生",
+        "en": "Three times a day after meals.",
+        "zh": "每天三次，饭后服用。"
+      }
+    ]
+  },
+  {
+    "id": "transport",
+    "title": "🚌 公共交通",
+    "desc": "问公交、换乘、车程、提醒到站",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "你",
+        "en": "Excuse me, does this bus go to the train station?",
+        "zh": "打扰一下，这趟公交去火车站吗？"
+      },
+      {
+        "spk": "B",
+        "role": "司机",
+        "en": "Yes, but you need to transfer at the next stop.",
+        "zh": "去，但您要在下一站换乘。"
+      },
+      {
+        "spk": "A",
+        "role": "你",
+        "en": "How long is the ride?",
+        "zh": "车程多久？"
+      },
+      {
+        "spk": "B",
+        "role": "司机",
+        "en": "About twenty minutes. The station is the final stop.",
+        "zh": "大约二十分钟。火车站是终点站。"
+      },
+      {
+        "spk": "A",
+        "role": "你",
+        "en": "Thank you. Could you remind me when we arrive?",
+        "zh": "谢谢。到站时您能提醒我一下吗？"
+      },
+      {
+        "spk": "B",
+        "role": "司机",
+        "en": "Sure, I will let you know.",
+        "zh": "当然，我会告诉您。"
+      }
+    ]
+  },
+  {
+    "id": "smalltalk",
+    "title": "☕ 日常闲聊",
+    "desc": "寒暄、约周末、道别、保持联系",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "Hi! It is a nice day today, is it not?",
+        "zh": "嗨！今天天气真好，不是吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, the weather is perfect for a walk.",
+        "zh": "是啊，这天气散步正合适。"
+      },
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "Are you free this weekend? We could go hiking.",
+        "zh": "你这周末有空吗？我们可以去徒步。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I would love to, but I have to finish a report.",
+        "zh": "我很想去，但我得写完一份报告。"
+      },
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "No worries. Maybe next time.",
+        "zh": "没关系。下次吧。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Sure, let us keep in touch.",
+        "zh": "好，我们保持联系。"
+      }
+    ]
+  }
+];
+
+
+var DLG_CUR='airport';
+var DLG_ZH=true;
+function dlgEnsureCss(){
+  if(window.DLG_CSS_DONE) return;
+  var css='.dlg-chip{display:inline-block;padding:6px 12px;margin:4px 6px 4px 0;border:1px solid var(--border,#ddd);border-radius:18px;background:var(--card,#fff);color:var(--text,#222);font-size:13px;cursor:pointer}.dlg-chip.on{background:#2b6cb0;color:#fff;border-color:#2b6cb0}.dlg-line{margin:10px 0;padding:10px 12px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--border,#eee)}.dlg-me{background:#eef5ff}.dlg-role{font-size:12px;color:#888;margin-bottom:3px}.dlg-en{font-size:16px;line-height:1.75;color:var(--text,#222)}.dlg-w{color:#2b6cb0;cursor:pointer;border-bottom:1px dashed #2b6cb0}.dlg-w:active{opacity:.5}.dlg-zh{font-size:13px;color:#888;margin-top:5px;line-height:1.6}.dlg-zh.hide{display:none}.dlg-act{margin:12px 0 4px}';
+  document.head.insertAdjacentHTML('beforeend','<style>'+css+'</style>');
+  window.DLG_CSS_DONE=true;
+}
+function renderDialog(){
+  dlgEnsureCss();
+  var el=document.getElementById('dlgBody'); if(!el) return;
+  var s=null;
+  for(var i=0;i<DLG_SCENES.length;i++){ if(DLG_SCENES[i].id===DLG_CUR){s=DLG_SCENES[i];break;} }
+  if(!s) s=DLG_SCENES[0];
+  var chips='';
+  for(var i=0;i<DLG_SCENES.length;i++){
+    var sc=DLG_SCENES[i];
+    chips+='<span class="dlg-chip'+(sc.id===DLG_CUR?' on':'')+'" onclick="dlgSelect('+sc.id+')">'+esc(sc.title)+'</span>';
+  }
+  var lines='';
+  for(var j=0;j<s.lines.length;j++){
+    var ln=s.lines[j];
+    var toks=esc(ln.en).split(' ');
+    var enHtml=toks.map(function(t){ var clean=t.replace(/[^A-Za-z']/g,''); if(clean.length<1) return t; return '<span class="dlg-w" onclick="dlgWord(this)" data-w="'+clean+'">'+t+'</span>'; }).join(' ');
+    lines+='<div class="dlg-line'+(ln.spk==='B'?' dlg-me':'')+'"><div class="dlg-role">'+esc(ln.role)+'</div><div class="dlg-en">'+enHtml+'</div><div class="dlg-zh'+(DLG_ZH?'':' hide')+'">'+esc(ln.zh)+'</div></div>';
+  }
+  el.innerHTML='<div class="dlg-act"><button class="gm-btn" onclick="dlgToggleZh()">'+(DLG_ZH?'👁 隐藏中文（自测）':'👁 显示中文')+'</button></div><p class="desc">'+esc(s.desc)+'</p><div class="dlg-chips">'+chips+'</div>'+lines;
+}
+function dlgSelect(id){ DLG_CUR=id; renderDialog(); }
+function dlgWord(el){
+  var w=el.getAttribute('data-w'); if(w) speakWord(w);
+  var v=getVocab()||[]; var m=null;
+  for(var i=0;i<v.length;i++){ if(v[i] && v[i].w && v[i].w.toLowerCase()===String(w).toLowerCase()){ m=v[i].mean; break; } }
+  if(m) toast(w+'：'+m); else toast('🔊 '+w);
+}
+function dlgToggleZh(){ DLG_ZH=!DLG_ZH; renderDialog(); }
+
+<!-- DIALOG MODULE END -->
 /* ===================== /Cloud Sync ===================== */
 
 if(document.readyState!=='loading'){init();}else{document.addEventListener('DOMContentLoaded',init);}
