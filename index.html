@@ -344,6 +344,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     <span class="app-bar-title">我的工作台</span>
   </div>
   <div class="app-bar-right">
+    <span id="verBadge" style="font-size:11px;color:#bbb;margin-right:8px"></span>
     <span>&#8226;&#8226;</span><span>&minus;</span><span>&#9711;</span>
   </div>
 </header>
@@ -914,6 +915,20 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </nav>
 
 <script>
+
+// ============ APP VERSION ============
+var APP_VERSION = 19;
+(function(){
+  try{
+    var b=document.getElementById('verBadge');
+    if(b){
+      // 支持 URL ?v=N 覆盖，方便确认是否命中最新版
+      var pm=new URLSearchParams(location.search);
+      var v=pm.get('v')?('v'+pm.get('v')):('v'+APP_VERSION);
+      b.textContent='版本 '+v;
+    }
+  }catch(e){}
+})();
 
 // ============ UTILITIES ============
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
