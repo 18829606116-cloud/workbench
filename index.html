@@ -917,7 +917,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 23;
+var APP_VERSION = 24;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -5635,6 +5635,430 @@ var DLG_SCENES = [
         "role": "房东",
         "en": "By eleven in the morning.",
         "zh": "早上十一点前。"
+      }
+    ]
+  }
+,
+{
+    "id": "police",
+    "title": "🚨 报警求助",
+    "desc": "紧急情况 / 报地址 / 说发生了什么 / 等救援",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "接警员",
+        "en": "Emergency, what is your emergency?",
+        "zh": "紧急电话，请问什么情况？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "There is a fire in my building.",
+        "zh": "我住的楼里起火了。"
+      },
+      {
+        "spk": "A",
+        "role": "接警员",
+        "en": "What is your address?",
+        "zh": "您的地址是？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Number fifteen, Park Road.",
+        "zh": "公园路十五号。"
+      },
+      {
+        "spk": "A",
+        "role": "接警员",
+        "en": "Stay outside. Help is on the way.",
+        "zh": "请待在室外。救援马上到。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Thank you, please hurry.",
+        "zh": "谢谢，请快一点。"
+      }
+    ]
+  },
+  {
+    "id": "er",
+    "title": "🏥 医院急诊",
+    "desc": "挂急诊 / 说伤情 / 等待处理",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "护士",
+        "en": "What is the problem?",
+        "zh": "哪里不舒服？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I fell and my arm hurts badly.",
+        "zh": "我摔了一跤，胳膊很疼。"
+      },
+      {
+        "spk": "A",
+        "role": "护士",
+        "en": "How long have you waited?",
+        "zh": "您等了多久？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "About twenty minutes.",
+        "zh": "大概二十分钟了。"
+      },
+      {
+        "spk": "A",
+        "role": "护士",
+        "en": "The doctor will see you soon.",
+        "zh": "医生马上给您看。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Is it serious?",
+        "zh": "严重吗？"
+      },
+      {
+        "spk": "A",
+        "role": "护士",
+        "en": "We need an X-ray first.",
+        "zh": "先拍个片子看看。"
+      }
+    ]
+  },
+  {
+    "id": "consumer",
+    "title": "⚖️ 消费维权",
+    "desc": "投诉商品 / 说明问题 / 要求处理",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "客服",
+        "en": "How can I help you today?",
+        "zh": "请问有什么可以帮您？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I bought a broken phone here.",
+        "zh": "我在这儿买的手机是坏的。"
+      },
+      {
+        "spk": "A",
+        "role": "客服",
+        "en": "Do you have the receipt?",
+        "zh": "有发票吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, from last week.",
+        "zh": "有，上周买的。"
+      },
+      {
+        "spk": "A",
+        "role": "客服",
+        "en": "We can repair or replace it.",
+        "zh": "我们可以维修或者换新。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I want a full refund.",
+        "zh": "我要全额退款。"
+      },
+      {
+        "spk": "A",
+        "role": "客服",
+        "en": "Let me check with the manager.",
+        "zh": "我跟经理确认一下。"
+      }
+    ]
+  },
+  {
+    "id": "attraction",
+    "title": "🎡 景点购票",
+    "desc": "买门票 / 问优惠 / 选时段",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "售票员",
+        "en": "One ticket or two?",
+        "zh": "买一张还是两张？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Two, please. Any student discount?",
+        "zh": "两张。有学生优惠吗？"
+      },
+      {
+        "spk": "A",
+        "role": "售票员",
+        "en": "Half price with a student card.",
+        "zh": "凭学生证半价。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Great. What time does it close?",
+        "zh": "太好了。几点关门？"
+      },
+      {
+        "spk": "A",
+        "role": "售票员",
+        "en": "At six in the evening.",
+        "zh": "晚上六点。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Can we enter now?",
+        "zh": "现在能进吗？"
+      },
+      {
+        "spk": "A",
+        "role": "售票员",
+        "en": "Yes, enjoy your visit.",
+        "zh": "可以，祝您玩得开心。"
+      }
+    ]
+  },
+  {
+    "id": "vet",
+    "title": "🐾 宠物医院",
+    "desc": "带宠物看病 / 说症状 / 开药",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "兽医",
+        "en": "What is wrong with your cat?",
+        "zh": "您的猫怎么了？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "She will not eat and looks weak.",
+        "zh": "它不吃东西，看起来没精神。"
+      },
+      {
+        "spk": "A",
+        "role": "兽医",
+        "en": "How old is she?",
+        "zh": "多大了？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "About three years.",
+        "zh": "大概三岁。"
+      },
+      {
+        "spk": "A",
+        "role": "兽医",
+        "en": "Let me check her temperature.",
+        "zh": "我量一下体温。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Does she need medicine?",
+        "zh": "需要吃药吗？"
+      },
+      {
+        "spk": "A",
+        "role": "兽医",
+        "en": "Yes, twice a day for a week.",
+        "zh": "需要，一天两次，吃一周。"
+      }
+    ]
+  },
+  {
+    "id": "video",
+    "title": "💻 视频会议",
+    "desc": "接入会议 / 调试设备 / 发言",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "同事",
+        "en": "Can you hear me now?",
+        "zh": "现在能听到我吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, but your video is frozen.",
+        "zh": "能，但你的画面卡住了。"
+      },
+      {
+        "spk": "A",
+        "role": "同事",
+        "en": "Let me restart the camera.",
+        "zh": "我重启一下摄像头。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Better now. Shall we begin?",
+        "zh": "现在好了。我们开始吧？"
+      },
+      {
+        "spk": "A",
+        "role": "同事",
+        "en": "Sure. You can share your screen.",
+        "zh": "好。你可以共享屏幕。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I will present the plan.",
+        "zh": "我来演示方案。"
+      }
+    ]
+  },
+  {
+    "id": "client",
+    "title": "🤝 客户接待",
+    "desc": "迎接客户 / 引座 / 递茶 / 介绍",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "你",
+        "en": "Welcome to our company!",
+        "zh": "欢迎来到我们公司！"
+      },
+      {
+        "spk": "B",
+        "role": "客户",
+        "en": "Thank you for having me.",
+        "zh": "谢谢邀请我。"
+      },
+      {
+        "spk": "A",
+        "role": "你",
+        "en": "Please have a seat. Some tea?",
+        "zh": "请坐。喝点茶吗？"
+      },
+      {
+        "spk": "B",
+        "role": "客户",
+        "en": "Tea would be nice.",
+        "zh": "茶就好。"
+      },
+      {
+        "spk": "A",
+        "role": "你",
+        "en": "Let me show you our products.",
+        "zh": "我给您介绍一下产品。"
+      },
+      {
+        "spk": "B",
+        "role": "客户",
+        "en": "I am interested in the new model.",
+        "zh": "我对新款感兴趣。"
+      }
+    ]
+  },
+  {
+    "id": "hotelinfo",
+    "title": "🛎️ 酒店设施咨询",
+    "desc": "问早餐 / 无线网 / 健身房 / 退房",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "前台",
+        "en": "Good evening. Need help?",
+        "zh": "晚上好。需要帮忙吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "What time is breakfast?",
+        "zh": "早餐几点？"
+      },
+      {
+        "spk": "A",
+        "role": "前台",
+        "en": "From seven to ten.",
+        "zh": "七点到十点。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Is there a gym?",
+        "zh": "有健身房吗？"
+      },
+      {
+        "spk": "A",
+        "role": "前台",
+        "en": "Yes, on the second floor.",
+        "zh": "有，在二楼。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "And checkout time?",
+        "zh": "退房时间是？"
+      },
+      {
+        "spk": "A",
+        "role": "前台",
+        "en": "Before twelve noon.",
+        "zh": "中午十二点前。"
+      }
+    ]
+  },
+  {
+    "id": "lostfound",
+    "title": "🔎 失物招领",
+    "desc": "报失 / 描述物品 / 留联系方式",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "工作人员",
+        "en": "What did you lose?",
+        "zh": "您丢了什么？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "A black wallet with my ID.",
+        "zh": "一个黑色钱包，里面有我的证件。"
+      },
+      {
+        "spk": "A",
+        "role": "工作人员",
+        "en": "Where did you last see it?",
+        "zh": "您最后是在哪儿看到的？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "On the train, seat twelve.",
+        "zh": "在火车上，十二号座位。"
+      },
+      {
+        "spk": "A",
+        "role": "工作人员",
+        "en": "We will call you if found.",
+        "zh": "找到了我们会打电话给您。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "My number is one three eight zero zero.",
+        "zh": "我的电话是一三八零零。"
+      },
+      {
+        "spk": "A",
+        "role": "工作人员",
+        "en": "Got it. Please wait here.",
+        "zh": "记下了。请在这儿等。"
       }
     ]
   }
