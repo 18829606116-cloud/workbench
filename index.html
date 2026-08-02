@@ -917,7 +917,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 26;
+var APP_VERSION = 27;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -1350,80 +1350,54 @@ function dictLookup(){
   var isSentence=words.length>=2;
   // ===== 单词模式（原有逻辑）======
   if(!isSentence){
-    // 1) 精确匹配单词
+    // 1) 精确匹配单词（内置词库）
     var exact=null;
     for(var i=0;i<vocab.length;i++){if(vocab[i].w.toLowerCase()===ql){exact=vocab[i];break;}}
     // 2) 模糊匹配（中文释义包含搜索词）
     var fuzzy=vocab.filter(function(w){return (w.mean||'').indexOf(q)>=0;}).slice(0,5);
 
-    // 辅助函数：用 YouDao 数据丰富单词卡片（中文释义 + 双语例句），然后渲染
-    function enrichAndRender(wordObj, isSingle, extraHtml){
-      autoAddToBank(wordObj);
-      // 先用已有数据快速渲染一次（避免白屏等待）
-      resultDiv.innerHTML=renderDictCard(wordObj, isSingle)+(extraHtml||'');
-      // 异步调用 YouDao 获取中文释义和双语例句，拿到后刷新显示
-      fetchYouDao(wordObj.w, function(yd){
-        if(yd){
-          if(yd.zhMean)wordObj.zhMean=yd.zhMean;
-          // 合并例句：优先保留原有例句，补充 YouDao 例句（去重）
-          var existingEns={};
-          if(wordObj.ex&&Array.isArray(wordObj.ex)){wordObj.ex.forEach(function(e){if(e.en)existingEns[e.en.toLowerCase()]=1;});}
-          else if(!wordObj.ex)wordObj.ex=[];
-          if(yd.ex&&yd.ex.length>0){yd.ex.forEach(function(ye){if(!existingEns[(ye.en||'').toLowerCase()])wordObj.ex.push(ye);});}
-        }
-        // 刷新显示（YouDao 数据已合并）
-        resultDiv.innerHTML=renderDictCard(wordObj, isSingle)+(extraHtml||'');
-      });
-    }
-
     if(exact){
-      enrichAndRender(exact, true, '<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>');
+      autoAddToBank(exact);
+      // 内置词库的 mean 字段就是中文释义，直接设为 zhMean 优先显示
+      if(exact.mean&&!exact.zhMean)exact.zhMean=exact.mean;
+      resultDiv.innerHTML=renderDictCard(exact, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
       return;
     }
     if(fuzzy.length>0){
       var html='<div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:8px">找到 '+fuzzy.length+' 个相关单词：</div>';
-      fuzzy.forEach(function(w){autoAddToBank(w);html+=renderDictCard(w, false);});
-      resultDiv.innerHTML=html;
-      // 对第一个结果异步补充 YouDao 中文+例句
-      fetchYouDao(fuzzy[0].w, function(yd){
-        if(yd){
-          if(yd.zhMean)fuzzy[0].zhMean=yd.zhMean;
-          if(yd.ex&&yd.ex.length>0)fuzzy[0].ex=yd.ex;
-          var h2='<div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:8px">找到 '+fuzzy.length+' 个相关单词：</div>';
-          fuzzy.forEach(function(w){h2+=renderDictCard(w, false);});
-          resultDiv.innerHTML=h2;
-        }
+      fuzzy.forEach(function(w){
+        if(w.mean&&!w.zhMean)w.zhMean=w.mean;
+        autoAddToBank(w);html+=renderDictCard(w, false);
       });
+      resultDiv.innerHTML=html;
       return;
     }
-    // 3) 词库都没有 → 联网查词典
-    resultDiv.innerHTML='<div style="padding:14px;color:var(--sub);font-size:13px;text-align:center">🌐 词库中没有，正在联网查询...</div>';
+    // 3) 词库都没有 → 联网查词典（dictionaryapi.dev 有 CORS ✅）
+    resultDiv.innerHTML='<div style="padding:14px;color:var(--sub);font-size:13px;text-align:center">🌐 正在联网查询并翻译...</div>';
     fetchDef(q, function(def){
       if(def){
         addWordObj(def);renderVocab();
-        // 先快速渲染英文数据
+        // 先显示英文数据 + 翻译中提示
+        def.zhMean='⏳ 翻译中...';
         resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
-        // 用 YouDao 补充中文释义 + 双语例句（最可靠的数据源）
-        fetchYouDao(q, function(yd){
-          if(yd){
-            if(yd.zhMean)def.zhMean=yd.zhMean;
-            if(yd.ex&&yd.ex.length>0)def.ex=yd.ex; // YouDao 例句自带中英双语
-            else if(def.ex&&Array.isArray(def.ex)&&def.ex.length>0){
-              // dictionaryapi.dev 有例句但无中文 → 翻译
-              var tCount=0;
-              def.ex.forEach(function(item){
-                if(item.en&&!item.zh){translateEnToZh(item.en,function(z){item.zh=z;tCount++;if(tCount>=def.ex.length)resultDiv.innerHTML=renderDictCard(def,true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';});}
-                else{tCount++;}
-              });
-              setTimeout(function(){resultDiv.innerHTML=renderDictCard(def,true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';},4000);
-              return; // 等待翻译完成
-            }
-          }else{
-            // YouDao 也失败 → 用 translateEnToZh 翻译释义
-            translateEnToZh(def.mean, function(zhM){def.zhMean=zhM;resultDiv.innerHTML=renderDictCard(def,true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';});
-            return;
-          }
+        // 用 MyMemory / Google Translate（均有 CORS）翻译英文释义为中文
+        translateEnToZh(def.mean, function(zhMean){
+          def.zhMean=zhMean||def.mean;
+          // 刷新中文释义
           resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+          // 如果有例句，翻译为中文
+          if(def.ex&&Array.isArray(def.ex)&&def.ex.length>0){
+            var tDone=0;
+            def.ex.forEach(function(item){
+              if(item.en&&!item.zh){
+                translateEnToZh(item.en, function(zhEx){
+                  item.zh=zhEx;tDone++;
+                  if(tDone>=def.ex.length)resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+                });
+              }else{tDone++;}
+            });
+            setTimeout(function(){resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';},5000);
+          }
         });
       }else{
         resultDiv.innerHTML='<div style="padding:16px;background:#fff3e0;border-radius:10px;font-size:13px">😕 没有找到「'+esc(q)+'」的释义<br><span style="color:var(--sub);font-size:12px">内置词库和在线词典均无结果。请检查拼写，或换个说法试试。</span></div>';
