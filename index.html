@@ -601,6 +601,26 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   <button class="gm-btn" onclick="startGame('shadow')">🎤 跟读评分</button>
   <button class="gm-btn" onclick="showWeak()">📉 薄弱词本</button>
 </div>
+
+<!-- 📖 综合学习（内嵌到游戏中心，确保可见） -->
+<div style="margin-top:18px;padding-top:16px;border-top:2px dashed #e0d8f5">
+  <h4 style="margin:0 0 10px 0;color:#6a5acd">📖 综合学习模式</h4>
+  <p style="font-size:12px;color:#888;margin-bottom:10px">集合「看(阅读例句) → 听(发音听力) → 写(拼写测试)」三步闭环，配合遗忘曲线高效记忆</p>
+  <div style="display:flex;flex-wrap:wrap;gap:8px" id="rlwSetupInline">
+    <button class="btn btn-primary btn-sm" onclick="startRLW(10)">🎯 快速复习 (10词)</button>
+    <button class="btn btn-primary btn-sm" onclick="startRLW(20)">📚 标准学习 (20词)</button>
+    <button class="btn btn-primary btn-sm" onclick="startRLW(50)">🔥 深度学习 (50词)</button>
+    <span style="font-size:11px;color:#aaa;align-self:center">每次从今日待复习+未掌握词中选取</span>
+  </div>
+  <div id="rlwStageInline" style="margin-top:12px;display:block;min-height:120px">
+    <div style="padding:24px;text-align:center;color:#bbb">
+      <div style="font-size:40px;margin-bottom:8px">📖</div>
+      <div style="font-size:14px">选择上方学习量开始综合学习</div>
+      <div style="font-size:11px;color:#aaa;margin-top:4px">看例句 → 听发音 → 测拼写</div>
+    </div>
+  </div>
+</div>
+
 <div id="gameStage" style="margin-top:14px"></div>
 </div>
 
@@ -1979,26 +1999,19 @@ var rlwState={words:[],idx:0,step:'read',// read|listen|write
 results:{correct:0,wrong:0,skip:0},sessionWords:[]};
 
 function renderRLW(){
+  // 更新内嵌到游戏中心的 RLW 区域（确保在所有浏览器可见）
+  var stageInline=document.getElementById('rlwStageInline');
+  if(stageInline){
+    stageInline.style.display='block';
+    stageInline.innerHTML='<div style="padding:24px;text-align:center;color:#bbb"><div style="font-size:40px;margin-bottom:8px">📖</div><div style="font-size:14px">选择上方学习量开始综合学习</div><div style="font-size:11px;color:#aaa;margin-top:4px">看例句 → 听发音 → 测拼写</div></div>';
+  }
+  // 同时更新独立面板（如果可用）
   var panel=document.getElementById('panel-rlw');
-  if(!panel)return;
-  panel.style.display='block';
-  panel.style.visibility='visible';
-  panel.style.minHeight='200px';
-  panel.classList.add('active');
+  if(panel){panel.style.display='block';panel.style.visibility='visible';panel.classList.add('active');}
   var setup=document.getElementById('rlwSetup');
-  if(setup){
-    setup.style.display='flex';
-    setup.innerHTML='<button class="btn btn-primary btn-sm" onclick="startRLW(10)">🎯 快速复习 (10词)</button>'
-      +'<button class="btn btn-primary btn-sm" onclick="startRLW(20)">📚 标准学习 (20词)</button>'
-      +'<button class="btn btn-primary btn-sm" onclick="startRLW(50)">🔥 深度学习 (50词)</button>'
-      +'<span style="font-size:12px;color:var(--sub)">每次从今日待复习+未掌握词中选取</span>';
-  }
+  if(setup){setup.style.display='flex';}
   var stage=document.getElementById('rlwStage');
-  if(stage){
-    stage.style.display='block';
-    stage.style.minHeight='150px';
-    stage.innerHTML='<div style="padding-top:40px;color:#999"><div style="font-size:48px;margin-bottom:10px">📖</div><div style="font-size:16px">选择上方学习量开始综合学习</div><div style="font-size:12px;color:#aaa;margin-top:6px">看例句 → 听发音 → 测拼写，三步闭环</div></div>';
-  }
+  if(stage){stage.style.display='block';stage.innerHTML='<div style="padding-top:40px;color:#999"><div style="font-size:48px;margin-bottom:10px">📖</div><div style="font-size:16px">选择上方学习量开始综合学习</div><div style="font-size:12px;color:#aaa;margin-top:6px">看例句 → 听发音 → 测拼写，三步闭环</div></div>';}
 }
 
 function startRLW(count){
@@ -2027,7 +2040,10 @@ function startRLW(count){
   rlwState.step='read';
   rlwState.results={correct:0,wrong:0,skip:0};
   rlwState.sessionWords=[];
-  document.getElementById('rlwSetup').style.display='none';
+  var setup=document.getElementById('rlwSetup');
+  if(setup)setup.style.display='none';
+  var setupInline=document.getElementById('rlwSetupInline');
+  if(setupInline)setupInline.style.display='none';
   showRLWStep();
 }
 
@@ -2036,7 +2052,14 @@ function showRLWStep(){
   if(s.idx>=s.words.length){showRLWSummary();return;}
   var w=s.words[s.idx];
   s.currentWord=w;
+  // 获取两个渲染目标：原始面板 + 游戏中心内嵌
   var stage=document.getElementById('rlwStage');
+  var stageInline=document.getElementById('rlwStageInline');
+  // 辅助函数：同时写入两个容器
+  function setBothHTML(html){
+    if(stage)stage.innerHTML=html;
+    if(stageInline)stageInline.innerHTML=html;
+  }
   // 进度点
   var dots='';
   for(var i=0;i<Math.min(s.words.length,20);i++){
@@ -2055,7 +2078,7 @@ function showRLWStep(){
       exHtml+='<div class="rlw-ex-item"><div class="rlw-en">📝 '+esc(e.en||'')+'</div><div class="rlw-zh">'+esc(e.zh||'')+'</div></div>';
     });
     if(!exHtml)exHtml='<div class="rlw-ex-item"><div class="rlw-en">暂无例句</div></div>';
-    stage.innerHTML=
+    setBothHTML(
       '<div class="rlw-mode-indicator">'+
         '<span class="rlw-mode-badge reading active">📖 看 Read</span>'+
         '<span class="rlw-mode-badge listening">🎧 听 Listen</span>'+
@@ -2071,9 +2094,9 @@ function showRLWStep(){
         '<button class="rlw-big-btn rlw-primary" onclick="rlwSpeak()">🎧 听发音</button>'+
         '<button class="rlw-big-btn rlw-success" onclick="rlwNextStep()">看懂了，下一步 →</button>'+
         '<button class="rlw-big-btn rlw-secondary" onclick="rlwSkipWord()">跳过此词</button>'+
-      '</div>';
+      '</div>');
   }else if(s.step==='listen'){
-    stage.innerHTML=
+    setBothHTML(
       '<div class="rlw-mode-indicator">'+
         '<span class="rlw-mode-badge reading">📖 看 Read</span>'+
         '<span class="rlw-mode-badge listening active">🎧 听 Listen</span>'+
@@ -2087,11 +2110,11 @@ function showRLWStep(){
       '<div class="rlw-btn-row">'+
         '<button class="rlw-big-btn rlw-primary" onclick="rlwPlayAudio()">🔊 播放发音</button>'+
         '<button class="rlw-big-btn rlw-success" onclick="rlwToWrite()">听好了，去拼写 →</button>'+
-      '</div>';
+      '</div>');
     // 自动播放一次
     setTimeout(function(){rlwPlayAudio();},500);
   }else if(s.step==='write'){
-    stage.innerHTML=
+    setBothHTML(
       '<div class="rlw-mode-indicator">'+
         '<span class="rlw-mode-badge reading">📖 看 Read</span>'+
         '<span class="rlw-mode-badge listening">🎧 听 Listen</span>'+
@@ -2108,7 +2131,7 @@ function showRLWStep(){
         '<button class="rlw-big-btn rlw-primary" onclick="rlwCheckSpell()">✅ 确认拼写</button>'+
         '<button class="rlw-big-btn rlw-secondary" onclick="rlwRevealAnswer()">💡 显示答案</button>'+
         '<button class="rlw-big-btn rlw-warning" onclick="rlwPlayAudio()">🔊 再听一次</button>'+
-      '</div>';
+      '</div>');
     var inp=document.getElementById('rlwSpellInput');
     if(inp)setTimeout(function(){inp.focus();},300);
   }
@@ -2198,14 +2221,15 @@ function showRLWSummary(){
   var total=s.correct+s.wrong;
   var acc=total>0?Math.round(s.correct/total*100):0;
   var stage=document.getElementById('rlwStage');
+  var stageInline=document.getElementById('rlwStageInline');
   // 判断评语
   var comment='';
   if(acc>=90)comment='🌟 太棒了！记忆力超群！';
   else if(acc>=70)comment='👍 不错！继续加油！';
   else if(acc>=50)comment='💪 还需努力，多练几遍！';
   else comment='📚 建议减少每次学习量，重点突破薄弱词';
-  
-  stage.innerHTML=
+
+  var summaryHtml=
     '<div class="rlw-summary">'+
       '<div class="rlw-summary-title">🎉 本次学习完成！</div>'+
       '<div style="font-size:14px;color:#555;margin-bottom:10px">'+comment+'</div>'+
@@ -2220,14 +2244,20 @@ function showRLWSummary(){
         '<button class="rlw-big-btn rlw-secondary" onclick="exitRLW()">返回设置</button>'+
       '</div>'+
     '</div>';
+  if(stage)stage.innerHTML=summaryHtml;
+  if(stageInline)stageInline.innerHTML=summaryHtml;
   // 养成经验
   if(typeof cultGainFromStudy==='function')cultGainFromStudy(rlwState.words.length,s.correct);
 }
 
 function exitRLW(){
-  document.getElementById('rlwSetup').style.display='flex';
+  var setup=document.getElementById('rlwSetup');
+  if(setup)setup.style.display='flex';
   var stage=document.getElementById('rlwStage');
-  stage.innerHTML='<div style="padding-top:40px;color:#999"><div style="font-size:48px;margin-bottom:10px">📖</div><div style="font-size:16px">选择上方学习量开始综合学习</div><div style="font-size:12px;color:#aaa;margin-top:6px">看例句 → 听发音 → 测拼写，三步闭环</div></div>';
+  var stageInline=document.getElementById('rlwStageInline');
+  var resetHtml='<div style="padding:24px;text-align:center;color:#bbb"><div style="font-size:40px;margin-bottom:8px">📖</div><div style="font-size:14px">选择上方学习量开始综合学习</div><div style="font-size:11px;color:#aaa;margin-top:4px">看例句 → 听发音 → 测拼写</div></div>';
+  if(stage)stage.innerHTML=resetHtml;
+  if(stageInline)stageInline.innerHTML=resetHtml;
 }
 
 // ================= ENGLISH GAMES =================
