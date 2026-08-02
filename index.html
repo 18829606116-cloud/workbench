@@ -422,7 +422,6 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <div class="tab" data-tab="speaking" onclick="switchEngTab('speaking')">跟读纠音</div>
 <div class="tab" data-tab="ielts" onclick="switchEngTab('ielts')">雅思刷题</div>
 <div class="tab" data-tab="games" onclick="switchEngTab('games')">🎮 游戏中心</div>
-<div class="tab" data-tab="rlw" onclick="switchEngTab('rlw')">📖 综合学习</div>
 </div>
 
 <!-- Vocab Panel -->
@@ -624,27 +623,6 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <div id="gameStage" style="margin-top:14px"></div>
 </div>
 
-<!-- RLW 综合学习面板 -->
-<div class="tab-panel active" id="panel-rlw" style="display:block;visibility:visible;min-height:200px">
-<div class="rlw-info">📖 <b>综合学习模式</b>：集合「看(阅读例句) → 听(发音听力) → 写(拼写测试)」三步闭环，配合遗忘曲线高效记忆</div>
-
-<!-- 设置区 -->
-<div class="rlw-setup" id="rlwSetup" style="display:flex;flex-wrap:wrap;gap:8px;padding:14px 0">
-  <button class="btn btn-primary btn-sm" onclick="startRLW(10)">🎯 快速复习 (10词)</button>
-  <button class="btn btn-primary btn-sm" onclick="startRLW(20)">📚 标准学习 (20词)</button>
-  <button class="btn btn-primary btn-sm" onclick="startRLW(50)">🔥 深度学习 (50词)</button>
-  <span style="font-size:12px;color:var(--sub)">每次从今日待复习+未掌握词中选取</span>
-</div>
-
-<!-- 学习区域 -->
-<div class="rlw-stage" id="rlwStage" style="display:block;min-height:150px">
-  <div style="padding-top:40px;color:#999">
-    <div style="font-size:48px;margin-bottom:10px">📖</div>
-    <div style="font-size:16px">选择上方学习量开始综合学习</div>
-    <div style="font-size:12px;color:#aaa;margin-top:6px">看例句 → 听发音 → 测拼写，三步闭环</div>
-  </div>
-</div>
-</div>
 
 </div>
 
@@ -1979,7 +1957,7 @@ function speakText(t){if('speechSynthesis' in window){var u=new SpeechSynthesisU
 
 // ============ TAB SWITCHING ============
 function switchEngTab(tab){
-  ['vocab','listening','speaking','ielts','games','rlw'].forEach(function(n){
+  ['vocab','listening','speaking','ielts','games'].forEach(function(n){
     var t=document.querySelector('#page-eng .tab[data-tab="'+n+'"]');
     var p=document.getElementById('panel-'+n);
     if(t)t.classList.toggle('active',n===tab);
@@ -1990,7 +1968,6 @@ function switchEngTab(tab){
   if(tab==='speaking')renderSentenceBank();
   if(tab==='ielts'){renderSpkBank();renderMistakeBook();}
   if(tab==='games')renderGames();
-  if(tab==='rlw')renderRLW();
 }
 function renderGames(){var s=document.getElementById('gameStage');if(s)s.innerHTML='<div class="gq-back">选择上方任意模式开始游戏 🎮</div>';}
 
@@ -2005,13 +1982,6 @@ function renderRLW(){
     stageInline.style.display='block';
     stageInline.innerHTML='<div style="padding:24px;text-align:center;color:#bbb"><div style="font-size:40px;margin-bottom:8px">📖</div><div style="font-size:14px">选择上方学习量开始综合学习</div><div style="font-size:11px;color:#aaa;margin-top:4px">看例句 → 听发音 → 测拼写</div></div>';
   }
-  // 同时更新独立面板（如果可用）
-  var panel=document.getElementById('panel-rlw');
-  if(panel){panel.style.display='block';panel.style.visibility='visible';panel.classList.add('active');}
-  var setup=document.getElementById('rlwSetup');
-  if(setup){setup.style.display='flex';}
-  var stage=document.getElementById('rlwStage');
-  if(stage){stage.style.display='block';stage.innerHTML='<div style="padding-top:40px;color:#999"><div style="font-size:48px;margin-bottom:10px">📖</div><div style="font-size:16px">选择上方学习量开始综合学习</div><div style="font-size:12px;color:#aaa;margin-top:6px">看例句 → 听发音 → 测拼写，三步闭环</div></div>';}
 }
 
 function startRLW(count){
@@ -2040,8 +2010,6 @@ function startRLW(count){
   rlwState.step='read';
   rlwState.results={correct:0,wrong:0,skip:0};
   rlwState.sessionWords=[];
-  var setup=document.getElementById('rlwSetup');
-  if(setup)setup.style.display='none';
   var setupInline=document.getElementById('rlwSetupInline');
   if(setupInline)setupInline.style.display='none';
   showRLWStep();
@@ -2052,12 +2020,10 @@ function showRLWStep(){
   if(s.idx>=s.words.length){showRLWSummary();return;}
   var w=s.words[s.idx];
   s.currentWord=w;
-  // 获取两个渲染目标：原始面板 + 游戏中心内嵌
-  var stage=document.getElementById('rlwStage');
+  // 渲染目标：游戏中心内嵌的 RLW 区域
   var stageInline=document.getElementById('rlwStageInline');
-  // 辅助函数：同时写入两个容器
+  // 辅助函数：写入内嵌容器
   function setBothHTML(html){
-    if(stage)stage.innerHTML=html;
     if(stageInline)stageInline.innerHTML=html;
   }
   // 进度点
@@ -2220,7 +2186,6 @@ function showRLWSummary(){
   var s=rlwState.results;
   var total=s.correct+s.wrong;
   var acc=total>0?Math.round(s.correct/total*100):0;
-  var stage=document.getElementById('rlwStage');
   var stageInline=document.getElementById('rlwStageInline');
   // 判断评语
   var comment='';
@@ -2244,19 +2209,16 @@ function showRLWSummary(){
         '<button class="rlw-big-btn rlw-secondary" onclick="exitRLW()">返回设置</button>'+
       '</div>'+
     '</div>';
-  if(stage)stage.innerHTML=summaryHtml;
   if(stageInline)stageInline.innerHTML=summaryHtml;
   // 养成经验
   if(typeof cultGainFromStudy==='function')cultGainFromStudy(rlwState.words.length,s.correct);
 }
 
 function exitRLW(){
-  var setup=document.getElementById('rlwSetup');
-  if(setup)setup.style.display='flex';
-  var stage=document.getElementById('rlwStage');
+  var setupInline=document.getElementById('rlwSetupInline');
+  if(setupInline)setupInline.style.display='flex';
   var stageInline=document.getElementById('rlwStageInline');
   var resetHtml='<div style="padding:24px;text-align:center;color:#bbb"><div style="font-size:40px;margin-bottom:8px">📖</div><div style="font-size:14px">选择上方学习量开始综合学习</div><div style="font-size:11px;color:#aaa;margin-top:4px">看例句 → 听发音 → 测拼写</div></div>';
-  if(stage)stage.innerHTML=resetHtml;
   if(stageInline)stageInline.innerHTML=resetHtml;
 }
 
