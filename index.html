@@ -917,7 +917,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 25;
+var APP_VERSION = 26;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -1355,15 +1355,45 @@ function dictLookup(){
     for(var i=0;i<vocab.length;i++){if(vocab[i].w.toLowerCase()===ql){exact=vocab[i];break;}}
     // 2) 模糊匹配（中文释义包含搜索词）
     var fuzzy=vocab.filter(function(w){return (w.mean||'').indexOf(q)>=0;}).slice(0,5);
+
+    // 辅助函数：用 YouDao 数据丰富单词卡片（中文释义 + 双语例句），然后渲染
+    function enrichAndRender(wordObj, isSingle, extraHtml){
+      autoAddToBank(wordObj);
+      // 先用已有数据快速渲染一次（避免白屏等待）
+      resultDiv.innerHTML=renderDictCard(wordObj, isSingle)+(extraHtml||'');
+      // 异步调用 YouDao 获取中文释义和双语例句，拿到后刷新显示
+      fetchYouDao(wordObj.w, function(yd){
+        if(yd){
+          if(yd.zhMean)wordObj.zhMean=yd.zhMean;
+          // 合并例句：优先保留原有例句，补充 YouDao 例句（去重）
+          var existingEns={};
+          if(wordObj.ex&&Array.isArray(wordObj.ex)){wordObj.ex.forEach(function(e){if(e.en)existingEns[e.en.toLowerCase()]=1;});}
+          else if(!wordObj.ex)wordObj.ex=[];
+          if(yd.ex&&yd.ex.length>0){yd.ex.forEach(function(ye){if(!existingEns[(ye.en||'').toLowerCase()])wordObj.ex.push(ye);});}
+        }
+        // 刷新显示（YouDao 数据已合并）
+        resultDiv.innerHTML=renderDictCard(wordObj, isSingle)+(extraHtml||'');
+      });
+    }
+
     if(exact){
-      autoAddToBank(exact);
-      resultDiv.innerHTML=renderDictCard(exact, true);
+      enrichAndRender(exact, true, '<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>');
       return;
     }
     if(fuzzy.length>0){
       var html='<div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:8px">找到 '+fuzzy.length+' 个相关单词：</div>';
       fuzzy.forEach(function(w){autoAddToBank(w);html+=renderDictCard(w, false);});
       resultDiv.innerHTML=html;
+      // 对第一个结果异步补充 YouDao 中文+例句
+      fetchYouDao(fuzzy[0].w, function(yd){
+        if(yd){
+          if(yd.zhMean)fuzzy[0].zhMean=yd.zhMean;
+          if(yd.ex&&yd.ex.length>0)fuzzy[0].ex=yd.ex;
+          var h2='<div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:8px">找到 '+fuzzy.length+' 个相关单词：</div>';
+          fuzzy.forEach(function(w){h2+=renderDictCard(w, false);});
+          resultDiv.innerHTML=h2;
+        }
+      });
       return;
     }
     // 3) 词库都没有 → 联网查词典
@@ -1371,25 +1401,29 @@ function dictLookup(){
     fetchDef(q, function(def){
       if(def){
         addWordObj(def);renderVocab();
-        // 翻译英文释义为中文
-        translateEnToZh(def.mean, function(zhMean){
-          def.zhMean=zhMean;
-          // 翻译例句为中文（双语例句）
-          if(def.ex&&Array.isArray(def.ex)&&def.ex.length>0){
-            var translated=0;
-            def.ex.forEach(function(item){
-              if(item.en&&!item.zh){
-                translateEnToZh(item.en, function(zhEx){
-                  item.zh=zhEx;translated++;
-                  if(translated>=def.ex.length)resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
-                });
-              }else{translated++;}
-            });
-            // 超时保护：4秒后无论翻译是否完成都显示
-            setTimeout(function(){if(translated<def.ex.length)resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';},4000);
+        // 先快速渲染英文数据
+        resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+        // 用 YouDao 补充中文释义 + 双语例句（最可靠的数据源）
+        fetchYouDao(q, function(yd){
+          if(yd){
+            if(yd.zhMean)def.zhMean=yd.zhMean;
+            if(yd.ex&&yd.ex.length>0)def.ex=yd.ex; // YouDao 例句自带中英双语
+            else if(def.ex&&Array.isArray(def.ex)&&def.ex.length>0){
+              // dictionaryapi.dev 有例句但无中文 → 翻译
+              var tCount=0;
+              def.ex.forEach(function(item){
+                if(item.en&&!item.zh){translateEnToZh(item.en,function(z){item.zh=z;tCount++;if(tCount>=def.ex.length)resultDiv.innerHTML=renderDictCard(def,true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';});}
+                else{tCount++;}
+              });
+              setTimeout(function(){resultDiv.innerHTML=renderDictCard(def,true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';},4000);
+              return; // 等待翻译完成
+            }
           }else{
-            resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
+            // YouDao 也失败 → 用 translateEnToZh 翻译释义
+            translateEnToZh(def.mean, function(zhM){def.zhMean=zhM;resultDiv.innerHTML=renderDictCard(def,true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';});
+            return;
           }
+          resultDiv.innerHTML=renderDictCard(def, true)+'<div style="margin-top:6px;font-size:11px;color:#2e7d32">✅ 已自动加入词库</div>';
         });
       }else{
         resultDiv.innerHTML='<div style="padding:16px;background:#fff3e0;border-radius:10px;font-size:13px">😕 没有找到「'+esc(q)+'」的释义<br><span style="color:var(--sub);font-size:12px">内置词库和在线词典均无结果。请检查拼写，或换个说法试试。</span></div>';
@@ -1937,14 +1971,67 @@ function fetchDef(word,cb){
 function translateEnToZh(enText,cb){
   if(!enText||!enText.trim()){cb('');return;}
   if(typeof fetch!=='function'){cb(enText);return;}
-  var url='https://api.mymemory.translated.net/get?q='+encodeURIComponent(enText)+'&langpair=en|zh-CN';
-  fetch(url).then(function(r){return r.json();}).then(function(d){
-    var zh='';
-    try{zh=d.responseData.translatedText||'';}catch(e){}
-    // 如果翻译结果和原文一样或为空，返回原文
-    if(!zh||zh.toLowerCase()===enText.toLowerCase())cb(enText);
-    else cb(zh);
-  }).catch(function(){cb(enText);});
+  // 主翻译：MyMemory 免费API
+  tryTranslate('https://api.mymemory.translated.net/get?q='+encodeURIComponent(enText)+'&langpair=en|zh-CN', function(zh){
+    if(zh&&zh!==enText&&zh.toLowerCase()!==enText.toLowerCase()){cb(zh);return;}
+    // 备用：Google Translate 免费接口（多语言资源）
+    tryTranslate('https://translate.googleapis.com/translate_a/single?client=gsl&sl=en&tl=zh-CN&q='+encodeURIComponent(enText), function(zh2){
+      if(zh2&&zh2!==enText){cb(zh2);return;}
+      cb(enText);
+    });
+  });
+  function tryTranslate(url, callback){
+    return fetch(url).then(function(r){return r.text();}).then(function(txt){
+      var zh='';
+      try{
+        // MyMemory 格式
+        var j=JSON.parse(txt);
+        zh=j.responseData?j.responseData.translatedText:'';
+      }catch(e){
+        // Google Translate 格式：[[["译文","原文",...],...],...]
+        try{var m=txt.match(/\[\[\[\"([^\"]*)\"/);if(m)zh=m[1];}catch(e2){}
+      }
+      if(!zh)zh='';
+      callback(zh);
+    }).catch(function(){callback('');});
+  }
+}
+
+// 有道词典 API（中文释义 + 双语例句，专为中文用户优化）
+function fetchYouDao(word,cb){
+  if(typeof fetch!=='function'){cb(null);return;}
+  var url='https://dict.youdao.com/jsonapi?q='+encodeURIComponent(word);
+  fetch(url,{headers:{'User-Agent':'Mozilla/5.0','Referer':'https://dict.youdao.com/'}})
+    .then(function(r){return r.text();})
+    .then(function(txt){
+      try{
+        var j=JSON.parse(txt);
+        var result={zhMean:'',ex:[]};
+        // 提取中文释义（ec.trs）
+        try{if(j.ec&&j.ec.word&&j.ec.word[0]&&j.ec.word[0].trs){var trs=j.ec.word[0].trs;for(var ti=0;ti<trs.length;ti++){if(trs[ti].tr&&trs[ti].tr[0]&&trs[ti].tr[0].l&&trs[ti].tr[0].l.i&&trs[ti].tr[0].l.i[0]){result.zhMean=trs[ti].tr[0].l.i[0];break;}}}}catch(e1){}
+        // 提取双语例句（oxford.senses[].examples 或 collins 等）
+        var sources=['oxford','collins','webster'];
+        for(var si=0;si<sources.length;si++){
+          try{
+            var src=j[sources[si]];
+            if(!src)continue;
+            if(typeof src==='string'){try{src=JSON.parse(src);}catch(e2){continue;}}
+            var senses=(src.senses||[]);if(!senses.length&&src.entry)senses=src.entry;
+            for(var i=0;i<senses.length;i++){
+              var exs=(senses[i].examples||[]);
+              for(var k=0;k<exs.length;k++){
+                if(exs[k].example&&result.ex.length<3){
+                  result.ex.push({en:exs[k].example,zh:(exs[k].sense&&exs[k].sense.word)||''});
+                }
+              }
+            }
+          }catch(e3){}
+          if(result.ex.length>=2)break;
+        }
+        cb(result);
+      }catch(e4){cb(null);}
+    })
+    .catch(function(){cb(null);});
 }
 
 // ============ LISTENING ============
