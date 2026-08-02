@@ -1214,6 +1214,11 @@ function migrateVocab(){
   sLS('wb_userwords_migrated',1);
 }
 
+// ============ 例句格式化工具（兼容字符串 & 双语对象数组） ============
+function formatExText(ex){if(!ex)return '';if(typeof ex==='string')return ex;if(Array.isArray(ex)){var p=[];for(var i=0;i<ex.length;i++){if(typeof ex[i]==='string')p.push(ex[i]);else if(ex[i]&&ex[i].en)p.push(ex[i].en);}return p.join('；');}return String(ex);}
+function formatExHtml(ex){if(!ex)return '';if(typeof ex==='string')return esc(ex);if(Array.isArray(ex)){var h='';for(var i=0;i<ex.length;i++){if(i>0)h+='<br>';if(typeof ex[i]==='string')h+=esc(ex[i]);else if(ex[i]&&ex[i].en){h+='<span style="color:var(--text)">'+esc(ex[i].en)+'</span>';if(ex[i].zh)h+=' <span style="color:var(--sub)">('+esc(ex[i].zh)+')</span>';}}return h;}return esc(String(ex));}
+function firstExEn(ex){if(!ex)return '';if(typeof ex==='string')return ex;if(Array.isArray(ex)){for(var i=0;i<ex.length;i++){if(typeof ex[i]==='string'&&ex[i])return ex[i];if(ex[i]&&ex[i].en)return ex[i].en;}}return '';}
+
 // ============ VOCABULARY FUNCTIONS ============
 function renderVocab(){
   var v=getVocab();
@@ -1230,7 +1235,7 @@ function renderVocab(){
     html+='<span class="vp">'+esc(w.ph||'')+'</span>';
     html+='<span class="vl vl-'+(w.level||'c4')+'">'+levelLabel(w.level)+'</span>';
     html+='<div class="vm"><b>'+esc(w.pos||'')+'</b> '+esc(w.mean||'')+'</div>';
-    if(w.ex)html+='<div class="vm" style="color:var(--sub);font-size:12px">'+esc(w.ex)+'</div>';
+    if(w.ex)html+='<div class="vm" style="color:var(--sub);font-size:12px">'+formatExHtml(w.ex)+'</div>';
     html+='</div>';
   });
   document.getElementById('vocabList').innerHTML=html;
@@ -1307,7 +1312,7 @@ function showMyWords(){
   document.getElementById('flashArea').classList.remove('hidden');
   renderFlash();
 }
-function renderFlash(){var w=flashList[flashIdx];if(!w)return;document.getElementById('fcWord').textContent=w.w;document.getElementById('fcPos').textContent=(w.ph||'')+'  '+(w.pos||'');document.getElementById('fcMean').textContent=w.mean;document.getElementById('fcEx').textContent=w.ex||'';document.getElementById('flashCard').classList.remove('flipped');}
+function renderFlash(){var w=flashList[flashIdx];if(!w)return;document.getElementById('fcWord').textContent=w.w;document.getElementById('fcPos').textContent=(w.ph||'')+'  '+(w.pos||'');document.getElementById('fcMean').textContent=w.mean;document.getElementById('fcEx').textContent=formatExText(w.ex);document.getElementById('flashCard').classList.remove('flipped');}
 function fcFlip(){document.getElementById('flashCard').classList.toggle('flipped');}
 function nextCard(){flashIdx=(flashIdx+1)%Math.max(flashList.length,1);renderFlash();}
 function markKnown(){var w=flashList[flashIdx];if(!w)return;myWords['w_'+w.w]=true;sLS('wb_mywords',myWords);renderMasteredList();nextCard();}
@@ -1468,8 +1473,8 @@ function renderDictCard(w, isSingle){
   else if(w.mean&&!w.zhMean)html+='<div style="font-size:15px;color:var(--text);margin-bottom:6px;line-height:1.6">'+esc(w.mean)+'</div>';
   if(w.ex){
     html+='<div style="font-size:12px;color:var(--sub);margin-top:6px;padding:6px 8px;background:#fafafa;border-radius:6px;border-left:3px solid var(--primary)">';
-    html+='<span style="color:#888">例句：</span>'+esc(w.ex);
-    var cnEx=cnForEx(w.ex,w.mean);
+    html+='<span style="color:#888">例句：</span>'+formatExHtml(w.ex);
+    var cnEx=cnForEx(firstExEn(w.ex),w.mean);
     if(cnEx&&cnEx!==w.ex&&cnEx.indexOf('例句见上文')<0&&cnEx.indexOf('参见上方')<0)html+='<br><span style="color:var(--primary)">译文：'+esc(cnEx)+'</span>';
     html+='</div>';
   }
@@ -1792,7 +1797,7 @@ function renderStudy(){
   document.getElementById('sWord').textContent=studyCur.w;
   document.getElementById('sPos').textContent=((studyCur.ph||'')+'  '+(studyCur.pos||'')).trim();
   document.getElementById('sMean').textContent=studyCur.mean||'(无释义)';
-  document.getElementById('sEx').textContent=studyCur.ex||'';
+  document.getElementById('sEx').textContent=formatExText(studyCur.ex);
   document.getElementById('studyCard').classList.remove('flipped');
   var remain=studyQueue.length+studyReview.length;
   p.innerHTML='已掌握 '+studyDone+' / 共 '+studyTotal+'　·　剩余 '+remain;
@@ -1974,17 +1979,18 @@ var rlwState={words:[],idx:0,step:'read',// read|listen|write
 results:{correct:0,wrong:0,skip:0},sessionWords:[]};
 
 function renderRLW(){
-  // 自愈式渲染：打开标签时确保设置区与学习区内容存在，避免缓存的中间态 HTML 内容缺失导致空白
   var setup=document.getElementById('rlwSetup');
-  if(setup && setup.children.length===0){
+  if(setup){
+    setup.style.display='flex';
     setup.innerHTML='<button class="btn btn-primary btn-sm" onclick="startRLW(10)">🎯 快速复习 (10词)</button>'
       +'<button class="btn btn-primary btn-sm" onclick="startRLW(20)">📚 标准学习 (20词)</button>'
       +'<button class="btn btn-primary btn-sm" onclick="startRLW(50)">🔥 深度学习 (50词)</button>'
       +'<span style="font-size:12px;color:var(--sub)">每次从今日待复习+未掌握词中选取</span>';
   }
   var stage=document.getElementById('rlwStage');
-  if(stage && stage.querySelector('.rlw-word')===null && stage.querySelector('.rlw-mode-indicator')===null && !stage.querySelector('[style*="48px"]')){
+  if(stage){
     stage.innerHTML='<div style="padding-top:40px;color:#999"><div style="font-size:48px;margin-bottom:10px">📖</div><div style="font-size:16px">选择上方学习量开始综合学习</div><div style="font-size:12px;color:#aaa;margin-top:6px">看例句 → 听发音 → 测拼写，三步闭环</div></div>';
+    stage.style.display='block';
   }
 }
 
@@ -2309,7 +2315,7 @@ function realVoice(w){
     a.play().catch(function(){speakWord(w);});
   }catch(e){speakWord(w);}
 }
-function speakCurEx(){ if(G.cur&&G.cur.word) speakText(G.cur.word.ex); }
+function speakCurEx(){ if(G.cur&&G.cur.word) speakText(firstExEn(G.cur.word.ex)); }
 function speakCurShadow(){ if(G.cur) speakText(G.cur.text); }
 var G={mode:null,pool:[],idx:0,cur:null,score:0,combo:0,correct:0,total:0,timer:null,timeLeft:0,board:null,shadowItems:null};
 function srsDuePool(){
@@ -2336,7 +2342,7 @@ function nextQuestion(){
   var word=G.pool[G.idx++]; G.cur=word; G.total++;
   if(G.mode==='spell') return renderSpell(word);
   if(G.mode==='cloze'){
-    if(!word.ex) return nextQuestion();
+    if(!firstExEn(word.ex)) return nextQuestion();
     return renderCloze(word);
   }
   var answer=word.mean;
@@ -2448,9 +2454,10 @@ function submitSpell(){
   setTimeout(nextQuestion,900);
 }
 function renderCloze(word){
-  var blanked=word.ex.replace(new RegExp(word.w,'gi'),'_____');
+  var exStr=firstExEn(word.ex);
+  var blanked=exStr.replace(new RegExp(word.w,'gi'),'_____');
   var opts=shuffle([word.w].concat(pickDistractWords(word.w,G.pool,3)));
-  G.cur={word:word, sentence:blanked, opts:opts, answer:word.w, type:'cloze', ex:word.ex};
+  G.cur={word:word, sentence:blanked, opts:opts, answer:word.w, type:'cloze', ex:exStr};
   var html='<div class="game-q">';
   html+='<div class="gq-top"><span>得分 '+G.score+'</span><span>第 '+G.total+' 题</span></div>';
   html+=speedBar();
@@ -2458,7 +2465,7 @@ function renderCloze(word){
   html+='<div class="gq-prompt">✏️ 例句填空：选出合适的词</div>';
   html+='<div class="gq-sent">'+esc(blanked)+'</div>';
   html+='<div class="gq-cn-trans">📖 '+esc(word.mean)+' · '+esc(ph)+'</div>';
-  var _cnEx=cnForEx(word.ex,word.mean);
+  var _cnEx=cnForEx(exStr,word.mean);
   if(_cnEx)html+='<div class="gq-cn-trans" style="font-size:12px;color:var(--primary);font-weight:600">📝 整句翻译：'+esc(_cnEx)+'</div>';
   // 原文行已移除（避免泄露填空答案）
   html+='<div class="gq-act-row"><button class="gm-act" onclick="speakCurEx()">🔊 听句子</button> <button class="gm-act" onclick="speakWord(\''+esc(word.w)+'\')">🔊 单词</button></div>';
@@ -2796,8 +2803,8 @@ function nextSRS(){
   var ph=word.ph||'—';
   html+='<div class="gq-word">'+esc(word.w)+' <span class="gq-ph">'+esc(ph)+'</span></div>';
   html+='<div class="gq-mean">'+esc(word.mean)+'</div>';
-  if(word.ex)html+='<div class="gq-cn-trans" style="font-size:12px;color:var(--sub)">例句：'+esc(word.ex)+'</div>';
-  if(word.ex)html+='<div class="gq-cn-trans" style="font-size:11px;color:#888">译：'+esc(cnForEx(word.ex,word.mean))+'</div>';
+  if(word.ex)html+='<div class="gq-cn-trans" style="font-size:12px;color:var(--sub)">例句：'+formatExHtml(word.ex)+'</div>';
+  if(word.ex)html+='<div class="gq-cn-trans" style="font-size:11px;color:#888">译：'+esc(cnForEx(firstExEn(word.ex),word.mean))+'</div>';
   html+='<div class="gq-act-row"><button class="gm-act" onclick="speakWord(\''+esc(word.w)+'\')">🔊 朗读</button> <button class="gm-act" onclick="realVoice(\''+esc(word.w)+'\')">🗣️ 真人</button></div>';
   html+='<div class="gq-rates"><button class="rate-bad" onclick="rateSRS(1)">😵 忘了</button><button class="rate-mid" onclick="rateSRS(3)">🤔 模糊</button><button class="rate-good" onclick="rateSRS(5)">😎 记得</button></div>';
   html+='<div class="gq-fb" id="gqFb"></div><button class="gm-btn2" onclick="quitGame()">退出</button></div>';
@@ -2835,7 +2842,7 @@ function startShadow(){
   }
   var items=[];
   SENTENCE_BANK.forEach(function(s){ items.push({text:s.en, cn:s.cn, kind:'sentence'}); });
-  getVocab().map(W0).filter(function(x){return x.w&&x.ex;}).slice(0,30).forEach(function(x){ items.push({text:x.ex, cn:x.mean, kind:'word', w:x.w}); });
+  getVocab().map(W0).filter(function(x){return x.w&&firstExEn(x.ex);}).slice(0,30).forEach(function(x){ items.push({text:firstExEn(x.ex), cn:x.mean, kind:'word', w:x.w}); });
   G.shadowItems=shuffle(items); G.idx=0;
   nextShadow();
 }
