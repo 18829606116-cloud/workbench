@@ -5316,6 +5316,48 @@ var DLG_SCENES = [
       { "spk": "A", "role": "柜员", "en": "You can use the mobile app or the ATM.", "zh": "您可以用手机银行或 ATM。" }
     ]
   }
+,
+  {
+    "id": "email",
+    "title": "✉️ 商务邮件",
+    "desc": "跟进会议、附件、截止时间、转发团队",
+    "lines": [
+      { "spk": "B", "role": "你", "en": "I am writing to follow up on our meeting yesterday.", "zh": "我写这封邮件是想跟进我们昨天的会议。" },
+      { "spk": "A", "role": "同事", "en": "Thanks for your email. I have attached the report.", "zh": "谢谢你的邮件。报告已附上。" },
+      { "spk": "B", "role": "你", "en": "Could you clarify the deadline for the proposal?", "zh": "你能说明一下提案的截止时间吗？" },
+      { "spk": "A", "role": "同事", "en": "Please submit it by next Friday.", "zh": "请在下周五之前提交。" },
+      { "spk": "B", "role": "你", "en": "Noted. I will forward this to my team.", "zh": "明白了。我会转发给我的团队。" },
+      { "spk": "A", "role": "同事", "en": "Great. Let us schedule a call next week.", "zh": "好的。我们下周安排个电话会议吧。" }
+    ]
+  },
+  {
+    "id": "complaint",
+    "title": "🛎️ 酒店投诉",
+    "desc": "无烟房有烟味、空调/ wifi 故障、要求升级",
+    "lines": [
+      { "spk": "B", "role": "你", "en": "Hello, I booked a non-smoking room, but it smells like smoke.", "zh": "你好，我订的是无烟房，但有烟味。" },
+      { "spk": "A", "role": "前台", "en": "I am sorry to hear that. Let me check another room.", "zh": "很抱歉听到这个。我查一下另一个房间。" },
+      { "spk": "B", "role": "你", "en": "Also, the air conditioner is not working.", "zh": "而且空调也不管用。" },
+      { "spk": "A", "role": "前台", "en": "We will send someone to fix it right away.", "zh": "我们马上派人来修。" },
+      { "spk": "B", "role": "你", "en": "And the wifi is very slow.", "zh": "还有 wifi 特别慢。" },
+      { "spk": "A", "role": "前台", "en": "I can upgrade you to a suite at no extra charge.", "zh": "我可以为您免费升级到套房。" }
+    ]
+  },
+  {
+    "id": "hospital",
+    "title": "🏥 医院挂号",
+    "desc": "描述症状、选科室、缴费取号、问等待时间",
+    "lines": [
+      { "spk": "B", "role": "你", "en": "Hello, I would like to register for a doctor.", "zh": "你好，我想挂号看医生。" },
+      { "spk": "A", "role": "挂号员", "en": "Do you have any symptoms?", "zh": "您有什么症状吗？" },
+      { "spk": "B", "role": "你", "en": "I have a headache and a high fever.", "zh": "我头痛，还发高烧。" },
+      { "spk": "A", "role": "挂号员", "en": "Which department, internal medicine or ENT?", "zh": "您想挂哪个科，内科还是耳鼻喉科？" },
+      { "spk": "B", "role": "你", "en": "Internal medicine, please.", "zh": "请挂内科。" },
+      { "spk": "A", "role": "挂号员", "en": "Please pay at the counter and take a number.", "zh": "请到柜台缴费并取号。" },
+      { "spk": "B", "role": "你", "en": "How long is the waiting time?", "zh": "要等多久？" },
+      { "spk": "A", "role": "挂号员", "en": "About twenty minutes.", "zh": "大约二十分钟。" }
+    ]
+  }
 ];
 
 
@@ -5323,7 +5365,7 @@ var DLG_CUR='airport';
 var DLG_ZH=true;
 function dlgEnsureCss(){
   if(window.DLG_CSS_DONE) return;
-  var css='.dlg-chip{display:inline-block;padding:6px 12px;margin:4px 6px 4px 0;border:1px solid var(--border,#ddd);border-radius:18px;background:var(--card,#fff);color:var(--text,#222);font-size:13px;cursor:pointer}.dlg-chip.on{background:#2b6cb0;color:#fff;border-color:#2b6cb0}.dlg-line{margin:10px 0;padding:10px 12px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--border,#eee)}.dlg-me{background:#eef5ff}.dlg-role{font-size:12px;color:#888;margin-bottom:3px}.dlg-en{font-size:16px;line-height:1.75;color:var(--text,#222)}.dlg-w{color:#2b6cb0;cursor:pointer;border-bottom:1px dashed #2b6cb0}.dlg-w:active{opacity:.5}.dlg-zh{font-size:13px;color:#888;margin-top:5px;line-height:1.6}.dlg-zh.hide{display:none}.dlg-act{margin:12px 0 4px}.dlg-pop{position:fixed;z-index:1200;display:none;max-width:240px;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:12px;font-size:14px}.dlg-pop-w{font-size:17px;font-weight:700;color:#2b6cb0}.dlg-pop-m{font-size:13px;color:#555;margin:6px 0 10px;line-height:1.5}.dlg-pop-act{display:flex;gap:8px}.dlg-book-ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35);z-index:1300}.dlg-book{background:#fff;border-radius:16px;width:min(440px,92vw);max-height:80vh;overflow:auto;padding:16px}.dlg-book-h{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:700;margin-bottom:10px}.dlg-book-e{padding:24px 8px;text-align:center;color:#999;font-size:14px}.dlg-book-list{display:flex;flex-direction:column;gap:8px}.dlg-book-i{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #eee;border-radius:10px}.dlg-bi-w{font-weight:600;color:#2b6cb0;cursor:pointer;min-width:120px}.dlg-bi-m{flex:1;font-size:13px;color:#555}';
+  var css='.dlg-chip{display:inline-block;padding:6px 12px;margin:4px 6px 4px 0;border:1px solid var(--border,#ddd);border-radius:18px;background:var(--card,#fff);color:var(--text,#222);font-size:13px;cursor:pointer}.dlg-chip.on{background:#2b6cb0;color:#fff;border-color:#2b6cb0}.dlg-line{margin:10px 0;padding:10px 12px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--border,#eee)}.dlg-me{background:#eef5ff}.dlg-role{font-size:12px;color:#888;margin-bottom:3px}.dlg-en{font-size:16px;line-height:1.75;color:var(--text,#222)}.dlg-w{color:#2b6cb0;cursor:pointer;border-bottom:1px dashed #2b6cb0}.dlg-w:active{opacity:.5}.dlg-zh{font-size:13px;color:#888;margin-top:5px;line-height:1.6}.dlg-zh.hide{display:none}.dlg-act{margin:12px 0 4px}.dlg-pop{position:fixed;z-index:1200;display:none;max-width:240px;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:12px;font-size:14px}.dlg-pop-w{font-size:17px;font-weight:700;color:#2b6cb0}.dlg-pop-m{font-size:13px;color:#555;margin:6px 0 10px;line-height:1.5}.dlg-pop-act{display:flex;gap:8px}.dlg-book-ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35);z-index:1300}.dlg-book{background:#fff;border-radius:16px;width:min(440px,92vw);max-height:80vh;overflow:auto;padding:16px}.dlg-book-h{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:700;margin-bottom:10px}.dlg-book-e{padding:24px 8px;text-align:center;color:#999;font-size:14px}.dlg-book-list{display:flex;flex-direction:column;gap:8px}.dlg-book-i{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #eee;border-radius:10px}.dlg-bi-w{font-weight:600;color:#2b6cb0;cursor:pointer;min-width:120px}.dlg-bi-m{flex:1;font-size:13px;color:#555}.dlg-pop-act{flex-wrap:wrap}';
   document.head.insertAdjacentHTML('beforeend','<style>'+css+'</style>');
   window.DLG_CSS_DONE=true;
 }
@@ -5355,10 +5397,11 @@ function dlgWord(el, ev){
   if(!pop){ pop=document.createElement('div'); pop.id='dlgPop'; pop.className='dlg-pop'; document.body.appendChild(pop); }
   var fav=dlgGetFav();
   var isFav=false; for(var i=0;i<fav.length;i++){ if(fav[i].w.toLowerCase()===String(w).toLowerCase()){isFav=true;break;} }
-  pop.innerHTML='<div class="dlg-pop-w">'+esc(w)+'</div>'+(m?'<div class="dlg-pop-m">'+esc(m)+'</div>':'<div class="dlg-pop-m" style="color:#aaa">词库暂无释义</div>')+'<div class="dlg-pop-act"><button class="gm-btn2" id="dlgSpeakBtn">🔊 朗读</button><button class="gm-btn2" id="dlgFavBtn">'+(isFav?'⭐ 已收藏':'☆ 收藏')+'</button></div>';
+  pop.innerHTML='<div class="dlg-pop-w">'+esc(w)+'</div>'+(m?'<div class="dlg-pop-m">'+esc(m)+'</div>':'<div class="dlg-pop-m" style="color:#aaa">词库暂无释义</div>')+'<div class="dlg-pop-act"><button class="gm-btn2" id="dlgSpeakBtn">🔊 朗读</button><button class="gm-btn2" id="dlgFavBtn">'+(isFav?'⭐ 已收藏':'☆ 收藏')+'</button><button class="gm-btn2" id="dlgReviewBtn">📚 背词</button></div>';
   pop.style.display='block';
   document.getElementById('dlgSpeakBtn').onclick=function(){ speakWord(w); };
   document.getElementById('dlgFavBtn').onclick=function(){ dlgToggleFav(w); };
+  document.getElementById('dlgReviewBtn').onclick=function(){ dlgAddToReview(w); };
   var x=ev&&typeof ev.clientX==='number'?ev.clientX:window.innerWidth/2;
   var y=ev&&typeof ev.clientY==='number'?ev.clientY:window.innerHeight/2;
   pop.style.left=Math.min(x, window.innerWidth-250)+'px';
@@ -5398,8 +5441,9 @@ function dlgBook(){
       var it=document.createElement('div'); it.className='dlg-book-i';
       var wsp=document.createElement('span'); wsp.className='dlg-bi-w'; wsp.textContent='🔊 '+f.w; wsp.onclick=function(){ speakWord(f.w); };
       var msp=document.createElement('span'); msp.className='dlg-bi-m'; msp.textContent=f.mean||'—';
+      var rev=document.createElement('button'); rev.className='gm-act'; rev.textContent='📚'; rev.title='加入背词计划'; rev.onclick=function(){ dlgAddToReview(f.w); };
       var del=document.createElement('button'); del.className='gm-act'; del.textContent='✕'; del.onclick=function(){ dlgBookDel(f.w); };
-      it.appendChild(wsp); it.appendChild(msp); it.appendChild(del); list.appendChild(it);
+      it.appendChild(wsp); it.appendChild(msp); it.appendChild(rev); it.appendChild(del); list.appendChild(it);
     });
     box.appendChild(list);
   }
@@ -5410,6 +5454,12 @@ function dlgBookDel(w){
   var fav=dlgGetFav().filter(function(x){ return x.w.toLowerCase()!==String(w).toLowerCase(); });
   localStorage.setItem('wb_dlgbook', JSON.stringify(fav));
   dlgBook();
+}
+function dlgAddToReview(w){
+  var uv=gLS('wb_userwords')||[];
+  for(var i=0;i<uv.length;i++){ if(uv[i].w && uv[i].w.toLowerCase()===String(w).toLowerCase()){ toast('已在背词计划中'); return; } }
+  addWordObj({w:w, ph:'', pos:'', mean:dlgMeanOf(w)||'', ex:'', level:'c4'});
+  toast('📚 已加入背词计划');
 }
 
 <!-- DIALOG MODULE END -->
