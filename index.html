@@ -917,7 +917,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 22;
+var APP_VERSION = 23;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -4446,6 +4446,1195 @@ var DLG_SCENES = [
         "role": "你",
         "en": "Li, L-I-I.",
         "zh": "李，L-I-I。"
+      }
+    ]
+  },
+{
+    "id": "taxi",
+    "title": "🚕 打车出行",
+    "desc": "叫车 / 告诉目的地 / 问价格 / 付钱下车",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "司机",
+        "en": "Where would you like to go?",
+        "zh": "您要去哪儿？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Please take me to the train station.",
+        "zh": "请带我去火车站。"
+      },
+      {
+        "spk": "A",
+        "role": "司机",
+        "en": "Sure. It will take about twenty minutes.",
+        "zh": "好的。大概需要二十分钟。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "How much will it cost?",
+        "zh": "大概多少钱？"
+      },
+      {
+        "spk": "A",
+        "role": "司机",
+        "en": "Around thirty-five yuan, depending on traffic.",
+        "zh": "大约三十五元，看路况。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Could you drop me off at the main entrance?",
+        "zh": "您能在正门让我下车吗？"
+      },
+      {
+        "spk": "A",
+        "role": "司机",
+        "en": "No problem. Here we are.",
+        "zh": "没问题。我们到了。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Thank you. Keep the change.",
+        "zh": "谢谢。不用找了。"
+      }
+    ]
+  },
+  {
+    "id": "carrental",
+    "title": "🚗 租赁汽车",
+    "desc": "办手续 / 选车型 / 问保险 / 取车",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "Good morning. How can I help you?",
+        "zh": "早上好。有什么可以帮您？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I would like to rent a car for three days.",
+        "zh": "我想租一辆车，租三天。"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "Sure. What kind of car do you prefer?",
+        "zh": "好的。您想要什么样的车？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "A small automatic, please.",
+        "zh": "请给我一辆小型自动挡。"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "Do you want full insurance?",
+        "zh": "您需要全险吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, please include it.",
+        "zh": "是的，请加上。"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "Your car is number seven in the lot.",
+        "zh": "您的车在停车场七号位。"
+      }
+    ]
+  },
+  {
+    "id": "train",
+    "title": "🚄 火车站购票",
+    "desc": "买票 / 问时间班次 / 取票进站",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "售票员",
+        "en": "Hello, where are you going?",
+        "zh": "您好，您要去哪里？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "One ticket to Beijing, please.",
+        "zh": "请给我一张去北京的票。"
+      },
+      {
+        "spk": "A",
+        "role": "售票员",
+        "en": "The next train leaves at nine ten.",
+        "zh": "下一班火车九点十分发车。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Is it a window seat?",
+        "zh": "是靠窗的吗？"
+      },
+      {
+        "spk": "A",
+        "role": "售票员",
+        "en": "Yes, platform three.",
+        "zh": "是的，三号站台。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "How long is the trip?",
+        "zh": "车程多久？"
+      },
+      {
+        "spk": "A",
+        "role": "售票员",
+        "en": "About two hours and forty minutes.",
+        "zh": "大约两小时四十分钟。"
+      }
+    ]
+  },
+  {
+    "id": "gas",
+    "title": "⛽ 加油与修车",
+    "desc": "加油 / 说型号 / 车出故障求助",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "工作人员",
+        "en": "Fill it up?",
+        "zh": "加满吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, regular, please.",
+        "zh": "是的，请加普通汽油。"
+      },
+      {
+        "spk": "A",
+        "role": "工作人员",
+        "en": "Sure. That will be two hundred yuan.",
+        "zh": "好的。一共两百元。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Also, my tire looks low.",
+        "zh": "另外，我的轮胎看起来有点瘪。"
+      },
+      {
+        "spk": "A",
+        "role": "工作人员",
+        "en": "I will check the pressure for you.",
+        "zh": "我帮您检查一下胎压。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Thank you. Is it safe to drive?",
+        "zh": "谢谢。还能开吗？"
+      },
+      {
+        "spk": "A",
+        "role": "工作人员",
+        "en": "Yes, it is fine now.",
+        "zh": "可以，现在没事了。"
+      }
+    ]
+  },
+  {
+    "id": "customs",
+    "title": "🛂 海关入境",
+    "desc": "过关 / 出示证件 / 申报物品",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "海关官员",
+        "en": "May I see your passport, please?",
+        "zh": "请出示您的护照。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Here you are.",
+        "zh": "给您。"
+      },
+      {
+        "spk": "A",
+        "role": "海关官员",
+        "en": "What is the purpose of your visit?",
+        "zh": "您此行目的是什么？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I am here for tourism.",
+        "zh": "我是来旅游的。"
+      },
+      {
+        "spk": "A",
+        "role": "海关官员",
+        "en": "Do you have anything to declare?",
+        "zh": "有需要申报的物品吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "No, just personal belongings.",
+        "zh": "没有，只有个人物品。"
+      },
+      {
+        "spk": "A",
+        "role": "海关官员",
+        "en": "All right, you may go.",
+        "zh": "好的，您可以过去了。"
+      }
+    ]
+  },
+  {
+    "id": "post",
+    "title": "📮 邮局寄件",
+    "desc": "寄包裹 / 选方式 / 填单称重",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "柜员",
+        "en": "What would you like to send?",
+        "zh": "您要寄什么？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "A small package to the UK.",
+        "zh": "一个小包裹，寄到英国。"
+      },
+      {
+        "spk": "A",
+        "role": "柜员",
+        "en": "By air or by sea?",
+        "zh": "空运还是海运？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "By air, please. How long does it take?",
+        "zh": "空运。需要多久？"
+      },
+      {
+        "spk": "A",
+        "role": "柜员",
+        "en": "About five to seven days.",
+        "zh": "大约五到七天。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "How much is the postage?",
+        "zh": "邮费多少？"
+      },
+      {
+        "spk": "A",
+        "role": "柜员",
+        "en": "Sixty yuan, plus the box.",
+        "zh": "六十元，加上盒子钱。"
+      }
+    ]
+  },
+  {
+    "id": "sim",
+    "title": "📱 办手机卡",
+    "desc": "选套餐 / 实名登记 / 开通",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "营业员",
+        "en": "Welcome. Need a new number?",
+        "zh": "欢迎。需要新号码吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, with data, please.",
+        "zh": "是的，要带流量的。"
+      },
+      {
+        "spk": "A",
+        "role": "营业员",
+        "en": "This plan has twenty gigabytes a month.",
+        "zh": "这个套餐每月二十吉字节流量。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "That sounds good. What do I need?",
+        "zh": "听起来不错。需要什么？"
+      },
+      {
+        "spk": "A",
+        "role": "营业员",
+        "en": "Your passport for registration.",
+        "zh": "需要您的护照做登记。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Here it is. When can I use it?",
+        "zh": "给您。什么时候能用？"
+      },
+      {
+        "spk": "A",
+        "role": "营业员",
+        "en": "It is active now.",
+        "zh": "现在就已经开通了。"
+      }
+    ]
+  },
+  {
+    "id": "hair",
+    "title": "💇 理发美发",
+    "desc": "说样式 / 剪短 / 洗头吹干",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "理发师",
+        "en": "How would you like your hair?",
+        "zh": "您想怎么剪？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Just a trim, please.",
+        "zh": "修一下就好。"
+      },
+      {
+        "spk": "A",
+        "role": "理发师",
+        "en": "Okay. Shampoo first?",
+        "zh": "好的。先洗个头？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, and not too short.",
+        "zh": "好，别剪太短。"
+      },
+      {
+        "spk": "A",
+        "role": "理发师",
+        "en": "Got it. Like this?",
+        "zh": "明白。这样行吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "A bit shorter on the sides.",
+        "zh": "两边再短一点。"
+      },
+      {
+        "spk": "A",
+        "role": "理发师",
+        "en": "Done. Have a look.",
+        "zh": "好了。您看看。"
+      }
+    ]
+  },
+  {
+    "id": "laundry",
+    "title": "🧺 洗衣店",
+    "desc": "送洗 / 说要求 / 取衣",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "What can I do for you?",
+        "zh": "有什么可以帮您？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I need this coat dry-cleaned.",
+        "zh": "这件外套需要干洗。"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "Sure. Any stains?",
+        "zh": "好的。有污渍吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, one on the sleeve.",
+        "zh": "有，袖子上有一处。"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "We will treat it. Pick up tomorrow?",
+        "zh": "我们会处理。明天来取？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, before six.",
+        "zh": "好，六点前。"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "No problem.",
+        "zh": "没问题。"
+      }
+    ]
+  },
+  {
+    "id": "courier",
+    "title": "📦 快递取件",
+    "desc": "取件码 / 找柜子 / 寄件",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "快递员",
+        "en": "Your code, please?",
+        "zh": "请出示取件码。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "It is eight seven two one.",
+        "zh": "是八七二一。"
+      },
+      {
+        "spk": "A",
+        "role": "快递员",
+        "en": "Cabinet four, bottom row.",
+        "zh": "四号柜，最下面一格。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Thank you. Can I also send one?",
+        "zh": "谢谢。我也能寄一个吗？"
+      },
+      {
+        "spk": "A",
+        "role": "快递员",
+        "en": "Sure. Fill in the address.",
+        "zh": "可以。请填一下地址。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "How much to ship it?",
+        "zh": "寄这个多少钱？"
+      },
+      {
+        "spk": "A",
+        "role": "快递员",
+        "en": "Twelve yuan by surface.",
+        "zh": "陆运十二元。"
+      }
+    ]
+  },
+  {
+    "id": "refund",
+    "title": "↩️ 退换货",
+    "desc": "退货 / 说原因 / 开发票退款",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "Can I help you?",
+        "zh": "需要帮忙吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I want to return this shirt.",
+        "zh": "我想退这件衬衫。"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "May I ask why?",
+        "zh": "请问什么原因？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "It is the wrong size.",
+        "zh": "尺码不对。"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "Do you have the receipt?",
+        "zh": "有收据吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, here it is.",
+        "zh": "有，给您。"
+      },
+      {
+        "spk": "A",
+        "role": "店员",
+        "en": "I will refund eighty yuan.",
+        "zh": "我给您退八十元。"
+      }
+    ]
+  },
+  {
+    "id": "bargain",
+    "title": "🥬 市场讨价还价",
+    "desc": "问价 / 还价 / 成交",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "摊主",
+        "en": "Fresh strawberries! Ten yuan a box.",
+        "zh": "新鲜草莓！十元一盒。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Eight yuan? I will take three.",
+        "zh": "八元怎么样？我拿三盒。"
+      },
+      {
+        "spk": "A",
+        "role": "摊主",
+        "en": "Nine, best price.",
+        "zh": "九元，最低了。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Okay, three boxes at nine.",
+        "zh": "行，九元三盒。"
+      },
+      {
+        "spk": "A",
+        "role": "摊主",
+        "en": "Deal. Anything else?",
+        "zh": "成交。还要别的吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Two kilos of apples, please.",
+        "zh": "再来两公斤苹果。"
+      }
+    ]
+  },
+  {
+    "id": "supermarket",
+    "title": "🛒 超市结账",
+    "desc": "装袋 / 付款 / 会员积分",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "收银员",
+        "en": "Did you find everything?",
+        "zh": "都找到了吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes, thank you.",
+        "zh": "都找到了，谢谢。"
+      },
+      {
+        "spk": "A",
+        "role": "收银员",
+        "en": "That is sixty-four yuan.",
+        "zh": "一共六十四元。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Can I pay by phone?",
+        "zh": "能用手机付吗？"
+      },
+      {
+        "spk": "A",
+        "role": "收银员",
+        "en": "Sure, scan here.",
+        "zh": "可以，扫这里。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Done. Do I get points?",
+        "zh": "付好了。有积分吗？"
+      },
+      {
+        "spk": "A",
+        "role": "收银员",
+        "en": "Yes, ten points added.",
+        "zh": "有，已加十分。"
+      }
+    ]
+  },
+  {
+    "id": "phone",
+    "title": "📞 电话沟通",
+    "desc": "接打电话 / 留口信 / 确认",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "对方",
+        "en": "Hello, is this Mr. Li?",
+        "zh": "您好，请问是李先生吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Speaking. Who is calling?",
+        "zh": "我是。请问您是？"
+      },
+      {
+        "spk": "A",
+        "role": "对方",
+        "en": "This is Wang from the office.",
+        "zh": "我是办公室的王。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Hi Wang. What can I do?",
+        "zh": "王您好。有什么事？"
+      },
+      {
+        "spk": "A",
+        "role": "对方",
+        "en": "Can you call back at three?",
+        "zh": "您三点能回个电话吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Sure, I will.",
+        "zh": "好，我会的。"
+      }
+    ]
+  },
+  {
+    "id": "party",
+    "title": "🎉 聚会邀请",
+    "desc": "邀朋友 / 定时间 / 确认出席",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "We are having a party Saturday.",
+        "zh": "我们周六有个聚会。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Sounds fun! What time?",
+        "zh": "听起来不错！几点？"
+      },
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "From seven in the evening.",
+        "zh": "晚上七点开始。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Should I bring something?",
+        "zh": "我要带点什么吗？"
+      },
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "Just yourself, maybe a drink.",
+        "zh": "人来就行，带瓶饮料也行。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I will be there.",
+        "zh": "我会去的。"
+      }
+    ]
+  },
+  {
+    "id": "apologize",
+    "title": "🙏 道歉解释",
+    "desc": "认错 / 说明原因 / 和解",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "You stood me up yesterday.",
+        "zh": "你昨天放了我鸽子。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I am so sorry. My phone died.",
+        "zh": "非常抱歉。我手机没电了。"
+      },
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "That happens. But I waited an hour.",
+        "zh": "偶尔会这样。但我等了一小时。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Let me make it up to you.",
+        "zh": "让我补偿你。"
+      },
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "It is okay, just tell me next time.",
+        "zh": "没事，下次说一声就行。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I will. Dinner is on me.",
+        "zh": "一定。这顿我请。"
+      }
+    ]
+  },
+  {
+    "id": "split",
+    "title": "🤝 分摊与借钱",
+    "desc": "AA 结账 / 借钱还钱",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "The bill is one hundred twenty.",
+        "zh": "账单是一百二十。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Let us split it, sixty each.",
+        "zh": "我们平分，各六十。"
+      },
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "Sure. I will pay now.",
+        "zh": "好。我先付。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I will pay you back later.",
+        "zh": "我晚点转给你。"
+      },
+      {
+        "spk": "A",
+        "role": "朋友",
+        "en": "No rush.",
+        "zh": "不急。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Thanks, I owe you.",
+        "zh": "谢了，我欠你的。"
+      }
+    ]
+  },
+  {
+    "id": "library",
+    "title": "📚 图书馆借书",
+    "desc": "找书 / 办证 / 借还",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "管理员",
+        "en": "How can I help?",
+        "zh": "需要帮忙吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I want to borrow this book.",
+        "zh": "我想借这本书。"
+      },
+      {
+        "spk": "A",
+        "role": "管理员",
+        "en": "Do you have a library card?",
+        "zh": "有借书卡吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Not yet. How do I get one?",
+        "zh": "还没有。怎么办理？"
+      },
+      {
+        "spk": "A",
+        "role": "管理员",
+        "en": "Show your ID, it is free.",
+        "zh": "出示证件，免费办。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Great. How long can I keep it?",
+        "zh": "好的。能借多久？"
+      },
+      {
+        "spk": "A",
+        "role": "管理员",
+        "en": "Three weeks.",
+        "zh": "三周。"
+      }
+    ]
+  },
+  {
+    "id": "school",
+    "title": "🏫 家长沟通",
+    "desc": "见老师 / 问成绩 / 谈表现",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "老师",
+        "en": "Nice to meet you, Mr. Li.",
+        "zh": "李先生，很高兴见到您。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "How is my daughter doing?",
+        "zh": "我女儿表现如何？"
+      },
+      {
+        "spk": "A",
+        "role": "老师",
+        "en": "She is doing well in class.",
+        "zh": "她课上表现很好。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "What about her math?",
+        "zh": "数学呢？"
+      },
+      {
+        "spk": "A",
+        "role": "老师",
+        "en": "She needs a little more practice.",
+        "zh": "她需要多练习一点。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "We will help at home.",
+        "zh": "我们回家会帮她。"
+      }
+    ]
+  },
+  {
+    "id": "meeting",
+    "title": "📊 开会汇报",
+    "desc": "开场 / 讲进度 / 讨论",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "主管",
+        "en": "Let us start the meeting.",
+        "zh": "我们开始开会吧。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I will report on this week.",
+        "zh": "我来汇报本周情况。"
+      },
+      {
+        "spk": "A",
+        "role": "主管",
+        "en": "Go ahead.",
+        "zh": "请讲。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "We finished the first task.",
+        "zh": "我们完成了第一项任务。"
+      },
+      {
+        "spk": "A",
+        "role": "主管",
+        "en": "Any problems?",
+        "zh": "有什么问题吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Just a small delay on the test.",
+        "zh": "测试稍微延迟了一点。"
+      },
+      {
+        "spk": "A",
+        "role": "主管",
+        "en": "Keep me posted.",
+        "zh": "随时告诉我进展。"
+      }
+    ]
+  },
+  {
+    "id": "leave",
+    "title": "🌴 请假",
+    "desc": "说明原因 / 提申请 / 交接",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "主管",
+        "en": "What is up?",
+        "zh": "怎么了？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I need to take a day off.",
+        "zh": "我需要请一天假。"
+      },
+      {
+        "spk": "A",
+        "role": "主管",
+        "en": "Is everything okay?",
+        "zh": "身体还好吗？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "I have a family matter.",
+        "zh": "家里有点事。"
+      },
+      {
+        "spk": "A",
+        "role": "主管",
+        "en": "Sure. Just email the team.",
+        "zh": "行。给团队发个邮件。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Will do. I will catch up later.",
+        "zh": "好的。之后我会补上。"
+      }
+    ]
+  },
+  {
+    "id": "pharmacy",
+    "title": "💊 药房买药",
+    "desc": "说症状 / 选药 / 用法",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "药剂师",
+        "en": "What symptoms do you have?",
+        "zh": "您有什么症状？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "A sore throat and a cough.",
+        "zh": "嗓子疼，还咳嗽。"
+      },
+      {
+        "spk": "A",
+        "role": "药剂师",
+        "en": "How long have you had it?",
+        "zh": "这样多久了？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "About three days.",
+        "zh": "大概三天了。"
+      },
+      {
+        "spk": "A",
+        "role": "药剂师",
+        "en": "Try this syrup, three times a day.",
+        "zh": "试试这个糖浆，一天三次。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Any side effects?",
+        "zh": "有副作用吗？"
+      },
+      {
+        "spk": "A",
+        "role": "药剂师",
+        "en": "Just a little drowsiness.",
+        "zh": "就一点犯困。"
+      }
+    ]
+  },
+  {
+    "id": "gym",
+    "title": "🏋️ 健身房",
+    "desc": "办卡 / 问器械 / 约课",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "教练",
+        "en": "First time here?",
+        "zh": "第一次来？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Yes. I want to join.",
+        "zh": "是的。我想办卡。"
+      },
+      {
+        "spk": "A",
+        "role": "教练",
+        "en": "We have a monthly plan.",
+        "zh": "我们有月卡。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "How much is it?",
+        "zh": "多少钱？"
+      },
+      {
+        "spk": "A",
+        "role": "教练",
+        "en": "Three hundred a month.",
+        "zh": "一个月三百。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Can I try a class?",
+        "zh": "能试一节操课吗？"
+      },
+      {
+        "spk": "A",
+        "role": "教练",
+        "en": "Sure, today at six.",
+        "zh": "可以，今天六点。"
+      }
+    ]
+  },
+  {
+    "id": "dentist",
+    "title": "🦷 看牙医",
+    "desc": "预约 / 说牙痛 / 治疗",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "牙医",
+        "en": "What brings you in?",
+        "zh": "您哪里不舒服？"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "My tooth hurts a lot.",
+        "zh": "我牙很疼。"
+      },
+      {
+        "spk": "A",
+        "role": "牙医",
+        "en": "Let me take a look.",
+        "zh": "我看一下。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Is it a cavity?",
+        "zh": "是蛀牙吗？"
+      },
+      {
+        "spk": "A",
+        "role": "牙医",
+        "en": "Yes, but a small one.",
+        "zh": "是，不过很小。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Does it need a filling?",
+        "zh": "需要补吗？"
+      },
+      {
+        "spk": "A",
+        "role": "牙医",
+        "en": "Yes, it will take ten minutes.",
+        "zh": "需要，十分钟就好。"
+      }
+    ]
+  },
+  {
+    "id": "bnb",
+    "title": "🏡 民宿短租",
+    "desc": "入住 / 问设施 / 退房",
+    "lines": [
+      {
+        "spk": "A",
+        "role": "房东",
+        "en": "Welcome! Check-in is ready.",
+        "zh": "欢迎！可以入住了。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Thanks. Where is the wifi code?",
+        "zh": "谢谢。无线网密码在哪？"
+      },
+      {
+        "spk": "A",
+        "role": "房东",
+        "en": "On the card by the TV.",
+        "zh": "在电视旁那张卡片上。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "And the trash?",
+        "zh": "垃圾桶呢？"
+      },
+      {
+        "spk": "A",
+        "role": "房东",
+        "en": "Under the sink.",
+        "zh": "在水槽下面。"
+      },
+      {
+        "spk": "B",
+        "role": "你",
+        "en": "Great. What time is checkout?",
+        "zh": "好的。几点退房？"
+      },
+      {
+        "spk": "A",
+        "role": "房东",
+        "en": "By eleven in the morning.",
+        "zh": "早上十一点前。"
       }
     ]
   }
