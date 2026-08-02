@@ -599,10 +599,11 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   <button class="gm-btn" onclick="startGame('srs')">🔁 间隔复习</button>
   <button class="gm-btn" onclick="startGame('shadow')">🎤 跟读评分</button>
   <button class="gm-btn" onclick="showWeak()">📉 薄弱词本</button>
+  <button class="gm-btn" onclick="toggleRLW()" id="rlwToggleBtn" style="background:linear-gradient(135deg,#e91e63,#f06292)">📖 综合学习</button>
 </div>
 
-<!-- 📖 综合学习（内嵌到游戏中心，确保可见） -->
-<div style="margin-top:18px;padding-top:16px;border-top:2px dashed #e0d8f5">
+<!-- 📖 综合学习（默认隐藏，点击按钮展开） -->
+<div style="margin-top:18px;padding-top:16px;border-top:2px dashed #e0d8f5;display:none" id="rlwInlineWrapper">
   <h4 style="margin:0 0 10px 0;color:#6a5acd">📖 综合学习模式</h4>
   <p style="font-size:12px;color:#888;margin-bottom:10px">集合「看(阅读例句) → 听(发音听力) → 写(拼写测试)」三步闭环，配合遗忘曲线高效记忆</p>
   <div style="display:flex;flex-wrap:wrap;gap:8px" id="rlwSetupInline">
@@ -1971,6 +1972,16 @@ function switchEngTab(tab){
 }
 function renderGames(){var s=document.getElementById('gameStage');if(s)s.innerHTML='<div class="gq-back">选择上方任意模式开始游戏 🎮</div>';}
 
+// 综合学习展开/收起
+function toggleRLW(){
+  var w=document.getElementById('rlwInlineWrapper');
+  if(!w)return;
+  var isHidden=w.style.display==='none'||w.style.display==='';
+  w.style.display=isHidden?'block':'none';
+  // 展开时也重置显示状态
+  if(isHidden)renderRLW();
+}
+
 // ===== 看听写综合学习模式 (RLW) =====
 var rlwState={words:[],idx:0,step:'read',// read|listen|write
 results:{correct:0,wrong:0,skip:0},sessionWords:[]};
@@ -2010,6 +2021,9 @@ function startRLW(count){
   rlwState.step='read';
   rlwState.results={correct:0,wrong:0,skip:0};
   rlwState.sessionWords=[];
+  // 确保综合学习区域展开
+  var wrapper=document.getElementById('rlwInlineWrapper');
+  if(wrapper)wrapper.style.display='block';
   var setupInline=document.getElementById('rlwSetupInline');
   if(setupInline)setupInline.style.display='none';
   showRLWStep();
@@ -3796,7 +3810,7 @@ var DLG_SCENES = [
         "spk": "B",
         "role": "路人",
         "en": "Not really. It is about a ten-minute walk. You will not miss it.",
-        "zh": "不远。步行大约十分钟，您不会错过的。"
+        "zh": "不远。步行大约 10 分钟，您不会错过的。"
       },
       {
         "spk": "A",
@@ -3937,7 +3951,7 @@ var DLG_SCENES = [
         "spk": "B",
         "role": "司机",
         "en": "About twenty minutes. The station is the final stop.",
-        "zh": "大约二十分钟。火车站是终点站。"
+        "zh": "大约 20 分钟。火车站是终点站。"
       },
       {
         "spk": "A",
@@ -4083,7 +4097,7 @@ var DLG_SCENES = [
       { "spk": "B", "role": "你", "en": "Internal medicine, please.", "zh": "请挂内科。" },
       { "spk": "A", "role": "挂号员", "en": "Please pay at the counter and take a number.", "zh": "请到柜台缴费并取号。" },
       { "spk": "B", "role": "你", "en": "How long is the waiting time?", "zh": "要等多久？" },
-      { "spk": "A", "role": "挂号员", "en": "About twenty minutes.", "zh": "大约二十分钟。" }
+      { "spk": "A", "role": "挂号员", "en": "About twenty minutes.", "zh": "大约 20 分钟。" }
     ]
   }
 ,
@@ -4194,7 +4208,7 @@ var DLG_SCENES = [
         "spk": "A",
         "role": "地勤",
         "en": "Gate C5, boarding starts at 3 p.m.",
-        "zh": "C5 登机口，下午三点开始登机。"
+        "zh": "C5 登机口，下午 3 点开始登机。"
       }
     ]
   },
@@ -4238,7 +4252,7 @@ var DLG_SCENES = [
         "spk": "A",
         "role": "服务员",
         "en": "About five minutes.",
-        "zh": "大约五分钟。"
+        "zh": "大约 5 分钟。"
       },
       {
         "spk": "B",
@@ -4337,7 +4351,7 @@ var DLG_SCENES = [
         "spk": "A",
         "role": "安检员",
         "en": "Each container must be under one hundred milliliters.",
-        "zh": "每个容器不能超过一百毫升。"
+        "zh": "每个容器不能超过 100 毫升。"
       },
       {
         "spk": "B",
@@ -4386,7 +4400,7 @@ var DLG_SCENES = [
         "spk": "B",
         "role": "你",
         "en": "Four people, around seven o'clock.",
-        "zh": "四个人，大概七点左右。"
+        "zh": "4 个人，大概 7 点左右。"
       },
       {
         "spk": "A",
