@@ -495,6 +495,18 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 <div class="ielts-section" id="practiceCenter">
 <h4>&#128218; 练习中心 · 批量练习 &amp; 复习</h4>
+<div id="practiceSettings" style="margin:8px 0 14px;padding:8px 10px;background:var(--bg-tertiary,#f5f5f5);border-radius:8px;font-size:13px">
+  <div style="font-weight:500;margin-bottom:6px">&#9881; 设置</div>
+  <div style="margin-bottom:4px">默写模式：
+    <label style="margin-right:10px"><input type="radio" name="writeMode" value="pure" onchange="setWriteMode('pure')"> 纯默写（推荐）</label>
+    <label style="margin-right:10px"><input type="radio" name="writeMode" value="cloze" onchange="setWriteMode('cloze')"> 完形填空（保留例句）</label>
+    <label style="margin-right:10px"><input type="radio" name="writeMode" value="show" onchange="setWriteMode('show')"> 直接显示例句</label>
+  </div>
+  <div>再练行为：
+    <label style="margin-right:10px"><input type="radio" name="replayMode" value="wrong" onchange="setReplayMode('wrong')"> 只练错题</label>
+    <label style="margin-right:10px"><input type="radio" name="replayMode" value="all" onchange="setReplayMode('all')"> 原样还原练习</label>
+  </div>
+</div>
 <div style="margin:10px 0">
   <div style="font-size:13px;color:var(--sub);margin-bottom:6px">来源</div>
   <label style="margin-right:14px;font-size:13px"><input type="radio" name="batchSrc" value="all" checked onchange="onBatchSrcChange()"> 全部随机</label>
@@ -528,6 +540,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 <div class="ielts-section hidden" id="batchArea">
 <h4 id="batchPhase">批量练习</h4>
+<div id="batchReplay" class="hidden" style="margin:6px 0;padding:8px 10px;background:#fff3e0;border:1px solid #ffcc80;border-radius:8px;font-size:13px;color:#e65100"></div>
 <div id="studySpeed2" style="margin:6px 0"></div>
 <div id="batchContent"></div>
 <div id="batchControls" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"></div>
@@ -961,7 +974,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 31;
+var APP_VERSION = 32;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -3102,10 +3115,27 @@ function studyAgain(){if(!studyCur)return;studyReview.push(studyCur);studyQueue.
 function stopStudy(){document.getElementById('studyArea').classList.add('hidden');}
 
 /* ===== 练习中心：批量练习 / 快速复习 / 智能复习 / 历史 ===== */
-var batchWords=[],batchIdx=0,batchWrong=[],batchMode='batch',batchSrcLabel='',batchLevel='';
+var batchWords=[],batchIdx=0,batchWrong=[],batchRight=[],batchMode='batch',batchSrcLabel='',batchLevel='',batchReplayOf=null;
 function onBatchSrcChange(){
   var v=document.querySelector('input[name="batchSrc"]:checked').value;
   document.getElementById('batchLevelBox').style.display=(v==='level')?'block':'none';
+}
+function getWriteMode(){return gLS('wb_write_mode')||'pure';}
+function setWriteMode(m){sLS('wb_write_mode',m);}
+function getReplayMode(){return gLS('wb_replay_mode')||'wrong';}
+function setReplayMode(m){sLS('wb_replay_mode',m);}
+function applySettings(){
+  var w=getWriteMode(),r=getReplayMode();
+  var wel=document.querySelector('input[name="writeMode"][value="'+w+'"]');if(wel)wel.checked=true;
+  var rel=document.querySelector('input[name="replayMode"][value="'+r+'"]');if(rel)rel.checked=true;
+}
+function firstExEn(w){return w&&w.ex&&w.ex.length?((typeof w.ex[0]==='string')?w.ex[0]:(w.ex[0]&&w.ex[0].en?w.ex[0].en:'')):'';}
+function firstExZh(w){return w&&w.ex&&w.ex.length?((typeof w.ex[0]==='string')?'':w.ex[0].zh||''):'';}
+function clozeExHtml(w){
+  var ex0=firstExEn(w);if(!ex0)return '';
+  var esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+  var target=esc(w.w);var pat=new RegExp('\\b'+target.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+  return esc(ex0).replace(pat,'<span class="cloze" style="display:inline-block;min-width:60px;border-bottom:2px solid #c62828;color:#c62828">&nbsp;&nbsp;&nbsp;&nbsp;</span>');
 }
 function setBatchLevel(lv){
   batchLevel=lv;
@@ -3136,7 +3166,7 @@ function startBatch(){
   var pool=getBatchPool();
   var n=parseInt(document.getElementById('batchCount').value,10)||10;if(n>50)n=50;if(n<1)n=1;
   if(!pool.length){alert('该来源下没有可用单词。');return;}
-  batchWords=shuffle(pool.slice()).slice(0,n);batchIdx=0;batchWrong=[];batchMode='batch';
+  batchWords=shuffle(pool.slice()).slice(0,n);batchIdx=0;batchWrong=[];batchRight=[];batchMode='batch';batchReplayOf=null;
   batchSrcLabel=(v==='all'?'全部随机':v==='level'?('级别·'+levelLabel(batchLevel)):v==='mine'?'我的词库':'只练错词');
   startBatchLearn();
 }
@@ -3148,6 +3178,17 @@ function startBatchLearn(){
   document.getElementById('batchArea').classList.remove('hidden');
   document.getElementById('batchPhase').textContent='听看阶段 · '+batchSrcLabel+'（'+batchWords.length+' 词）';
   document.getElementById('studySpeed2').innerHTML=speedBar();
+  batchRight=[];
+  var rpEl=document.getElementById('batchReplay');
+  if(batchReplayOf){
+    var prev=(gLS('wb_study_sessions')||[]).find(function(x){return x.date===batchReplayOf;});
+    if(prev){
+      var pr=prev.count?Math.round(prev.correct/prev.count*100):0;
+      var prevDate=prev.date.slice(0,10);
+      rpEl.innerHTML='<b>&#8635; 本次再练</b> · 上次（'+esc(prevDate)+'）正确率 '+pr+'%（'+prev.correct+'/'+prev.count+'）';
+      rpEl.classList.remove('hidden');
+    }else{rpEl.classList.add('hidden');}
+  }else{rpEl.classList.add('hidden');}
   var html='<div style="display:flex;flex-direction:column;gap:8px">';
   batchWords.forEach(function(w){
     html+='<div style="padding:8px 10px;border:1px solid var(--border);border-radius:8px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:15px">'+esc(w.w)+'</b><button class="btn btn-sm" onclick="speakWord(\''+esc(w.w)+'\')">&#128266;</button></div><div style="color:var(--sub);font-size:12px">'+esc(w.ph||'')+(w.pos?' '+esc(w.pos):'')+'</div><div style="font-size:13px;margin-top:2px">'+esc(w.mean||'')+'</div>'+(w.ex&&w.ex.length?'<div style="color:var(--sub);font-size:12px">'+formatExHtml(w.ex)+'</div>':'')+'</div>';
@@ -3160,10 +3201,19 @@ function startBatchWrite(){batchIdx=0;document.getElementById('batchPhase').text
 function renderBatchWrite(){
   if(batchIdx>=batchWords.length){finishBatch();return;}
   var w=batchWords[batchIdx];
+  var mode=getWriteMode();
   var html='<div style="padding:10px;border:1px solid var(--border);border-radius:10px">';
   html+='<div style="font-size:13px;color:var(--sub)">第 '+(batchIdx+1)+' / '+batchWords.length+' 词</div>';
-  html+='<div style="font-size:14px;margin:6px 0"><b>释义：</b>'+esc(w.mean||'')+'</div>';
-  if(w.ex&&w.ex.length){var ex0=(typeof w.ex[0]==='string')?w.ex[0]:(w.ex[0]&&w.ex[0].en?w.ex[0].en:'');if(ex0)html+='<div style="font-size:13px;color:var(--sub)">例句：'+esc(ex0)+' <button class="btn btn-sm" onclick="speakText(\''+esc(ex0)+'\')">&#128266;</button></div>';}
+  html+='<div style="font-size:14px;margin:6px 0"><b>释义：</b>'+esc(w.mean||'')+(w.pos?' <span style="color:var(--sub);font-size:12px">['+esc(w.pos)+']</span>':'')+'</div>';
+  if(mode==='show'){
+    var ex0=firstExEn(w);if(ex0)html+='<div style="font-size:13px;color:var(--sub);margin:4px 0">例句：'+esc(ex0).replace(new RegExp('\\b'+esc(w.w).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i'),'<b style="color:#2e7d32">$&</b>')+' <button class="btn btn-sm" onclick="speakText(\''+esc(ex0)+'\')">&#128266;</button></div>';
+  }else if(mode==='cloze'){
+    var cloze=clozeExHtml(w);
+    if(cloze)html+='<div style="font-size:13px;color:var(--sub);margin:4px 0">例句：'+cloze+' <button class="btn btn-sm" onclick="speakText(\''+esc(firstExEn(w))+'\')">&#128266;</button></div>';
+  }else{
+    var ex0=firstExEn(w);
+    html+='<div style="font-size:12px;color:var(--sub);margin:4px 0"><button class="btn btn-sm" onclick="speakText(\''+esc(ex0)+'\')">&#128266; 听例句</button> <span style="margin-left:6px">默写时点击听例句 · 提交后揭晓</span></div>';
+  }
   html+='<div style="margin-top:8px"><input id="batchInput" autocomplete="off" placeholder="输入英文单词…" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:15px" onkeydown="if(event.key===\'Enter\')checkBatchAnswer()">';
   html+='<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="checkBatchAnswer()">提交</button></div>';
   html+='<div id="batchFeedback" style="margin-top:6px;font-size:13px"></div></div>';
@@ -3175,22 +3225,51 @@ function checkBatchAnswer(){
   var w=batchWords[batchIdx];var el=document.getElementById('batchInput');if(!el)return;
   var ans=el.value.trim().toLowerCase();var ok=(ans===String(w.w).toLowerCase());
   var fb=document.getElementById('batchFeedback');
-  if(ok){fb.style.color='#2e7d32';fb.textContent='✅ 正确：'+w.w;}
-  else{fb.style.color='#c62828';fb.textContent='❌ 正确应为：'+w.w;batchWrong.push(w.w);}
+  var mode=getWriteMode();
+  if(ok){batchRight.push(w.w);}
+  else{batchWrong.push(w.w);}
   srsUpdate(w.w, ok?5:1);
+  var ex0=firstExEn(w);
+  if(ok){
+    if(mode==='pure'){
+      fb.innerHTML='<span style="color:#2e7d32">✅ 正确：</span><b>'+esc(w.w)+'</b>'+(ex0?'<div style="margin-top:4px;color:var(--sub);font-size:12px">例句：'+esc(ex0)+'</div>':'');
+    }else if(mode==='cloze'){
+      fb.innerHTML='<span style="color:#2e7d32">✅ 正确：</span><b>'+esc(w.w)+'</b>';
+    }else{
+      fb.innerHTML='<span style="color:#2e7d32">✅ 正确</span>';
+    }
+  }else{
+    fb.style.color='#c62828';
+    if(mode==='pure'){
+      fb.innerHTML='<div>❌ 正确应为：<b>'+esc(w.w)+'</b></div>'+(ex0?'<div style="margin-top:4px;color:var(--sub);font-size:12px">例句：'+esc(ex0)+'</div>':'');
+    }else if(mode==='cloze'){
+      fb.innerHTML='❌ 正确应为：<b>'+esc(w.w)+'</b> · 你的输入：<span style="text-decoration:line-through">'+esc(ans||'(空)')+'</span>';
+    }else{
+      fb.innerHTML='❌ 正确应为：<b>'+esc(w.w)+'</b>';
+    }
+  }
   batchIdx++;
-  setTimeout(function(){renderBatchWrite();}, ok?600:1100);
+  setTimeout(function(){renderBatchWrite();}, ok?(mode==='pure'?900:600):1100);
 }
 function finishBatch(){
-  var total=batchWords.length,correct=total-batchWrong.length;
+  var total=batchWords.length,correct=batchRight.length,wrongN=batchWrong.length;
   var rate=total?Math.round(correct/total*100):0;
-  saveSession({date:new Date().toISOString(),mode:batchMode,source:batchSrcLabel,count:total,correct:correct,wrong:batchWrong.slice()});
+  var sessWords=batchWords.map(function(x){return x.w;});
+  saveSession({date:new Date().toISOString(),mode:batchMode,source:batchSrcLabel,count:total,correct:correct,wrong:batchWrong.slice(),words:sessWords,replayOf:batchReplayOf});
   var html='<div style="padding:14px;text-align:center"><div style="font-size:16px;font-weight:600">🎉 完成！</div>';
   html+='<div style="margin-top:8px;font-size:14px">正确 '+correct+' / '+total+'（'+rate+'%）</div>';
+  if(batchReplayOf){
+    var prev=(gLS('wb_study_sessions')||[]).find(function(x){return x.date===batchReplayOf;});
+    if(prev){
+      var pr=prev.count?Math.round(prev.correct/prev.count*100):0;
+      html+='<div style="margin-top:8px;padding:6px 10px;background:#fff3e0;color:#e65100;border-radius:6px;font-size:13px">本次再练 · 上次正确率 '+pr+'% → 这次 '+rate+'%</div>';
+    }
+  }
   if(batchWrong.length)html+='<div style="margin-top:8px;font-size:13px;color:#c62828">错词：'+batchWrong.map(function(x){return esc(x);}).join('、')+'</div>';
   html+='</div>';
   document.getElementById('batchContent').innerHTML=html;
   document.getElementById('batchControls').innerHTML='<button class="btn btn-primary btn-sm" onclick="startBatch()">再来一次</button><button class="btn btn-sm" onclick="exitBatch()">返回练习中心</button>';
+  batchReplayOf=null;
   renderHistory();
 }
 function exitBatch(){
@@ -3203,7 +3282,33 @@ function quickReview(){
   var pool=getWrongWords();
   if(!pool.length){alert('暂无从错词集合，先去做几次批量练习吧。');return;}
   var n=parseInt(document.getElementById('batchCount').value,10)||10;if(n<1)n=1;
-  batchWords=shuffle(pool.slice()).slice(0,n);batchIdx=0;batchWrong=[];batchMode='quick';batchSrcLabel='快速复习·错词集合';
+  batchWords=shuffle(pool.slice()).slice(0,n);batchIdx=0;batchWrong=[];batchRight=[];batchMode='quick';batchSrcLabel='快速复习·错词集合';batchReplayOf=null;
+  startBatchLearn();
+}
+function replaySession(idx,mode){
+  var arr=gLS('wb_study_sessions')||[];
+  var s=arr[idx];if(!s){alert('未找到该历史记录。');return;}
+  var chosen=mode||getReplayMode();
+  var wordList=[];
+  if(chosen==='wrong'){
+    if(!s.wrong||!s.wrong.length){alert('该条记录无错词，已自动改为原样还原。');chosen='all';}
+    else wordList=s.wrong.slice();
+  }
+  if(chosen==='all'){
+    if(!s.words||!s.words.length){alert('该条记录未保存完整词表（升级前的老记录），无法原样还原。');return;}
+    wordList=s.words.slice();
+  }
+  var pool=[];
+  var seen={};
+  wordList.forEach(function(w0){
+    var k=String(w0).toLowerCase();
+    if(seen[k])return;seen[k]=1;
+    var w=findWord(w0);if(w&&w.w)pool.push(w);
+  });
+  if(!pool.length){alert('所选词条已不在当前词库。');return;}
+  batchWords=pool.slice();batchIdx=0;batchWrong=[];batchRight=[];batchMode='replay';
+  batchSrcLabel='再练·'+(chosen==='wrong'?'错题':'原样')+'（'+batchWords.length+' 词）';
+  batchReplayOf=s.date;
   startBatchLearn();
 }
 function smartReview(){showFlashcard();}
@@ -3212,17 +3317,26 @@ function renderHistory(){
   var arr=gLS('wb_study_sessions')||[];var el=document.getElementById('historyList');if(!el)return;
   if(!arr.length){el.innerHTML='<p class="empty-hint" style="color:var(--sub);font-size:13px">还没有练习记录，去批量练习或复习吧。</p>';return;}
   var html='';
-  arr.slice(0,20).forEach(function(s){
-    var d=(s.date||'').slice(0,10);var tag=s.mode==='quick'?'快速复习':'批量练习';
+  arr.slice(0,20).forEach(function(s,i){
+    var d=(s.date||'').slice(0,10);var tag=s.mode==='quick'?'快速复习':(s.mode==='replay'?'再练':'批量练习');
+    var tagColor=s.mode==='quick'?'#e65100':(s.mode==='replay'?'#185fa5':'#444');
     html+='<div style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><b>'+esc(tag)+'</b><span style="color:var(--sub)">'+esc(d)+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><b style="color:'+tagColor+'">'+esc(tag)+'</b><span style="color:var(--sub)">'+esc(d)+'</span></div>';
     html+='<div style="font-size:13px;margin-top:2px">来源：'+esc(s.source||'')+' · 正确 '+s.correct+'/'+s.count+'（'+(s.count?Math.round(s.correct/s.count*100):0)+'%）</div>';
-    if(s.wrong&&s.wrong.length)html+='<div style="font-size:12px;color:#c62828;margin-top:2px">错词：'+s.wrong.map(function(x){return esc(x);}).join('、')+'</div>';
-    html+='</div>';
+    if(s.replayOf){var pd=s.replayOf.slice(0,10);html+='<div style="font-size:12px;color:#185fa5;margin-top:2px">↻ 来源历史 '+esc(pd)+'</div>';}
+    if(s.wrong&&s.wrong.length){
+      html+='<div style="font-size:12px;color:#c62828;margin-top:2px">错词：';
+      s.wrong.forEach(function(x,wi){
+        html+='<a href="javascript:void(0)" style="color:#c62828;text-decoration:underline" onclick="replaySession('+i+',\'wrong\')">'+esc(x)+'</a>'+(wi<s.wrong.length-1?'、':'');
+      });
+      html+='</div>';
+    }
+    html+='<div style="margin-top:6px"><button class="btn btn-sm" onclick="replaySession('+i+')">↻ 再练</button>';
+    html+='</div></div>';
   });
   el.innerHTML=html;
 }
-try{renderHistory();}catch(e){}
+try{applySettings();renderHistory();}catch(e){}
 function parseImportLine(line){
   line=line.trim();if(!line)return null;
   var parts=line.split('|');
