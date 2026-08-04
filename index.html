@@ -502,17 +502,26 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     <label style="margin-right:10px"><input type="radio" name="writeMode" value="cloze" onchange="setWriteMode('cloze')"> 完形填空（保留例句）</label>
     <label style="margin-right:10px"><input type="radio" name="writeMode" value="show" onchange="setWriteMode('show')"> 直接显示例句</label>
   </div>
-  <div>再练行为：
+  <div style="margin-bottom:4px">再练行为：
     <label style="margin-right:10px"><input type="radio" name="replayMode" value="wrong" onchange="setReplayMode('wrong')"> 只练错题</label>
     <label style="margin-right:10px"><input type="radio" name="replayMode" value="all" onchange="setReplayMode('all')"> 原样还原练习</label>
   </div>
+  <div>随机练习错词配额：
+    <label style="margin-right:10px"><input type="radio" name="wrongQuota" value="0" onchange="setWrongQuota(0)"> 关闭</label>
+    <label style="margin-right:10px"><input type="radio" name="wrongQuota" value="20" onchange="setWrongQuota(20)"> 20%</label>
+    <label style="margin-right:10px"><input type="radio" name="wrongQuota" value="30" onchange="setWrongQuota(30)"> 30%（推荐）</label>
+    <label style="margin-right:10px"><input type="radio" name="wrongQuota" value="50" onchange="setWrongQuota(50)"> 50%</label>
+    <div style="color:var(--sub);font-size:11px;margin-top:2px">「全部随机 / 按级别 / 我的词库」抽词时，按此比例优先塞入错词本里的词</div>
+  </div>
+  <div id="wrongBookBar" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:12px"></div>
+  <div id="wrongBookDetail" style="display:none"></div>
 </div>
 <div style="margin:10px 0">
   <div style="font-size:13px;color:var(--sub);margin-bottom:6px">来源</div>
   <label style="margin-right:14px;font-size:13px"><input type="radio" name="batchSrc" value="all" checked onchange="onBatchSrcChange()"> 全部随机</label>
   <label style="margin-right:14px;font-size:13px"><input type="radio" name="batchSrc" value="level" onchange="onBatchSrcChange()"> 按级别</label>
   <label style="margin-right:14px;font-size:13px"><input type="radio" name="batchSrc" value="mine" onchange="onBatchSrcChange()"> 我的词库</label>
-  <label style="margin-right:14px;font-size:13px"><input type="radio" name="batchSrc" value="wrong" onchange="onBatchSrcChange()"> 只练错词</label>
+  <label style="margin-right:14px;font-size:13px"><input type="radio" name="batchSrc" value="wrong" onchange="onBatchSrcChange()"> 只练错词<span id="wrongSrcCount" style="color:var(--sub)"></span></label>
 </div>
 <div id="batchLevelBox" style="display:none;margin:6px 0">
   <span class="chip" data-lv="pri" onclick="setBatchLevel('pri')">小学</span>
@@ -974,7 +983,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 33;
+var APP_VERSION = 34;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -2550,7 +2559,7 @@ function renderFlash(){var w=flashList[flashIdx];if(!w)return;document.getElemen
 function fcFlip(){document.getElementById('flashCard').classList.toggle('flipped');}
 function nextCard(){flashIdx=(flashIdx+1)%Math.max(flashList.length,1);renderFlash();}
 function markKnown(){var w=flashList[flashIdx];if(!w)return;myWords['w_'+w.w]=true;sLS('wb_mywords',myWords);renderMasteredList();nextCard();}
-function fcReview(grade){var w=flashList[flashIdx];if(!w)return;srsUpdate(w.w,grade);if(grade>=3){myWords['w_'+w.w]=true;sLS('wb_mywords',myWords);renderMasteredList();}flashList.splice(flashIdx,1);if(flashIdx>=flashList.length)flashIdx=0;if(!flashList.length){document.getElementById('flashArea').classList.remove('hidden');document.getElementById('fcWord').textContent='🎉 今日完成';document.getElementById('fcPos').textContent='';document.getElementById('fcMean').textContent='今天的待复习都搞定啦！明天按遗忘曲线还会有新词。继续去对话收藏或开始学习加词吧。';document.getElementById('fcEx').textContent='';document.getElementById('flashCard').classList.remove('flipped');renderSrsReminder();return;}renderFlash();renderSrsReminder();}
+function fcReview(grade){var w=flashList[flashIdx];if(!w)return;srsUpdate(w.w,grade);try{wrongBookMark(w.w,grade>=3);}catch(e){}if(grade>=3){myWords['w_'+w.w]=true;sLS('wb_mywords',myWords);renderMasteredList();}flashList.splice(flashIdx,1);if(flashIdx>=flashList.length)flashIdx=0;if(!flashList.length){document.getElementById('flashArea').classList.remove('hidden');document.getElementById('fcWord').textContent='🎉 今日完成';document.getElementById('fcPos').textContent='';document.getElementById('fcMean').textContent='今天的待复习都搞定啦！明天按遗忘曲线还会有新词。继续去对话收藏或开始学习加词吧。';document.getElementById('fcEx').textContent='';document.getElementById('flashCard').classList.remove('flipped');renderSrsReminder();return;}renderFlash();renderSrsReminder();}
 function fcRemember(){fcReview(5);}
 function fcForget(){fcReview(1);}
 function addWord(){var w=prompt('单词 (英文):');if(!w)return;w=w.trim();if(!w)return;var ph=prompt('音标 (可留空):')||'';var pos=prompt('词性 (如 v./n./adj./adv.):')||'';var mean=prompt('中文释义:');if(mean==null)return;var ex=prompt('例句 (可留空):')||'';var level=prompt('级别 c4=四级/c6=六级(默认c4):','c4')||'c4';addWordObj({w:w,ph:ph,pos:pos,mean:mean,ex:ex,level:level==='c6'?'c6':'c4'});renderVocab();}
@@ -3085,8 +3094,28 @@ function setLevelFilter(lv){curLevel=lv;document.querySelectorAll('#levelFilter 
 function startStudy(){
   var v=getVocab().filter(function(w){return lvMatch(w,curLevel);}).filter(function(w){return !myWords['w_'+w.w];});
   if(!v.length){alert('该分类下没有待学单词，或已全部掌握 🎉');return;}
-  v.sort(function(a,b){var ra=srsGet(a.w).reps,rb=srsGet(b.w).reps;return ra!==rb?ra-rb:Math.random()-0.5;});
-  studyQueue=v.slice();studyReview=[];studyTotal=studyQueue.length;studyDone=0;
+  /* 四级优先度：0 待巩固（错词/弱词）> 1 到期复习 > 2 从未学过 > 3 已练熟未到期
+     一次性缓存三张表，避免在 sort 比较器里反复读 localStorage */
+  var wb=wrongBook(),wk=weakMap(),sm=srsMap(),now=Date.now();
+  var rank=v.map(function(w){
+    var k=String(w.w).toLowerCase(),s=sm[w.w]||{reps:0,due:0};
+    var lap=(wb[k]?(wb[k].lapses||1):0)+(wk[w.w]||0);
+    var pri;
+    if(lap)pri=0;
+    else if(s.reps>0&&s.due&&s.due<=now)pri=1;
+    else if(!s.reps)pri=2;
+    else pri=3;
+    return {w:w,pri:pri,lap:lap,r:Math.random()};
+  });
+  rank.sort(function(a,b){
+    if(a.pri!==b.pri)return a.pri-b.pri;
+    if(a.pri===0&&a.lap!==b.lap)return b.lap-a.lap;/* 错得越多越靠前 */
+    return a.r-b.r;
+  });
+  var weakCnt=rank.filter(function(o){return o.pri===0;}).length;
+  var dueCnt=rank.filter(function(o){return o.pri===1;}).length;
+  studyQueue=rank.map(function(o){return o.w;});studyReview=[];studyTotal=studyQueue.length;studyDone=0;
+  if(weakCnt||dueCnt){try{toast('🎯 已把 '+weakCnt+' 个待巩固词 + '+dueCnt+' 个到期词排到最前');}catch(e){}}
   document.getElementById('studyArea').classList.remove('hidden');
   document.getElementById('studySpeed').innerHTML=speedBar();
   document.getElementById('flashArea').classList.add('hidden');
@@ -3110,12 +3139,12 @@ function renderStudy(){
 function flipStudy(){document.getElementById('studyCard').classList.toggle('flipped');}
 function speakStudy(){if(studyCur)speakWord(studyCur.w);}
 function speakStudyEx(){if(!studyCur||!studyCur.ex||!studyCur.ex.length)return;speechSynthesis&&speechSynthesis.cancel();studyCur.ex.forEach(function(e,i){if(e&&e.en)setTimeout(function(){speakText(e.en);},i*1800);});}
-function studyMastered(){if(!studyCur)return;myWords['w_'+studyCur.w]=true;sLS('wb_mywords',myWords);studyDone++;renderMasteredList();studyQueue.shift();renderStudy();}
-function studyAgain(){if(!studyCur)return;studyReview.push(studyCur);studyQueue.shift();renderStudy();}
+function studyMastered(){if(!studyCur)return;var w=studyCur.w;myWords['w_'+w]=true;sLS('wb_mywords',myWords);srsUpdate(w,5);wrongBookMark(w,true);studyDone++;renderMasteredList();renderWrongBookBar();studyQueue.shift();renderStudy();}
+function studyAgain(){if(!studyCur)return;var w=studyCur.w;srsUpdate(w,1);wrongBookMark(w,false);renderWrongBookBar();studyReview.push(studyCur);studyQueue.shift();renderStudy();}
 function stopStudy(){document.getElementById('studyArea').classList.add('hidden');}
 
 /* ===== 练习中心：批量练习 / 快速复习 / 智能复习 / 历史 ===== */
-var batchWords=[],batchIdx=0,batchWrong=[],batchRight=[],batchMode='batch',batchSrcLabel='',batchLevel='',batchReplayOf=null,batchRevealed=false;
+var batchWords=[],batchIdx=0,batchWrong=[],batchRight=[],batchMode='batch',batchSrcLabel='',batchLevel='',batchReplayOf=null,batchRevealed=false,batchGraduated=[];
 function onBatchSrcChange(){
   var v=document.querySelector('input[name="batchSrc"]:checked').value;
   document.getElementById('batchLevelBox').style.display=(v==='level')?'block':'none';
@@ -3124,10 +3153,14 @@ function getWriteMode(){return gLS('wb_write_mode')||'pure';}
 function setWriteMode(m){sLS('wb_write_mode',m);}
 function getReplayMode(){return gLS('wb_replay_mode')||'wrong';}
 function setReplayMode(m){sLS('wb_replay_mode',m);}
+function getWrongQuota(){var v=gLS('wb_wrong_quota');return (v===null||v===undefined||isNaN(v))?30:parseInt(v,10);}
+function setWrongQuota(v){sLS('wb_wrong_quota',parseInt(v,10)||0);}
 function applySettings(){
-  var w=getWriteMode(),r=getReplayMode();
+  var w=getWriteMode(),r=getReplayMode(),q=getWrongQuota();
   var wel=document.querySelector('input[name="writeMode"][value="'+w+'"]');if(wel)wel.checked=true;
   var rel=document.querySelector('input[name="replayMode"][value="'+r+'"]');if(rel)rel.checked=true;
+  var qel=document.querySelector('input[name="wrongQuota"][value="'+q+'"]');if(qel)qel.checked=true;
+  renderWrongBookBar();
 }
 function wordExEn(w){return w&&w.ex&&w.ex.length?((typeof w.ex[0]==='string')?w.ex[0]:(w.ex[0]&&w.ex[0].en?w.ex[0].en:'')):'';}
 function wordExZh(w){return w&&w.ex&&w.ex.length?((typeof w.ex[0]==='string')?'':w.ex[0].zh||''):'';}
@@ -3162,12 +3195,92 @@ function findWord(w0){
   var all=getVocab();for(var i=0;i<all.length;i++){if(all[i].w&&all[i].w.toLowerCase()===String(w0).toLowerCase())return all[i];}
   return {w:w0,ph:'',pos:'',mean:'',ex:''};
 }
+/* ===== 错词本（带毕业机制）=====
+   结构：{ "muscle": {w:'muscle', streak:0, lapses:2, last:ts} }
+   答错 → streak 归零、lapses+1；答对 → streak+1，连对 WRONG_GRADUATE 次自动移出。
+   历史 session 只作为轨迹保留，不再直接充当错词池。 */
+var WRONG_GRADUATE=2;
+function migrateWrongBook(){
+  var m={},sess=gLS('wb_study_sessions')||[];
+  sess.forEach(function(s){
+    (s.wrong||[]).forEach(function(x){
+      var k=String(x).toLowerCase();
+      if(!m[k])m[k]={w:x,streak:0,lapses:0,last:0};
+      m[k].lapses++;
+    });
+  });
+  return m;
+}
+function wrongBook(){
+  var m=gLS('wb_wrongbook');
+  if(!m||typeof m!=='object'){m=migrateWrongBook();sLS('wb_wrongbook',m);}
+  return m;
+}
+/* 返回本次动作：'added' 新进错词本 / 'relapse' 再次答错 / 'graduated' 毕业 / 'progress' 连对累积 / null 无关 */
+function wrongBookMark(word,ok){
+  if(!word)return null;
+  var m=wrongBook(),k=String(word).toLowerCase(),act=null;
+  if(!ok){act=m[k]?'relapse':'added';}
+  else if(m[k])act=(m[k].streak+1>=WRONG_GRADUATE)?'graduated':'progress';
+  if(!ok){
+    if(!m[k])m[k]={w:word,streak:0,lapses:0,last:0};
+    m[k].streak=0;m[k].lapses++;m[k].last=Date.now();
+  }else if(m[k]){
+    m[k].streak++;m[k].last=Date.now();
+    if(m[k].streak>=WRONG_GRADUATE){delete m[k];try{clearWeak(word);}catch(e){}}/* 毕业：连同闯关弱词一并清除 */
+  }else{
+    /* 只在闯关弱词表里的词，答对一次递减，减到 0 自动移出候选 */
+    try{var wk=weakMap();if(wk[word]){wk[word]--;if(wk[word]<=0)delete wk[word];sLS('wb_weak',wk);}}catch(e){}
+  }
+  sLS('wb_wrongbook',m);
+  return act;
+}
+function wrongBookRemove(w0){
+  var m=wrongBook();delete m[String(w0).toLowerCase()];sLS('wb_wrongbook',m);
+  try{clearWeak(w0);}catch(e){}
+  renderWrongBookBar();
+  var d=document.getElementById('wrongBookDetail');
+  if(d&&d.style.display!=='none')renderWrongBookDetail();
+}
+function wrongBookCount(){return Object.keys(wrongBook()).length;}
+/* 待巩固候选 = 错词本 ∪ 闯关游戏弱词表，按错误次数降序 */
+function reviewCandidates(){
+  var wb=wrongBook(),wk=weakMap(),score={},src={};
+  Object.keys(wb).forEach(function(k){score[k]=(score[k]||0)+(wb[k].lapses||1);src[k]=wb[k].w||k;});
+  Object.keys(wk).forEach(function(w){var k=String(w).toLowerCase();score[k]=(score[k]||0)+(wk[w]||1);if(!src[k])src[k]=w;});
+  return Object.keys(score).sort(function(a,b){return score[b]-score[a];}).map(function(k){return {key:k,w:src[k],n:score[k]};});
+}
 function getWrongWords(){
-  var sess=gLS('wb_study_sessions')||[];var set={};
-  sess.forEach(function(s){if(s.wrong)for(var i=0;i<s.wrong.length;i++)set[s.wrong[i].toLowerCase()]=s.wrong[i];});
-  var res=[],seen={};
-  for(var k in set){if(!seen[k]){seen[k]=1;res.push(findWord(set[k]));}}
-  return res;
+  return reviewCandidates().map(function(o){return findWord(o.w);}).filter(function(w){return w&&w.w;});
+}
+function renderWrongBookBar(){
+  var el=document.getElementById('wrongBookBar');if(!el)return;
+  var n=wrongBookCount(),wk=Object.keys(weakMap()).length;
+  var txt='📕 错词本：<b>'+n+'</b> 个待巩固';
+  if(wk)txt+=' · 闯关弱词 '+wk+' 个';
+  txt+=' <span style="color:var(--sub)">（连对 '+WRONG_GRADUATE+' 次自动毕业）</span>';
+  el.innerHTML=txt+' <button class="btn btn-sm" style="margin-left:6px" onclick="toggleWrongBookDetail()">明细</button>';
+  var c=document.getElementById('wrongSrcCount');if(c)c.textContent=n?('（'+n+'）'):'';
+}
+function toggleWrongBookDetail(){
+  var d=document.getElementById('wrongBookDetail');if(!d)return;
+  if(d.style.display==='none'||!d.style.display){d.style.display='block';renderWrongBookDetail();}
+  else d.style.display='none';
+}
+function renderWrongBookDetail(){
+  var d=document.getElementById('wrongBookDetail');if(!d)return;
+  var m=wrongBook(),keys=Object.keys(m);
+  if(!keys.length){d.innerHTML='<div style="color:var(--sub);font-size:12px;padding:6px">错词本是空的 🎉 答错的词会自动进来。</div>';return;}
+  keys.sort(function(a,b){return (m[b].lapses-m[a].lapses)||(m[a].streak-m[b].streak);});
+  var html='<div style="max-height:220px;overflow:auto;margin-top:6px">';
+  keys.forEach(function(k){
+    var o=m[k],wd=findWord(o.w||k);
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 6px;border-bottom:1px solid var(--border);font-size:12px">';
+    html+='<span><b>'+esc(o.w||k)+'</b> <span style="color:var(--sub)">'+esc((wd.mean||'').slice(0,18))+'</span></span>';
+    html+='<span style="white-space:nowrap;color:var(--sub)">错'+(o.lapses||0)+'次 · 连对 '+(o.streak||0)+'/'+WRONG_GRADUATE;
+    html+=' <button class="btn btn-sm" onclick="wrongBookRemove(\''+esc(o.w||k)+'\')">移出</button></span></div>';
+  });
+  d.innerHTML=html+'</div>';
 }
 function getBatchPool(){
   var v=document.querySelector('input[name="batchSrc"]:checked').value;var pool=[];
@@ -3177,14 +3290,30 @@ function getBatchPool(){
   else if(v==='wrong')pool=getWrongWords();
   return pool.filter(function(w){return w&&w.w;});
 }
+/* 按配额把「待巩固词」混进随机抽取结果：错词优先保底，其余随机补齐，最后整体打乱 */
+function mixWithWrong(pool,n){
+  var q=getWrongQuota();
+  if(!q)return {list:shuffle(pool.slice()).slice(0,n),quota:0};
+  var inPool={};pool.forEach(function(w){inPool[String(w.w).toLowerCase()]=w;});
+  /* 候选必须落在当前来源池内，否则会违背「我要练四级」这类意图 */
+  var cand=reviewCandidates().filter(function(o){return inPool[o.key];}).map(function(o){return inPool[o.key];});
+  var want=Math.min(cand.length,Math.max(cand.length?1:0,Math.round(n*q/100)));
+  var picked=cand.slice(0,want);
+  var pickedSet={};picked.forEach(function(w){pickedSet[String(w.w).toLowerCase()]=1;});
+  var rest=shuffle(pool.filter(function(w){return !pickedSet[String(w.w).toLowerCase()];}));
+  var list=picked.concat(rest.slice(0,Math.max(0,n-picked.length)));
+  return {list:shuffle(list),quota:picked.length};
+}
 function startBatch(){
   var v=document.querySelector('input[name="batchSrc"]:checked').value;
   if(v==='level'&&!batchLevel){alert('请先选择具体级别。');return;}
   var pool=getBatchPool();
   var n=parseInt(document.getElementById('batchCount').value,10)||10;if(n>50)n=50;if(n<1)n=1;
-  if(!pool.length){alert('该来源下没有可用单词。');return;}
-  batchWords=shuffle(pool.slice()).slice(0,n);batchIdx=0;batchWrong=[];batchRight=[];batchMode='batch';batchReplayOf=null;
+  if(!pool.length){alert(v==='wrong'?'错词本是空的 🎉 先去练几轮，答错的词会自动收进来。':'该来源下没有可用单词。');return;}
+  var mixed=(v==='wrong')?{list:shuffle(pool.slice()).slice(0,n),quota:0}:mixWithWrong(pool,n);
+  batchWords=mixed.list;batchIdx=0;batchWrong=[];batchRight=[];batchGraduated=[];batchMode='batch';batchReplayOf=null;
   batchSrcLabel=(v==='all'?'全部随机':v==='level'?('级别·'+levelLabel(batchLevel)):v==='mine'?'我的词库':'只练错词');
+  if(mixed.quota)batchSrcLabel+='（含 '+mixed.quota+' 个待巩固）';
   startBatchLearn();
 }
 function startBatchLearn(){
@@ -3267,6 +3396,8 @@ function checkBatchAnswer(){
   if(ok){batchRight.push(w.w);}
   else{batchWrong.push(w.w);}
   srsUpdate(w.w, ok?5:1);
+  var wbAct=wrongBookMark(w.w, ok);
+  if(wbAct==='graduated')batchGraduated.push(w.w);
   var ex0=wordExEn(w),exZh=wordExZh(w);
 
   if(mode==='pure'){
@@ -3325,24 +3456,26 @@ function finishBatch(){
     }
   }
   if(batchWrong.length)html+='<div style="margin-top:8px;font-size:13px;color:#c62828">错词：'+batchWrong.map(function(x){return esc(x);}).join('、')+'</div>';
+  if(batchGraduated.length)html+='<div style="margin-top:8px;padding:6px 10px;background:#e8f5e9;color:#2e7d32;border-radius:6px;font-size:13px">🎓 '+batchGraduated.length+' 个词连对 '+WRONG_GRADUATE+' 次，已移出错词本：'+batchGraduated.map(function(x){return esc(x);}).join('、')+'</div>';
+  html+='<div style="margin-top:8px;font-size:12px;color:var(--sub)">错词本剩余 '+wrongBookCount()+' 个待巩固</div>';
   html+='</div>';
   document.getElementById('batchContent').innerHTML=html;
   document.getElementById('batchControls').innerHTML='<button class="btn btn-primary btn-sm" onclick="startBatch()">再来一次</button><button class="btn btn-sm" onclick="exitBatch()">返回练习中心</button>';
   batchReplayOf=null;
-  renderHistory();
+  renderHistory();renderWrongBookBar();
 }
 function exitBatch(){
   batchRevealed=false;
   document.getElementById('batchArea').classList.add('hidden');
   document.getElementById('practiceCenter').style.display='';
   document.getElementById('historySection').style.display='';
-  renderHistory();
+  renderHistory();renderWrongBookBar();
 }
 function quickReview(){
   var pool=getWrongWords();
-  if(!pool.length){alert('暂无从错词集合，先去做几次批量练习吧。');return;}
+  if(!pool.length){alert('错词本是空的 🎉 先去练几轮，答错的词会自动收进来（连对 '+WRONG_GRADUATE+' 次会自动毕业移出）。');return;}
   var n=parseInt(document.getElementById('batchCount').value,10)||10;if(n<1)n=1;
-  batchWords=shuffle(pool.slice()).slice(0,n);batchIdx=0;batchWrong=[];batchRight=[];batchMode='quick';batchSrcLabel='快速复习·错词集合';batchReplayOf=null;
+  batchWords=shuffle(pool.slice()).slice(0,n);batchIdx=0;batchWrong=[];batchRight=[];batchGraduated=[];batchMode='quick';batchSrcLabel='快速复习·错词集合';batchReplayOf=null;
   startBatchLearn();
 }
 function replaySession(idx,mode){
@@ -3366,7 +3499,7 @@ function replaySession(idx,mode){
     var w=findWord(w0);if(w&&w.w)pool.push(w);
   });
   if(!pool.length){alert('所选词条已不在当前词库。');return;}
-  batchWords=pool.slice();batchIdx=0;batchWrong=[];batchRight=[];batchMode='replay';
+  batchWords=pool.slice();batchIdx=0;batchWrong=[];batchRight=[];batchGraduated=[];batchMode='replay';
   batchSrcLabel='再练·'+(chosen==='wrong'?'错题':'原样')+'（'+batchWords.length+' 词）';
   batchReplayOf=s.date;
   startBatchLearn();
