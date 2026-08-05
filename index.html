@@ -983,7 +983,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 34;
+var APP_VERSION = 35;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -3088,6 +3088,19 @@ function levelLabel(l){return ({'pri':'小学','mid':'中学','c4':'四级','c6'
 function lvMatch(w,lv){if(!lv)return true;if(!w)return false;if(w.level===lv)return true;return !!(w.lvs&&w.lvs.indexOf(lv)>=0);}
 function lvTags(w){var a=[w.level].concat(w.lvs||[]);return a.map(levelLabel).join('/');}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+/* 重排：尽量让每个词都换位置（近似错位排列），避免小批量时打乱后仍接近原序 */
+function reorderList(list){
+  if(!list||list.length<2)return (list||[]).slice();
+  var orig=list.map(function(w){return w&&w.w;});
+  var best=null,bestSame=1e9;
+  for(var t=0;t<12;t++){
+    var cand=shuffle(list.slice()),same=0;
+    for(var i=0;i<cand.length;i++)if(cand[i]&&cand[i].w===orig[i])same++;
+    if(same<bestSame){bestSame=same;best=cand;}
+    if(same===0)break;
+  }
+  return best||list.slice();
+}
 var curLevel='';
 var studyQueue=[],studyReview=[],studyTotal=0,studyDone=0,studyCur=null;
 function setLevelFilter(lv){curLevel=lv;document.querySelectorAll('#levelFilter .chip').forEach(function(c){c.classList.toggle('active',c.getAttribute('data-lv')===lv);});renderVocab();}
@@ -3340,10 +3353,17 @@ function startBatchLearn(){
     html+='<div style="padding:8px 10px;border:1px solid var(--border);border-radius:8px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:15px">'+esc(w.w)+'</b><button class="btn btn-sm" onclick="speakWord(\''+esc(w.w)+'\')">&#128266;</button></div><div style="color:var(--sub);font-size:12px">'+esc(w.ph||'')+(w.pos?' '+esc(w.pos):'')+'</div><div style="font-size:13px;margin-top:2px">'+esc(w.mean||'')+'</div>'+(w.ex&&w.ex.length?'<div style="color:var(--sub);font-size:12px">'+formatExHtml(w.ex)+'</div>':'')+'</div>';
   });
   html+='</div>';
+  html+='<div style="margin-top:8px;font-size:12px;color:var(--sub);text-align:center">🔀 默写时会打乱顺序，别按位置记</div>';
   document.getElementById('batchContent').innerHTML=html;
   document.getElementById('batchControls').innerHTML='<button class="btn btn-primary btn-sm" onclick="startBatchWrite()">✍️ 开始默写测试</button><button class="btn btn-sm" onclick="exitBatch()">退出</button>';
 }
-function startBatchWrite(){batchIdx=0;document.getElementById('batchPhase').textContent='默写阶段 · 共 '+batchWords.length+' 词';document.getElementById('batchContent').innerHTML='';renderBatchWrite();}
+function startBatchWrite(){
+  batchWords=reorderList(batchWords);/* 默写打乱顺序，切断序列记忆 */
+  batchIdx=0;
+  document.getElementById('batchPhase').innerHTML='默写阶段 · 共 '+batchWords.length+' 词 <span style="font-size:12px;color:var(--sub);font-weight:400">🔀 已打乱顺序</span>';
+  document.getElementById('batchContent').innerHTML='';
+  renderBatchWrite();
+}
 function renderBatchWrite(){
   batchRevealed=false;
   if(batchIdx>=batchWords.length){finishBatch();return;}
@@ -3499,7 +3519,8 @@ function replaySession(idx,mode){
     var w=findWord(w0);if(w&&w.w)pool.push(w);
   });
   if(!pool.length){alert('所选词条已不在当前词库。');return;}
-  batchWords=pool.slice();batchIdx=0;batchWrong=[];batchRight=[];batchGraduated=[];batchMode='replay';
+  batchWords=shuffle(pool.slice());/* 再练也打乱，避免沿用上次顺序 */
+  batchIdx=0;batchWrong=[];batchRight=[];batchGraduated=[];batchMode='replay';
   batchSrcLabel='再练·'+(chosen==='wrong'?'错题':'原样')+'（'+batchWords.length+' 词）';
   batchReplayOf=s.date;
   startBatchLearn();
