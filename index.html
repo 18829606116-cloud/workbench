@@ -355,14 +355,17 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">每日体重</span></div>
 
 <div class="sec-card">
-<h3>每日空腹体重</h3>
-<p class="desc">日期自动生成为今天，你只需要填写体重（kg）。</p>
+<h3>每日体重记录</h3>
+<p class="desc">日期自动生成为今天。空腹与睡前可分别填写，只填其中一项也能保存。</p>
 <div style="margin-bottom:14px">
 <div class="input-row">
 <label>日期</label><input type="date" id="weightDate">
 </div>
 <div class="input-row" style="margin-top:10px">
-<label>空腹体重 (kg)</label><input type="text" id="weightInput" placeholder="例如 65.2">
+<label><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3498db;margin-right:5px"></span>空腹体重 (kg)</label><input type="text" id="weightInput" inputmode="decimal" placeholder="例如 65.2">
+</div>
+<div class="input-row" style="margin-top:10px">
+<label><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f39c12;margin-right:5px"></span>睡前体重 (kg)</label><input type="text" id="weightNightInput" inputmode="decimal" placeholder="例如 66.4">
 </div>
 <button class="btn btn-success btn-sm" onclick="saveWeight()" style="margin-top:4px">保存</button>
 <p id="weightSaveHint" style="font-size:13px;color:var(--sub);margin-top:10px">今天还没有记录。</p>
@@ -983,7 +986,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 35;
+var APP_VERSION = 36;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -1044,23 +1047,60 @@ function switchPage(id){
 
 // ============ WEIGHT MODULE ============
 var weightChart=null;
+/* 记录结构：{d:'YYYY-MM-DD', w:空腹kg|null, n:睡前kg|null}，老数据只有 w，读取时自动补 n=null */
+function wNum(x){var v=parseFloat(x);return (isFinite(v)&&v>0)?v:null;}
+function loadWeightData(){
+  var raw=gLS('weightData')||[];var out=[];
+  for(var i=0;i<raw.length;i++){
+    var r=raw[i];if(!r||!r.d)continue;
+    var w=wNum(r.w),n=wNum(r.n);
+    if(w===null&&n===null)continue;
+    out.push({d:r.d,w:w,n:n});
+  }
+  out.sort(function(a,b){return a.d.localeCompare(b.d)});
+  return out;
+}
 function saveWeight(){
   var dateVal=document.getElementById('weightDate').value;
-  var val=parseFloat(document.getElementById('weightInput').value);
+  var elM=document.getElementById('weightInput'),elN=document.getElementById('weightNightInput');
+  var rawM=(elM?elM.value:'').trim(),rawN=(elN?elN.value:'').trim();
   if(!dateVal){alert('请选择日期');return}
-  if(!val||val<20||val>300){alert('请输入合理体重 (20-300 kg)');return}
+  if(!rawM&&!rawN){alert('请至少填写一项体重（空腹或睡前）');return}
+  var vm=null,vn=null;
+  if(rawM){vm=wNum(rawM);if(vm===null||vm<20||vm>300){alert('空腹体重请输入合理数值 (20-300 kg)');return}}
+  if(rawN){vn=wNum(rawN);if(vn===null||vn<20||vn>300){alert('睡前体重请输入合理数值 (20-300 kg)');return}}
   var data=gLS('weightData')||[];
-  var found=false;
-  for(var i=0;i<data.length;i++){
-    if(data[i].d===dateVal){data[i].w=val;found=true;break}
-  }
-  if(!found)data.push({d:dateVal,w:val});
+  var rec=null;
+  for(var i=0;i<data.length;i++){if(data[i]&&data[i].d===dateVal){rec=data[i];break}}
+  if(!rec){rec={d:dateVal};data.push(rec);}
+  if(vm!==null)rec.w=vm;
+  if(vn!==null)rec.n=vn;
   sLS('weightData',data);
-  document.getElementById('weightInput').value='';
+  if(elM)elM.value='';if(elN)elN.value='';
   renderWeight();
+  var parts=[];if(vm!==null)parts.push('空腹 '+vm+' kg');if(vn!==null)parts.push('睡前 '+vn+' kg');
+  try{toast('✅ 已保存 '+dateVal+'：'+parts.join(' · '));}catch(e){}
+}
+/* 点历史行把当天数据回填到输入框，便于修改/补填另一项 */
+function weightEdit(d){
+  var data=loadWeightData(),rec=null;
+  for(var i=0;i<data.length;i++){if(data[i].d===d){rec=data[i];break}}
+  if(!rec)return;
+  var de=document.getElementById('weightDate'),elM=document.getElementById('weightInput'),elN=document.getElementById('weightNightInput');
+  if(de)de.value=rec.d;
+  if(elM)elM.value=rec.w===null?'':rec.w;
+  if(elN)elN.value=rec.n===null?'':rec.n;
+  if(de&&de.scrollIntoView)de.scrollIntoView({behavior:'smooth',block:'center'});
+  try{toast('已载入 '+d+' 的记录，修改后点保存即可覆盖');}catch(e){}
+}
+function wDelta(cur,prev,unit){
+  if(cur===null||prev===null||prev===undefined)return '';
+  var diff=cur-prev;if(Math.abs(diff)<0.05)return ' <span style="color:var(--sub);font-size:12px">(持平)</span>';
+  var c=diff>0?'var(--danger)':'var(--success)';
+  return ' <span style="color:'+c+';font-size:12px">('+(diff>0?'+':'')+diff.toFixed(1)+(unit||'')+')</span>';
 }
 function renderWeight(){
-  var data=gLS('weightData')||[];
+  var data=loadWeightData();
   var overviewEl=document.getElementById('weightOverview');
   var hintEl=document.getElementById('weightTrendHint');
   var histEl=document.getElementById('weightHistory');
@@ -1072,63 +1112,105 @@ function renderWeight(){
 
   if(data.length===0){
     if(overviewEl)overviewEl.innerHTML='<div class="empty-hint">还没有数据，快记录第一次体重吧。</div>';
-    if(hintEl)hintEl.style.display='block';
+    if(hintEl){hintEl.style.display='block';hintEl.textContent='至少需要 2 条记录才能显示趋势图。';}
     if(histEl)histEl.innerHTML='<div class="empty-hint">暂无记录</div>';
     if(saveHint)saveHint.textContent='今天还没有记录。';
     if(weightChart){weightChart.destroy();weightChart=null}
     return;
   }
 
-  // Sort by date
-  data.sort(function(a,b){return a.d.localeCompare(b.d)});
-  var last=data[data.length-1];
-  var prev=data.length>1?data[data.length-2]:null;
+  var mList=data.filter(function(x){return x.w!==null;});   // 空腹序列
+  var nList=data.filter(function(x){return x.n!==null;});   // 睡前序列
+  var lastM=mList.length?mList[mList.length-1]:null, prevM=mList.length>1?mList[mList.length-2]:null;
+  var lastN=nList.length?nList[nList.length-1]:null, prevN=nList.length>1?nList[nList.length-2]:null;
 
-  // Overview
-  var ov='最新: <b>'+last.w+' kg</b> ('+last.d+')';
-  if(prev){
-    var diff=(last.w-prev.w).toFixed(1);
-    ov+=diff>0?' <span style="color:var(--danger)">(+'+diff+')</span>':diff<0?' <span style="color:var(--success">('+diff+')</span>':' (=)';
+  // ---- 概览：空腹 / 睡前 / 日内差 ----
+  if(overviewEl){
+    var ov='<div style="display:flex;flex-direction:column;gap:8px">';
+    ov+='<div style="display:flex;align-items:baseline;gap:8px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3498db;flex:none"></span>'
+      +'<span style="font-size:13px;color:var(--sub);min-width:34px">空腹</span>'
+      +(lastM?('<b style="font-size:17px">'+lastM.w+' kg</b>'+wDelta(lastM.w,prevM?prevM.w:null)+'<span style="font-size:12px;color:var(--sub);margin-left:auto">'+lastM.d+'</span>'):'<span style="font-size:13px;color:var(--sub)">暂无记录</span>')
+      +'</div>';
+    ov+='<div style="display:flex;align-items:baseline;gap:8px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f39c12;flex:none"></span>'
+      +'<span style="font-size:13px;color:var(--sub);min-width:34px">睡前</span>'
+      +(lastN?('<b style="font-size:17px">'+lastN.n+' kg</b>'+wDelta(lastN.n,prevN?prevN.n:null)+'<span style="font-size:12px;color:var(--sub);margin-left:auto">'+lastN.d+'</span>'):'<span style="font-size:13px;color:var(--sub)">暂无记录</span>')
+      +'</div>';
+    // 最近一个「空腹+睡前都有」的日子，算日内增量
+    var bothRec=null;
+    for(var i=data.length-1;i>=0;i--){if(data[i].w!==null&&data[i].n!==null){bothRec=data[i];break}}
+    if(bothRec){
+      var gap=(bothRec.n-bothRec.w);
+      ov+='<div style="font-size:13px;padding-top:6px;border-top:1px dashed var(--border)">日内增量（睡前 − 空腹）：<b style="color:'+(gap>0?'var(--danger)':'var(--success)')+'">'+(gap>0?'+':'')+gap.toFixed(1)+' kg</b> <span style="color:var(--sub)">· '+bothRec.d+'</span></div>';
+    }
+    var avgM=mList.length?(mList.reduce(function(s,x){return s+x.w},0)/mList.length).toFixed(1):null;
+    var avgN=nList.length?(nList.reduce(function(s,x){return s+x.n},0)/nList.length).toFixed(1):null;
+    var avgTxt=[];if(avgM)avgTxt.push('空腹 '+avgM);if(avgN)avgTxt.push('睡前 '+avgN);
+    ov+='<div style="font-size:12px;color:var(--sub)">平均：'+(avgTxt.length?avgTxt.join(' kg · ')+' kg':'—')+' · 共 '+data.length+' 天记录</div>';
+    ov+='</div>';
+    overviewEl.innerHTML=ov;
   }
-  var avg=(data.reduce(function(s,x){return s+x.w},0)/data.length).toFixed(1);
-  ov+='<br><span style="font-size:13px;color:var(--sub)">平均: '+avg+' kg · 共 '+data.length+' 条记录</span>';
-  if(overviewEl)overviewEl.innerHTML=ov;
 
-  // Save hint for today
-  var todayHas=false;
-  for(var i=0;i<data.length;i++){if(data[i].d===todayStr()){todayHas=true;break}}
-  if(saveHint)saveHint.textContent=todayHas?'今日已记录。':'今天还没有记录。';
+  // ---- 今日填写状态 ----
+  if(saveHint){
+    var t=todayStr(),todayRec=null;
+    for(var i=0;i<data.length;i++){if(data[i].d===t){todayRec=data[i];break}}
+    if(!todayRec)saveHint.textContent='今天还没有记录。';
+    else if(todayRec.w!==null&&todayRec.n!==null)saveHint.textContent='今日已记录：空腹 '+todayRec.w+' kg · 睡前 '+todayRec.n+' kg。';
+    else if(todayRec.w!==null)saveHint.textContent='今日已记空腹 '+todayRec.w+' kg，睡前还没填。';
+    else saveHint.textContent='今日已记睡前 '+todayRec.n+' kg，空腹还没填。';
+  }
 
-  // Trend chart
-  if(data.length>=2){
+  // ---- 趋势图：双折线 ----
+  var canPlot=(mList.length>=2)||(nList.length>=2);
+  if(canPlot){
     if(hintEl)hintEl.style.display='none';
-    var labels=[],values=[];
-    for(var i=0;i<data.length;i++){labels.push(data[i].d.slice(5));values.push(data[i].w)}
+    var labels=[],mVals=[],nVals=[];
+    for(var i=0;i<data.length;i++){labels.push(data[i].d.slice(5));mVals.push(data[i].w);nVals.push(data[i].n);}
+    var ds=[];
+    if(mList.length)ds.push({label:'空腹',data:mVals,borderColor:'#3498db',backgroundColor:'rgba(52,152,219,0.12)',fill:false,tension:.3,pointRadius:3,pointHoverRadius:6,spanGaps:true});
+    if(nList.length)ds.push({label:'睡前',data:nVals,borderColor:'#f39c12',backgroundColor:'rgba(243,156,18,0.12)',fill:false,tension:.3,pointRadius:3,pointHoverRadius:6,spanGaps:true,borderDash:[5,3]});
     var ctx=document.getElementById('weightChart');
     if(ctx){
       if(weightChart)weightChart.destroy();
       weightChart=new Chart(ctx,{
         type:'line',
-        data:{labels:labels,datasets:[{label:'体重 (kg)',data:values,borderColor:'#3498db',backgroundColor:'rgba(52,152,219,0.1)',fill:true,tension:.3,pointRadius:3,pointHoverRadius:6}]},
+        data:{labels:labels,datasets:ds},
         options:{responsive:true,maintainAspectRatio:false,
-          plugins:{legend:{display:false}},
-          scales:{y:{beginAtZero:false},x:{ticks:{maxRotation:45}}}
+          interaction:{mode:'index',intersect:false},
+          plugins:{legend:{display:ds.length>1,position:'top',labels:{boxWidth:12,font:{size:11}}},
+            tooltip:{callbacks:{label:function(c){return c.dataset.label+'：'+c.parsed.y+' kg';}}}},
+          scales:{y:{beginAtZero:false,title:{display:false}},x:{ticks:{maxRotation:45}}}
         }
       });
     }
   }else{
-    if(hintEl)hintEl.style.display='block';
+    if(weightChart){weightChart.destroy();weightChart=null}
+    if(hintEl){hintEl.style.display='block';hintEl.textContent='空腹或睡前任一项至少需要 2 条记录才能显示趋势图。';}
   }
 
-  // History table (last 10)
+  // ---- 历史表（最近 10 天）----
   if(histEl){
+    var th='padding:6px;border-bottom:1px solid var(--border);font-weight:600';
     var h='<table style="width:100%;border-collapse:collapse;font-size:13px">';
-    h+='<tr style="background:#f8f9fa"><th style="padding:6px;text-align:left;border-bottom:1px solid var(--border)">日期</th><th style="padding:6px;text-align:right;border-bottom:1px solid var(--border)">体重</th></tr>';
+    h+='<tr style="background:#f8f9fa"><th style="'+th+';text-align:left">日期</th>'
+      +'<th style="'+th+';text-align:right">空腹</th>'
+      +'<th style="'+th+';text-align:right">睡前</th>'
+      +'<th style="'+th+';text-align:right">日内差</th></tr>';
     var start=Math.max(0,data.length-10);
     for(var i=data.length-1;i>=start;i--){
-      h+='<tr><td style="padding:6px;border-bottom:1px solid #f0f0f0">'+data[i].d+'</td><td style="padding:6px;text-align:right;border-bottom:1px solid #f0f0f0;font-weight:600">'+data[i].w+'</td></tr>';
+      var r=data[i],td='padding:6px;border-bottom:1px solid #f0f0f0';
+      var gapTxt='<span style="color:var(--sub)">—</span>';
+      if(r.w!==null&&r.n!==null){
+        var g=r.n-r.w;
+        gapTxt='<span style="color:'+(g>0?'var(--danger)':'var(--success)')+'">'+(g>0?'+':'')+g.toFixed(1)+'</span>';
+      }
+      h+='<tr style="cursor:pointer" title="点击载入这天的数据以修改或补填" onclick="weightEdit(\''+r.d+'\')">'
+        +'<td style="'+td+'">'+r.d+'</td>'
+        +'<td style="'+td+';text-align:right;font-weight:600">'+(r.w!==null?r.w:'<span style="color:var(--sub);font-weight:400">—</span>')+'</td>'
+        +'<td style="'+td+';text-align:right;font-weight:600">'+(r.n!==null?r.n:'<span style="color:var(--sub);font-weight:400">—</span>')+'</td>'
+        +'<td style="'+td+';text-align:right">'+gapTxt+'</td></tr>';
     }
-    h+='</table>';
+    h+='</table><p style="font-size:12px;color:var(--sub);margin-top:8px">点击任意一行可载入该天数据，修改或补填另一项后保存即可覆盖。</p>';
     histEl.innerHTML=h;
   }
 }
