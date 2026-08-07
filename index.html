@@ -324,6 +324,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   </div>
   <nav class="drawer-nav">
     <button class="drawer-item active" data-page="weight" onclick="switchPage('weight')"><span class="di-icon">&#9878;</span> 每日体重</button>
+    <button class="drawer-item" data-page="water" onclick="switchPage('water')"><span class="di-icon">&#128167;</span> 喝水统计</button>
     <button class="drawer-item" data-page="med" onclick="switchPage('med')"><span class="di-icon">&#128138;</span> 吃药打卡</button>
     <button class="drawer-item" data-page="eng" onclick="switchPage('eng')"><span class="di-icon">&#128218;</span> 英语 &amp; 雅思</button>
     <button class="drawer-item" data-page="game" onclick="switchPage('game')"><span class="di-icon">&#127918;</span> 新倩女幽魂</button>
@@ -368,11 +369,6 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <label><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f39c12;margin-right:5px"></span>睡前体重 (kg)</label><input type="text" id="weightNightInput" inputmode="decimal" placeholder="例如 66.4">
 </div>
 <button class="btn btn-success btn-sm" onclick="saveWeight()" style="margin-top:4px">保存</button>
-<span style="margin-left:8px">
-<button class="btn btn-sm" onclick="exportWeight()">导出</button>
-<button class="btn btn-sm" onclick="document.getElementById('weightFile').click()">导入</button>
-<input type="file" id="weightFile" accept=".json,application/json" style="display:none" onchange="importWeight(this)">
-</span>
 <p id="weightSaveHint" style="font-size:13px;color:var(--sub);margin-top:10px">今天还没有记录。</p>
 </div>
 </div>
@@ -400,6 +396,73 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <select id="weightMonthSel" onchange="renderWeight()" style="font-size:13px;padding:3px 6px"></select>
 </div>
 <div id="weightHistory" class="empty-hint">暂无记录</div>
+</div>
+</div>
+
+<!-- ===== PAGE: WATER ===== -->
+<div class="module-page" id="page-water">
+<div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">喝水统计</span></div>
+
+<div class="sec-card">
+<h3>今日饮水</h3>
+<div id="waterToday" class="rlw-summary">
+  <div class="rlw-summary-title" id="waterBig">0 / 2000 ml</div>
+  <div style="height:12px;background:#fff;border-radius:8px;overflow:hidden;margin:6px 0">
+    <div id="waterBar" style="height:100%;width:0%;background:linear-gradient(90deg,#4fc3f7,#0288d1);transition:width .4s"></div>
+  </div>
+  <div style="font-size:12px;color:#33691e" id="waterSub">有效饮水 0 ml · 完成度 0%</div>
+</div>
+<div style="margin:10px 0 4px;font-size:13px;color:var(--sub)">本次喝了多少？</div>
+<div class="input-row">
+  <label>水量 (ml)</label><input type="number" id="waterMl" inputmode="numeric" placeholder="例如 250" min="1">
+</div>
+<div class="input-row" style="margin-top:8px">
+  <label>类型</label>
+  <select id="waterType" style="flex:1">
+    <option value="water">水（白水）</option>
+    <option value="tea">茶</option>
+    <option value="coffee">咖啡</option>
+    <option value="soda">可乐 / 汽水</option>
+    <option value="juice">果汁</option>
+    <option value="milk">牛奶</option>
+    <option value="alcohol">酒 / 酒精</option>
+    <option value="other">其他（按水计）</option>
+  </select>
+</div>
+<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+  <button class="btn btn-sm" onclick="addWater(100)">+100</button>
+  <button class="btn btn-sm" onclick="addWater(200)">+200</button>
+  <button class="btn btn-sm" onclick="addWater(250)">+250</button>
+  <button class="btn btn-sm" onclick="addWater(350)">+350</button>
+  <button class="btn btn-sm" onclick="addWater(500)">+500</button>
+  <button class="btn btn-success btn-sm" onclick="addWaterFromInput()">添加</button>
+</div>
+<p id="waterHint" style="font-size:12px;color:var(--sub);margin-top:8px"></p>
+</div>
+
+<div class="sec-card">
+<h3>今日明细</h3>
+<div id="waterList" class="empty-hint">今天还没记录，喝一口加一下吧。</div>
+</div>
+
+<div class="sec-card">
+<h3>每日目标</h3>
+<div class="input-row">
+  <label>目标 (ml)</label><input type="number" id="waterGoalInput" inputmode="numeric" placeholder="例如 2000" min="1">
+</div>
+<button class="btn btn-sm" onclick="saveWaterGoal()" style="margin-top:4px">保存目标</button>
+<p id="waterGoalHint" style="font-size:12px;color:var(--sub);margin-top:8px"></p>
+</div>
+
+<div class="sec-card">
+<h3>最近 7 天</h3>
+<div id="waterWeek" class="empty-hint">暂无数据。</div>
+<p style="font-size:12px;color:var(--sub);margin-top:8px">「有效」= 实际水量 × 该类饮品的水合系数（见下方说明）。</p>
+</div>
+
+<div class="sec-card">
+<h3>饮料折算说明</h3>
+<div id="waterConv" style="font-size:13px;line-height:1.7"></div>
 </div>
 </div>
 
@@ -1000,7 +1063,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 37;
+var APP_VERSION = 38;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -1055,6 +1118,7 @@ function switchPage(id){
   try{ if(id==='weather')initWeather(); }catch(e){console.warn('initWeather:',e);}
   try{ if(id==='cultivate')renderCultivate(); }catch(e){console.warn('renderCultivate:',e);}
   try{ if(id==='dialog')renderDialog(); }catch(e){console.warn('renderDialog:',e);}
+  try{ if(id==='water')renderWater(); }catch(e){console.warn('renderWater:',e);}
   // 回到顶部（真机一定存在，但仍包 try 防止个别环境抛错阻断）
   try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
 }
@@ -1294,48 +1358,105 @@ function renderMonthOverview(data){
 }
 function fmtChg(c){var s=c>0?'+':'';return s+c.toFixed(1)+' kg';}
 
-/* 导出体重数据为 JSON 文件（用于跨设备备份/恢复） */
-function exportWeight(){
-  var data=gLS('weightData')||[];
-  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  var d=todayStr().replace(/-/g,'');
-  a.href=url;a.download='weight-'+d+'.json';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(function(){URL.revokeObjectURL(url)},1000);
-  try{toast('已导出 '+data.length+' 条体重记录');}catch(e){}
+
+// ============ WATER MODULE ============
+var WATER_KEY='wb_water';
+/* 水合系数：有效饮水量 = 实际喝下量 × 系数。可按需调整。 */
+var WATER_COEFF={water:1.0, tea:0.9, coffee:0.8, soda:0.5, juice:0.8, milk:0.9, alcohol:0.0, other:1.0};
+var WATER_LABEL={water:'水',tea:'茶',coffee:'咖啡',soda:'可乐/汽水',juice:'果汁',milk:'牛奶',alcohol:'酒',other:'其他'};
+function wEff(ml,type){var c=WATER_COEFF[type];if(c===undefined)c=1;return Math.round(ml*c);}
+function loadWater(){
+  try{var d=JSON.parse(gLS(WATER_KEY)||'null');if(d&&typeof d==='object'){if(!d.records)d.records=[];if(typeof d.goal!=='number'||!d.goal)d.goal=2000;return d;}}catch(e){}
+  return {goal:2000,records:[]};
 }
-/* 从 JSON 文件导入，按日期合并（覆盖同日） */
-function importWeight(input){
-  if(!input.files||!input.files.length){return}
-  var f=input.files[0];var reader=new FileReader();
-  reader.onload=function(){
-    try{
-      var arr=JSON.parse(reader.result);
-      if(!Array.isArray(arr))throw new Error('格式不对');
-      var cur=gLS('weightData')||[];
-      var map={};for(var i=0;i<cur.length;i++)map[cur[i].d]=cur[i];
-      var added=0;
-      for(var i=0;i<arr.length;i++){
-        var r=arr[i];if(!r||!r.d)continue;
-        var w=wNum(r.w),n=wNum(r.n);
-        if(w===null&&n===null)continue;
-        if(!map[r.d]){map[r.d]={d:r.d};added++;}
-        if(w!==null)map[r.d].w=w;
-        if(n!==null)map[r.d].n=n;
-        if(map[r.d].w===undefined)map[r.d].w=null;
-        if(map[r.d].n===undefined)map[r.d].n=null;
+function saveWater(d){sLS(WATER_KEY,JSON.stringify(d));}
+function hhmm(t){var dt=new Date(t);return ('0'+dt.getHours()).slice(-2)+':'+('0'+dt.getMinutes()).slice(-2);}
+function setWaterHint(m){var el=document.getElementById('waterHint');if(el)el.textContent=m;}
+function addWater(ml){ if(ml>0)commitWater(ml); }
+function addWaterFromInput(){
+  var el=document.getElementById('waterMl');
+  var v=parseInt((el?el.value:'').trim(),10);
+  if(!v||v<=0){setWaterHint('请输入大于 0 的水量（ml）');return;}
+  commitWater(v);if(el)el.value='';
+}
+function commitWater(ml){
+  var d=loadWater();
+  var sel=document.getElementById('waterType');
+  var tp=sel?sel.value:'water';
+  d.records.push({id:Date.now()+'-'+Math.floor(Math.random()*1000),d:todayStr(),t:Date.now(),ml:ml,type:tp});
+  saveWater(d);renderWater();
+  var eff=wEff(ml,tp);
+  setWaterHint('已记录 '+ml+' ml '+(WATER_LABEL[tp]||tp)+(tp!=='water'&&eff!==ml?('（有效 '+eff+' ml）'):'')+' ✓');
+}
+function delWater(id){
+  var d=loadWater();
+  d.records=d.records.filter(function(r){return r.id!==id;});
+  saveWater(d);renderWater();
+}
+function saveWaterGoal(){
+  var el=document.getElementById('waterGoalInput');
+  var v=parseInt((el?el.value:'').trim(),10);
+  if(!v||v<100){setWaterHint('目标请填写不小于 100 的数值（ml）');return;}
+  var d=loadWater();d.goal=v;saveWater(d);renderWater();
+  var gh=document.getElementById('waterGoalHint');if(gh)gh.textContent='每日目标已设为 '+v+' ml ✓';
+}
+function renderWater(){
+  var d=loadWater();var goal=d.goal;
+  var t=todayStr();
+  var todays=d.records.filter(function(r){return r.d===t;});
+  var raw=0,eff=0;
+  todays.forEach(function(r){raw+=r.ml;eff+=wEff(r.ml,r.type);});
+  var pct=goal>0?Math.min(100,Math.round(eff/goal*100)):0;
+  var big=document.getElementById('waterBig');if(big)big.textContent=eff+' / '+goal+' ml';
+  var bar=document.getElementById('waterBar');if(bar)bar.style.width=pct+'%';
+  var sub=document.getElementById('waterSub');if(sub)sub.textContent='有效饮水 '+eff+' ml · 完成度 '+pct+'%'+(raw!==eff?('（实际 '+raw+' ml）'):'');
+  var list=document.getElementById('waterList');
+  if(list){
+    if(todays.length===0){list.innerHTML='<div class="empty-hint">今天还没记录，喝一口加一下吧。</div>';}
+    else{
+      var h='';
+      for(var i=todays.length-1;i>=0;i--){
+        var r=todays[i];var e=wEff(r.ml,r.type);
+        var etxt=(r.type!=='water'&&e!==r.ml)?(' → 有效 '+e+' ml'):'';
+        h+='<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:14px">'
+          +'<span style="color:var(--sub);min-width:42px">'+hhmm(r.t)+'</span>'
+          +'<span style="flex:1">'+(WATER_LABEL[r.type]||r.type)+' <b>'+r.ml+' ml</b>'+etxt+'</span>'
+          +'<span style="cursor:pointer;color:#c62828;font-weight:700" title="删除" onclick="delWater(\''+r.id+'\')">✕</span></div>';
       }
-      var merged=[];for(var k in map)merged.push(map[k]);
-      sLS('weightData',merged);
-      renderWeight();
-      try{toast('已导入，共 '+merged.length+' 天记录（新增/更新 '+added+' 天）');}catch(e){}
-    }catch(e){alert('导入失败：文件格式不正确');}
-    input.value='';
-  };
-  reader.readAsText(f);
+      list.innerHTML=h;
+    }
+  }
+  var gi=document.getElementById('waterGoalInput');if(gi&&!gi.value)gi.value=goal;
+  renderWaterWeek(d);renderWaterConv();
 }
+function renderWaterWeek(d){
+  var el=document.getElementById('waterWeek');if(!el)return;
+  var goal=d.goal||2000;var days=[];
+  for(var i=6;i>=0;i--){var dt=new Date();dt.setDate(dt.getDate()-i);
+    days.push(dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2));}
+  var h='';
+  for(var i=0;i<days.length;i++){
+    var ym=days[i];var recs=d.records.filter(function(r){return r.d===ym;});var eff=0;
+    recs.forEach(function(r){eff+=wEff(r.ml,r.type);});
+    var pct=goal>0?Math.min(100,Math.round(eff/goal*100)):0;
+    h+='<div style="margin:6px 0">'
+      +'<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--sub)"><span>'+ym.slice(5)+(ym===todayStr()?' · 今天':'')+'</span><span>'+eff+' / '+goal+' ml（'+pct+'%）</span></div>'
+      +'<div style="height:8px;background:#eee;border-radius:6px;overflow:hidden;margin-top:3px"><div style="height:100%;width:'+pct+'%;background:'+(pct>=100?'#43a047':'#4fc3f7')+'"></div></div>'
+      +'</div>';
+  }
+  el.innerHTML=h;
+}
+function renderWaterConv(){
+  var el=document.getElementById('waterConv');if(!el)return;
+  var note={water:'完全吸收',tea:'轻微利尿',coffee:'含咖啡因·轻微利尿',soda:'高糖·效率低',juice:'含糖·打折',milk:'较好补水',alcohol:'利尿·不计入',other:'按水计'};
+  var rows=Object.keys(WATER_COEFF).map(function(k){
+    return '<div style="display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding:3px 0">'
+      +'<span>'+(WATER_LABEL[k]||k)+' <span style="color:var(--sub);font-size:11px">('+(note[k]||'')+')</span></span>'
+      +'<span><b>×'+WATER_COEFF[k]+'</b></span></div>';
+  });
+  el.innerHTML=rows.join('')+'<p style="color:var(--sub);font-size:12px;margin-top:8px">有效饮水量 = 喝下的量 × 系数。系数可按你的习惯调整，告诉我即可。</p>';
+}
+
 
 // ============ MEDICATION MODULE (redesigned: morning/evening + 14-day calendar) ============
 var MED_KEYS=['med_morning','med_evening'];
@@ -5403,6 +5524,7 @@ function init(){
   migrateVocab();
   // Weight
   if(typeof renderWeight==='function')renderWeight();
+  if(typeof renderWater==='function')renderWater();
   // Med
   initMedication();
   // Vocab buttons
