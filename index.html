@@ -368,6 +368,11 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <label><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f39c12;margin-right:5px"></span>睡前体重 (kg)</label><input type="text" id="weightNightInput" inputmode="decimal" placeholder="例如 66.4">
 </div>
 <button class="btn btn-success btn-sm" onclick="saveWeight()" style="margin-top:4px">保存</button>
+<span style="margin-left:8px">
+<button class="btn btn-sm" onclick="exportWeight()">导出</button>
+<button class="btn btn-sm" onclick="document.getElementById('weightFile').click()">导入</button>
+<input type="file" id="weightFile" accept=".json,application/json" style="display:none" onchange="importWeight(this)">
+</span>
 <p id="weightSaveHint" style="font-size:13px;color:var(--sub);margin-top:10px">今天还没有记录。</p>
 </div>
 </div>
@@ -378,6 +383,11 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <div class="sec-card">
+<h3>月度概览</h3>
+<div id="weightMonthOverview" class="empty-hint">记录满一个月后这里会显示本月体重变化。</div>
+</div>
+
+<div class="sec-card">
 <h3>体重趋势</h3>
 <div style="position:relative;height:220px"><canvas id="weightChart"></canvas></div>
 <p id="weightTrendHint" class="empty-hint">至少需要 2 条记录才能显示趋势图。</p>
@@ -385,6 +395,10 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 <div class="sec-card">
 <h3>历史记录</h3>
+<div style="margin-bottom:10px">
+<label style="font-size:13px;color:var(--sub)">查看月份：</label>
+<select id="weightMonthSel" onchange="renderWeight()" style="font-size:13px;padding:3px 6px"></select>
+</div>
 <div id="weightHistory" class="empty-hint">暂无记录</div>
 </div>
 </div>
@@ -986,7 +1000,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 36;
+var APP_VERSION = 37;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -1047,6 +1061,7 @@ function switchPage(id){
 
 // ============ WEIGHT MODULE ============
 var weightChart=null;
+var weightMonthView='all';   // 历史表当前查看的月份：'all' 或 'YYYY-MM'
 /* 记录结构：{d:'YYYY-MM-DD', w:空腹kg|null, n:睡前kg|null}，老数据只有 w，读取时自动补 n=null */
 function wNum(x){var v=parseFloat(x);return (isFinite(v)&&v>0)?v:null;}
 function loadWeightData(){
@@ -1188,31 +1203,138 @@ function renderWeight(){
     if(hintEl){hintEl.style.display='block';hintEl.textContent='空腹或睡前任一项至少需要 2 条记录才能显示趋势图。';}
   }
 
-  // ---- 历史表（最近 10 天）----
+  // ---- 月度概览（本月 + 上月对比）----
+  renderMonthOverview(data);
+
+  // ---- 历史表（按月份筛选，可滚动看整月）----
   if(histEl){
-    var th='padding:6px;border-bottom:1px solid var(--border);font-weight:600';
-    var h='<table style="width:100%;border-collapse:collapse;font-size:13px">';
-    h+='<tr style="background:#f8f9fa"><th style="'+th+';text-align:left">日期</th>'
-      +'<th style="'+th+';text-align:right">空腹</th>'
-      +'<th style="'+th+';text-align:right">睡前</th>'
-      +'<th style="'+th+';text-align:right">日内差</th></tr>';
-    var start=Math.max(0,data.length-10);
-    for(var i=data.length-1;i>=start;i--){
-      var r=data[i],td='padding:6px;border-bottom:1px solid #f0f0f0';
-      var gapTxt='<span style="color:var(--sub)">—</span>';
-      if(r.w!==null&&r.n!==null){
-        var g=r.n-r.w;
-        gapTxt='<span style="color:'+(g>0?'var(--danger)':'var(--success)')+'">'+(g>0?'+':'')+g.toFixed(1)+'</span>';
-      }
-      h+='<tr style="cursor:pointer" title="点击载入这天的数据以修改或补填" onclick="weightEdit(\''+r.d+'\')">'
-        +'<td style="'+td+'">'+r.d+'</td>'
-        +'<td style="'+td+';text-align:right;font-weight:600">'+(r.w!==null?r.w:'<span style="color:var(--sub);font-weight:400">—</span>')+'</td>'
-        +'<td style="'+td+';text-align:right;font-weight:600">'+(r.n!==null?r.n:'<span style="color:var(--sub);font-weight:400">—</span>')+'</td>'
-        +'<td style="'+td+';text-align:right">'+gapTxt+'</td></tr>';
+    // 月份下拉
+    var months=[];
+    for(var i=0;i<data.length;i++){var ym=data[i].d.slice(0,7);if(months.indexOf(ym)<0)months.push(ym);}
+    months.sort();months.reverse();
+    var sel=document.getElementById('weightMonthSel');
+    if(sel){
+      // 用户刚切换下拉时，sel.value 已是新选择；否则沿用全局 weightMonthView
+      if(sel.value && (sel.value==='all' || months.indexOf(sel.value)>=0))weightMonthView=sel.value;
+      var opts='<option value="all">全部</option>';
+      for(var i=0;i<months.length;i++)opts+='<option value="'+months[i]+'">'+months[i]+'</option>';
+      sel.innerHTML=opts;
+      var exist=false;for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===weightMonthView){exist=true;break}}
+      if(!exist)weightMonthView='all';
+      sel.value=weightMonthView;
     }
-    h+='</table><p style="font-size:12px;color:var(--sub);margin-top:8px">点击任意一行可载入该天数据，修改或补填另一项后保存即可覆盖。</p>';
-    histEl.innerHTML=h;
+    var view=[];
+    if(weightMonthView==='all')view=data.slice();
+    else{for(var i=0;i<data.length;i++)if(data[i].d.slice(0,7)===weightMonthView)view.push(data[i]);}
+    if(view.length===0){
+      histEl.innerHTML='<div class="empty-hint">暂无记录</div>';
+    }else{
+      var th='padding:6px;border-bottom:1px solid var(--border);font-weight:600';
+      var h='<div style="max-height:340px;overflow:auto">';
+      h+='<table style="width:100%;border-collapse:collapse;font-size:13px">';
+      h+='<tr style="background:#f8f9fa;position:sticky;top:0"><th style="'+th+';text-align:left">日期</th>'
+        +'<th style="'+th+';text-align:right">空腹</th>'
+        +'<th style="'+th+';text-align:right">睡前</th>'
+        +'<th style="'+th+';text-align:right">日内差</th></tr>';
+      for(var i=view.length-1;i>=0;i--){
+        var r=view[i],td='padding:6px;border-bottom:1px solid #f0f0f0';
+        var gapTxt='<span style="color:var(--sub)">—</span>';
+        if(r.w!==null&&r.n!==null){
+          var g=r.n-r.w;
+          gapTxt='<span style="color:'+(g>0?'var(--danger)':'var(--success)')+'">'+(g>0?'+':'')+g.toFixed(1)+'</span>';
+        }
+        h+='<tr style="cursor:pointer" title="点击载入这天的数据以修改或补填" onclick="weightEdit(\''+r.d+'\')">'
+          +'<td style="'+td+'">'+r.d+'</td>'
+          +'<td style="'+td+';text-align:right;font-weight:600">'+(r.w!==null?r.w:'<span style="color:var(--sub);font-weight:400">—</span>')+'</td>'
+          +'<td style="'+td+';text-align:right;font-weight:600">'+(r.n!==null?r.n:'<span style="color:var(--sub);font-weight:400">—</span>')+'</td>'
+          +'<td style="'+td+';text-align:right">'+gapTxt+'</td></tr>';
+      }
+      h+='</table></div><p style="font-size:12px;color:var(--sub);margin-top:8px">点击任意一行可载入该天数据，修改或补填另一项后保存即可覆盖。当前显示 '+view.length+' 条。</p>';
+      histEl.innerHTML=h;
+    }
   }
+}
+
+/* 月度概览：本月 / 上月 的空腹、睡前「月初→最新」变化 */
+function monthSpan(data,ym){
+  var recs=[];for(var i=0;i<data.length;i++)if(data[i].d.slice(0,7)===ym)recs.push(data[i]);
+  if(recs.length===0)return null;
+  recs.sort(function(a,b){return a.d.localeCompare(b.d)});
+  function span(key){var f=null,l=null;for(var i=0;i<recs.length;i++){if(recs[i][key]!==null){if(f===null)f=recs[i];l=recs[i];}}
+    if(f&&l&&f!==l)return {from:f[key],fromD:f.d,to:l[key],toD:l.d,chg:l[key]-f[key]};return null;}
+  return {w:span('w'),n:span('n')};
+}
+function renderMonthOverview(data){
+  var el=document.getElementById('weightMonthOverview');if(!el)return;
+  if(data.length===0){el.innerHTML='<div class="empty-hint">记录满一个月后这里会显示本月体重变化。</div>';return;}
+  var now=new Date();
+  var curYM=now.getFullYear()+'-'+('0'+(now.getMonth()+1)).slice(-2);
+  var prevYM=(now.getMonth()===0)?(now.getFullYear()-1)+'-12':now.getFullYear()+'-'+('0'+now.getMonth()).slice(-2);
+  var cur=monthSpan(data,curYM),prev=monthSpan(data,prevYM);
+  function row(label,span){
+    if(!span)return '<div style="font-size:13px;color:var(--sub)">'+label+'：本月暂无记录</div>';
+    var col=span.chg>0?'var(--danger)':'var(--success)';
+    var sign=span.chg>0?'+':'';
+    return '<div style="display:flex;align-items:baseline;gap:6px;font-size:13px">'
+      +'<span style="min-width:42px;color:var(--sub)">'+label+'</span>'
+      +span.from+' kg <span style="color:var(--sub)">('+span.fromD.slice(5)+')</span> → '
+      +'<b>'+span.to+' kg</b> <span style="color:var(--sub)">('+span.toD.slice(5)+')</span>'
+      +'<b style="margin-left:auto;color:'+col+'">'+sign+span.chg.toFixed(1)+' kg</b></div>';
+  }
+  var ov='<div style="display:flex;flex-direction:column;gap:7px">';
+  ov+='<div style="font-size:13px;font-weight:600;color:var(--sub)">本月（'+curYM+'）</div>';
+  ov+=row('空腹',cur?cur.w:null);
+  ov+=row('睡前',cur?cur.n:null);
+  if(prev){
+    var pd=0;if(prev.w)pd=prev.w.chg;if(prev.n&&(!prev.w||Math.abs(prev.n.chg)>Math.abs(pd)))pd=prev.n.chg;
+    ov+='<div style="font-size:13px;padding-top:6px;border-top:1px dashed var(--border);color:var(--sub)">上月（'+prevYM+'）变化：'+(prev.w?('空腹 '+fmtChg(prev.w.chg)):'')+(prev.n?((prev.w?' · ':'')+'睡前 '+fmtChg(prev.n.chg)):'暂无')+'</div>';
+  }
+  ov+='</div>';
+  el.innerHTML=ov;
+}
+function fmtChg(c){var s=c>0?'+':'';return s+c.toFixed(1)+' kg';}
+
+/* 导出体重数据为 JSON 文件（用于跨设备备份/恢复） */
+function exportWeight(){
+  var data=gLS('weightData')||[];
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  var d=todayStr().replace(/-/g,'');
+  a.href=url;a.download='weight-'+d+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url)},1000);
+  try{toast('已导出 '+data.length+' 条体重记录');}catch(e){}
+}
+/* 从 JSON 文件导入，按日期合并（覆盖同日） */
+function importWeight(input){
+  if(!input.files||!input.files.length){return}
+  var f=input.files[0];var reader=new FileReader();
+  reader.onload=function(){
+    try{
+      var arr=JSON.parse(reader.result);
+      if(!Array.isArray(arr))throw new Error('格式不对');
+      var cur=gLS('weightData')||[];
+      var map={};for(var i=0;i<cur.length;i++)map[cur[i].d]=cur[i];
+      var added=0;
+      for(var i=0;i<arr.length;i++){
+        var r=arr[i];if(!r||!r.d)continue;
+        var w=wNum(r.w),n=wNum(r.n);
+        if(w===null&&n===null)continue;
+        if(!map[r.d]){map[r.d]={d:r.d};added++;}
+        if(w!==null)map[r.d].w=w;
+        if(n!==null)map[r.d].n=n;
+        if(map[r.d].w===undefined)map[r.d].w=null;
+        if(map[r.d].n===undefined)map[r.d].n=null;
+      }
+      var merged=[];for(var k in map)merged.push(map[k]);
+      sLS('weightData',merged);
+      renderWeight();
+      try{toast('已导入，共 '+merged.length+' 天记录（新增/更新 '+added+' 天）');}catch(e){}
+    }catch(e){alert('导入失败：文件格式不正确');}
+    input.value='';
+  };
+  reader.readAsText(f);
 }
 
 // ============ MEDICATION MODULE (redesigned: morning/evening + 14-day calendar) ============
