@@ -920,7 +920,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 </div>
 
-<div class="fin-date" id="goldDate"></div>
+<div id="goldTodayView"><div class="fin-date" id="goldDate"></div>
 
 <div class="fin-card">
 <h4>&#128176; 实时金价 <span style="font-size:11px;font-weight:400;color:#888">（融通金优先 · 国际参考价每秒刷新）</span></h4>
@@ -931,7 +931,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <span class="refresh-btn" id="goldRefreshBtn" onclick="fetchGoldPrice()">&#8635; 刷新</span>
 <span id="goldRefreshTimer" style="font-size:11px;color:#888;margin-left:6px"></span>
 </div>
-<div class="source-tag" id="goldSource"></div>
+  <div class="source-tag" id="goldSource"></div>
+  <div style="margin-top:10px"><button class="btn btn-sm" onclick="saveGoldToday()">&#128190; 保存今日快照</button><span id="goldSaveHint" style="font-size:12px;color:var(--primary);margin-left:6px"></span></div>
 </div>
 
 <div class="fin-card">
@@ -970,6 +971,17 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <p style="font-size:11px;color:#888;margin-top:6px">上方「实时金价」卡片默认显示国际参考价（XAU，免费接口每秒拉取）。如需显示融通金实际国内价，请在上方输入框手动导入（融通金页面无公开接口、且跨域无法自动抓取，故采用手动导入；导入后覆盖主卡片并保留国际参考价对照）。</p>
 </div>
 
+</div><!-- /goldTodayView -->
+
+<div id="goldHistoryView" style="display:none">
+  <div class="fin-card">
+    <h4>&#128200; 金价历史走势</h4>
+    <canvas id="goldHistChart" height="220"></canvas>
+  </div>
+  <div class="fin-card">
+    <h4>&#128197; 每日金价记录</h4>
+    <div id="goldHistTable" class="empty-hint">暂无记录</div>
+  </div>
 </div>
 
 <!-- ===== PAGE: MARKET REVIEW ===== -->
@@ -1063,7 +1075,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 38;
+var APP_VERSION = 39;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -3163,11 +3175,17 @@ function unmasterWord(w){
 
 // ============ GOLD / FINANCE MODULE ============
 var goldTimer=null;var stockTimer=null;var rtGold=gLS('wb_rt_gold')||null;
+var lastIntlCny=null;var goldHistChart=null;
 function setGoldTab(tab){
-  document.getElementById('goldTabToday').style.background=(tab==='today')?'var(--primary)':'#f0f0f0';
-  document.getElementById('goldTabToday').style.color=(tab==='today')?'#fff':'';
-  document.getElementById('goldTabHistory').style.background=(tab==='history')?'var(--primary)':'#f0f0f0';
-  document.getElementById('goldTabHistory').style.color=(tab==='history')?'#fff':'';
+  var t=document.getElementById('goldTabToday'),h=document.getElementById('goldTabHistory');
+  if(!t||!h)return;
+  t.style.background=(tab==='today')?'var(--primary)':'#f0f0f0';
+  t.style.color=(tab==='today')?'#fff':'';
+  h.style.background=(tab==='history')?'var(--primary)':'#f0f0f0';
+  h.style.color=(tab==='history')?'#fff':'';
+  var tv=document.getElementById('goldTodayView'),hv=document.getElementById('goldHistoryView');
+  if(tv)tv.style.display=(tab==='today')?'block':'none';
+  if(hv){hv.style.display=(tab==='history')?'block':'none';if(tab==='history')renderGoldHistory();}
 }
 function initGoldPage(){
   var d=new Date();
@@ -3193,6 +3211,8 @@ function fetchGoldPrice(){
     var usd=d.price;
     var cnyPerGram=usd*usdCny/31.1035;
     setIntlRef(usd,cnyPerGram);
+    lastIntlCny=cnyPerGram;
+    try{saveGoldDaily(false);}catch(e){}
     if(!rtGold){
       document.getElementById('goldPriceCNY').textContent='¥'+cnyPerGram.toFixed(2)+'/g';
       document.getElementById('goldSubCNY').textContent='汇率 ¥'+usdCny.toFixed(3)+' · 国际参考价（每秒刷新）';
@@ -3235,6 +3255,7 @@ function importRtGold(){
   var t=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
   rtGold={price:val,time:t};
   sLS('wb_rt_gold',rtGold);
+  try{saveGoldDaily(false,true);}catch(e){}
   applyRtGold();
   var h=document.getElementById('rtGoldHint');
   if(h){h.textContent='已导入 ✔';setTimeout(function(){if(h)h.textContent='';},2500);}
@@ -3246,6 +3267,77 @@ function clearRtGold(){
   if(h)h.textContent='已清除，恢复国际参考价';
   fetchGoldPrice();
   if(h)setTimeout(function(){if(h)h.textContent='';},2500);
+}
+function goldTodayStr(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+/* 每日金价快照：每天一条（国际参考价 + 融通金价）。force=覆盖当天国际价；allowRtOnly=即使无国际价也存融通价 */
+function saveGoldDaily(force,allowRtOnly){
+  if(lastIntlCny==null && !allowRtOnly)return;
+  var d=goldTodayStr();
+  var arr=gLS('wb_gold_history')||[];
+  var rec=null;
+  for(var i=0;i<arr.length;i++){if(arr[i].d===d){rec=arr[i];break;}}
+  var intlV=(lastIntlCny!=null?Number(lastIntlCny.toFixed(2)):null);
+  var rtV=(rtGold&&rtGold.price?Number(rtGold.price):null);
+  if(!rec){
+    if(intlV==null&&rtV==null)return;
+    arr.push({d:d,intl:intlV,rt:rtV});
+  }else{
+    if(force&&intlV!=null)rec.intl=intlV;
+    if(rtV!=null)rec.rt=rtV;
+  }
+  sLS('wb_gold_history',arr);
+}
+function saveGoldToday(){
+  if(lastIntlCny==null && !(rtGold&&rtGold.price)){
+    var hh=document.getElementById('goldSaveHint');
+    if(hh)hh.textContent='请先刷新获取实时金价，或先导入融通金价';
+    return;
+  }
+  saveGoldDaily(true,true);
+  var hh=document.getElementById('goldSaveHint');
+  if(hh){hh.textContent='已保存今日快照 ✔';setTimeout(function(){if(hh)hh.textContent='';},2500);}
+  try{toast('已保存今日金价快照');}catch(e){}
+  if(document.getElementById('goldHistoryView').style.display!=='none')renderGoldHistory();
+}
+function renderGoldHistory(){
+  var arr=gLS('wb_gold_history')||[];
+  arr.sort(function(a,b){return a.d.localeCompare(b.d);});
+  var tb=document.getElementById('goldHistTable');
+  var ctx=document.getElementById('goldHistChart');
+  if(goldHistChart){try{goldHistChart.destroy();}catch(e){}goldHistChart=null;}
+  if(arr.length===0){
+    if(tb)tb.innerHTML='<p class="empty-hint">还没有历史记录。打开黄金页时若成功拉到实时金价会自动记录当天；也可点「保存今日快照」手动记录。</p>';
+    return;
+  }
+  var labels=[],intlData=[],rtData=[];
+  for(var i=0;i<arr.length;i++){
+    labels.push(arr[i].d);
+    intlData.push(arr[i].intl!=null?arr[i].intl:null);
+    rtData.push(arr[i].rt!=null?arr[i].rt:null);
+  }
+  if(ctx&&typeof Chart!=='undefined'){
+    goldHistChart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[
+      {label:'国际参考价 ¥/g',data:intlData,borderColor:'#c62828',backgroundColor:'rgba(198,40,40,0.08)',fill:true,tension:0.25,spanGaps:true,pointRadius:3},
+      {label:'融通金价 ¥/g',data:rtData,borderColor:'#1565c0',backgroundColor:'rgba(21,101,192,0.06)',fill:false,tension:0.25,spanGaps:true,pointRadius:3}
+    ]},options:{responsive:true,plugins:{legend:{labels:{color:'#888',boxWidth:12}}},scales:{x:{ticks:{color:'#888',maxTicksLimit:10}},y:{ticks:{color:'#888'}}}}});
+  }
+  var th='padding:6px;border-bottom:1px solid var(--border);font-weight:600';
+  var h='<div style="overflow:auto;max-height:360px"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="background:#f8f9fa"><th style="'+th+';text-align:left">日期</th><th style="'+th+';text-align:right">国际参考价</th><th style="'+th+';text-align:right">融通金价</th><th style="'+th+';text-align:right">日涨跌</th></tr>';
+  for(var i=arr.length-1;i>=0;i--){
+    var r=arr[i],td='padding:6px;border-bottom:1px solid #f0f0f0';
+    var prev=(i>0)?arr[i-1]:null;
+    var chgTxt='<span style="color:var(--sub)">—</span>';
+    if(prev&&prev.intl!=null&&r.intl!=null){
+      var c=r.intl-prev.intl;
+      chgTxt='<span style="color:'+(c>=0?'var(--danger)':'var(--success)')+'">'+(c>0?'+':'')+c.toFixed(2)+'</span>';
+    }
+    h+='<tr><td style="'+td+'">'+r.d+'</td>'
+      +'<td style="'+td+';text-align:right;font-weight:600">'+(r.intl!=null?r.intl.toFixed(2):'<span style="color:var(--sub);font-weight:400">—</span>')+'</td>'
+      +'<td style="'+td+';text-align:right;font-weight:600">'+(r.rt!=null?r.rt.toFixed(2):'<span style="color:var(--sub);font-weight:400">—</span>')+'</td>'
+      +'<td style="'+td+';text-align:right">'+chgTxt+'</td></tr>';
+  }
+  h+='</table></div>';
+  if(tb)tb.innerHTML=h;
 }
 function fetchStockIndex(){
   var btn=document.getElementById('idxRefreshBtn');
