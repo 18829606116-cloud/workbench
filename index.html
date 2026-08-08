@@ -1075,7 +1075,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 39;
+var APP_VERSION = 40;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -3269,10 +3269,11 @@ function clearRtGold(){
   if(h)setTimeout(function(){if(h)h.textContent='';},2500);
 }
 function goldTodayStr(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
-/* 每日金价快照：每天一条（国际参考价 + 融通金价）。force=覆盖当天国际价；allowRtOnly=即使无国际价也存融通价 */
+function curTimeStr(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+/* 每日金价快照：每天一条（国际参考价 + 融通金价 + 保存时间 t）。force=覆盖当天国际价；allowRtOnly=即使无国际价也存融通价 */
 function saveGoldDaily(force,allowRtOnly){
   if(lastIntlCny==null && !allowRtOnly)return;
-  var d=goldTodayStr();
+  var d=goldTodayStr();var now=curTimeStr();
   var arr=gLS('wb_gold_history')||[];
   var rec=null;
   for(var i=0;i<arr.length;i++){if(arr[i].d===d){rec=arr[i];break;}}
@@ -3280,10 +3281,12 @@ function saveGoldDaily(force,allowRtOnly){
   var rtV=(rtGold&&rtGold.price?Number(rtGold.price):null);
   if(!rec){
     if(intlV==null&&rtV==null)return;
-    arr.push({d:d,intl:intlV,rt:rtV});
+    arr.push({d:d,intl:intlV,rt:rtV,t:now});
   }else{
-    if(force&&intlV!=null)rec.intl=intlV;
-    if(rtV!=null)rec.rt=rtV;
+    var changed=false;
+    if(force&&intlV!=null){rec.intl=intlV;changed=true;}
+    if(rtV!=null&&rec.rt!==rtV){rec.rt=rtV;changed=true;}
+    if(changed)rec.t=now;
   }
   sLS('wb_gold_history',arr);
 }
@@ -3322,7 +3325,7 @@ function renderGoldHistory(){
     ]},options:{responsive:true,plugins:{legend:{labels:{color:'#888',boxWidth:12}}},scales:{x:{ticks:{color:'#888',maxTicksLimit:10}},y:{ticks:{color:'#888'}}}}});
   }
   var th='padding:6px;border-bottom:1px solid var(--border);font-weight:600';
-  var h='<div style="overflow:auto;max-height:360px"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="background:#f8f9fa"><th style="'+th+';text-align:left">日期</th><th style="'+th+';text-align:right">国际参考价</th><th style="'+th+';text-align:right">融通金价</th><th style="'+th+';text-align:right">日涨跌</th></tr>';
+  var h='<div style="overflow:auto;max-height:360px"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="background:#f8f9fa"><th style="'+th+';text-align:left">日期</th><th style="'+th+';text-align:left">保存时间</th><th style="'+th+';text-align:right">国际参考价</th><th style="'+th+';text-align:right">融通金价</th><th style="'+th+';text-align:right">日涨跌</th></tr>';
   for(var i=arr.length-1;i>=0;i--){
     var r=arr[i],td='padding:6px;border-bottom:1px solid #f0f0f0';
     var prev=(i>0)?arr[i-1]:null;
@@ -3332,6 +3335,7 @@ function renderGoldHistory(){
       chgTxt='<span style="color:'+(c>=0?'var(--danger)':'var(--success)')+'">'+(c>0?'+':'')+c.toFixed(2)+'</span>';
     }
     h+='<tr><td style="'+td+'">'+r.d+'</td>'
+      +'<td style="'+td+'">'+(r.t||'<span style="color:var(--sub)">—</span>')+'</td>'
       +'<td style="'+td+';text-align:right;font-weight:600">'+(r.intl!=null?r.intl.toFixed(2):'<span style="color:var(--sub);font-weight:400">—</span>')+'</td>'
       +'<td style="'+td+';text-align:right;font-weight:600">'+(r.rt!=null?r.rt.toFixed(2):'<span style="color:var(--sub);font-weight:400">—</span>')+'</td>'
       +'<td style="'+td+';text-align:right">'+chgTxt+'</td></tr>';
