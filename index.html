@@ -795,6 +795,18 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <div class="tab" data-tab="weekly" onclick="switchGameTab('weekly')">周常任务</div>
 </div>
 
+<!-- 日期导航：可回到任意历史日期补勾 -->
+<div id="gameDateBar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0 4px;padding:8px 10px;border:1px solid var(--border);border-radius:10px">
+  <button class="btn btn-sm" onclick="gameShiftDate(-1)" title="查看前一天">&#9664; 前一天</button>
+  <input type="date" id="gameDateInput" onchange="gameSetDate(this.value)" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:transparent;color:inherit;font-size:13px">
+  <button class="btn btn-sm" id="gameNextBtn" onclick="gameShiftDate(1)" title="查看后一天">后一天 &#9654;</button>
+  <button class="btn btn-sm" id="gameBackTodayBtn" onclick="gameSetDate('')" style="display:none">&#8634; 回到今天</button>
+  <span id="gameDateLabel" style="font-size:13px;color:var(--sub)"></span>
+</div>
+<div id="gameBackfillTip" style="display:none;margin:6px 0 10px;padding:8px 10px;border-radius:8px;background:rgba(255,170,0,.14);border:1px solid rgba(255,170,0,.45);font-size:13px">
+  &#9998; <b>补记模式</b>：正在查看/编辑历史数据，勾选会写回那一天。看完记得点「回到今天」。
+</div>
+
 <!-- Daily Tasks Tab -->
 <div class="tab-panel active" id="game-daily">
 <h3 style="font-size:15px;margin-bottom:10px">&#9679; <span id="todayDate"></span> <span style="font-size:13px;color:var(--sub)" id="dailyProgress"></span></h3>
@@ -1075,7 +1087,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 41;
+var APP_VERSION = 42;
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -1092,7 +1104,18 @@ var APP_VERSION = 41;
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function gLS(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 function sLS(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function getWeekKey(){var d=new Date();var day=d.getDay();var diff=(day===0)?-6:(1-day);var mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()+diff);var jan1=new Date(mon.getFullYear(),0,1);var days=Math.floor((mon-jan1)/864e5);return String(mon.getFullYear())+'-W'+String(Math.ceil((days+jan1.getDay()+1)/7)).padStart(2,'0')}
+/* 周一为一周起点（周日归本周），周日 23:59 之后才翻周 */
+function weekKeyOfDate(d){var day=d.getDay();var diff=(day===0)?-6:(1-day);var mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()+diff);var jan1=new Date(mon.getFullYear(),0,1);var days=Math.floor((mon-jan1)/864e5);return String(mon.getFullYear())+'-W'+String(Math.ceil((days+jan1.getDay()+1)/7)).padStart(2,'0')}
+function getWeekKey(){return weekKeyOfDate(new Date())}
+/* 'YYYY-MM-DD' -> Date（本地零点，避免时区偏移） */
+function parseDs(ds){var p=String(ds||'').split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function fmtDs(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+/* 取某日期所在周的周一 */
+function weekMondayOf(ds){var d=parseDs(ds);var day=d.getDay();var diff=(day===0)?-6:(1-day);return new Date(d.getFullYear(),d.getMonth(),d.getDate()+diff);}
+/* 某日期所在周里，星期 day(0=日..6=六) 对应的实际日期字符串 */
+function dateOfWeekday(ds,day){var mon=weekMondayOf(ds);var off=(day===0)?6:(day-1);return fmtDs(new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+off));}
+/* 日期字符串是否晚于今天（YYYY-MM-DD 字典序即时间序） */
+function isFutureDs(ds){return String(ds)>todayStr();}
 function getDayOfWeek(){return new Date().getDay()}
 function isDay(arr){return arr.indexOf(getDayOfWeek())>=0}
 function esc(s){s=(s==null?'':String(s));return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -5355,7 +5378,46 @@ function switchIeltsSub(sub){
   if(sub==='spk')renderSpkBank();
   if(sub==='mistakes')renderMistakeBook();
 }
+// ============ GAME: 查看日期（支持回溯历史补勾） ============
+var gameViewDate=todayStr();
+function gvDow(){return parseDs(gameViewDate).getDay();}
+function gvWeekKey(){return weekKeyOfDate(parseDs(gameViewDate));}
+function gvIsToday(){return gameViewDate===todayStr();}
+/* 设置查看日期；传空串或不传 = 回到今天。不允许查看未来。 */
+function gameSetDate(ds){
+  if(!ds)ds=todayStr();
+  if(isFutureDs(ds)){try{toast('不能查看未来的日期');}catch(e){alert('不能查看未来的日期');}return;}
+  gameViewDate=ds;
+  renderGameDateBar();
+  try{renderDailyTasks();renderWeekCal();renderEvents();renderWeekly();}catch(e){console.warn('game re-render:',e);}
+}
+function gameShiftDate(delta){
+  var d=parseDs(gameViewDate);
+  d.setDate(d.getDate()+delta);
+  gameSetDate(fmtDs(d));
+}
+function renderGameDateBar(){
+  var inp=document.getElementById('gameDateInput');
+  if(inp){inp.value=gameViewDate;inp.max=todayStr();}
+  var dow=['日','一','二','三','四','五','六'];
+  var lab=document.getElementById('gameDateLabel');
+  var today=todayStr();
+  if(lab){
+    var diff=Math.round((parseDs(today)-parseDs(gameViewDate))/864e5);
+    var rel=diff===0?'今天':(diff===1?'昨天':(diff===2?'前天':diff+' 天前'));
+    lab.textContent='周'+dow[gvDow()]+' · '+rel;
+  }
+  var nb=document.getElementById('gameNextBtn');
+  if(nb)nb.disabled=gvIsToday();
+  var bt=document.getElementById('gameBackTodayBtn');
+  if(bt)bt.style.display=gvIsToday()?'none':'';
+  var tip=document.getElementById('gameBackfillTip');
+  if(tip)tip.style.display=gvIsToday()?'none':'';
+  var bar=document.getElementById('gameDateBar');
+  if(bar)bar.style.borderColor=gvIsToday()?'var(--border)':'rgba(255,170,0,.6)';
+}
 function switchGameTab(tab){
+  renderGameDateBar();
   ['daily','events','weekly'].forEach(function(n){
     var t=document.querySelector('#page-game .tab[data-tab="'+n+'"]');
     var p=document.getElementById('game-'+n);
@@ -5370,7 +5432,7 @@ function switchGameTab(tab){
 // ============ GAME: DAILY TASKS ============
 var DAILY_TASKS=['互通版登录','大神领奖励','灵伴祈梦','灵伴培养','番天印免费洗炼5次','妖灵感应','送NPC','帮会发言一次','杨家镇钓鱼50次','炼丹10次','商侩4次','战龙一轮10次','擂台','逸趣游廊'];
 function renderDailyTasks(){
-  var store=gLS('game_daily')||{};var ts=todayStr();var done=store[ts]||{};
+  var store=gLS('game_daily')||{};var ts=gameViewDate;var done=store[ts]||{};
   var html='';var cnt=0;
   DAILY_TASKS.forEach(function(name,i){
     var d=done[i];if(d)cnt++;
@@ -5378,9 +5440,12 @@ function renderDailyTasks(){
   });
   document.getElementById('dailyTaskList').innerHTML=html;
   document.getElementById('dailyProgress').textContent='已完成 '+cnt+'/'+DAILY_TASKS.length;
+  var tde=document.getElementById('todayDate');
+  if(tde)tde.textContent=gameViewDate+(gvIsToday()?'':'（补记）');
 }
 function toggleDailyTask(i){
-  var store=gLS('game_daily')||{};var ts=todayStr();
+  if(isFutureDs(gameViewDate)){alert('不能勾选未来的日期');return;}
+  var store=gLS('game_daily')||{};var ts=gameViewDate;
   if(!store[ts])store[ts]={};
   if(store[ts][i])delete store[ts][i];else store[ts][i]=true;
   sLS('game_daily',store);renderDailyTasks();renderWeekCal();
@@ -5390,11 +5455,12 @@ function renderWeekCal(){
   var dow=['日','一','二','三','四','五','六'];var today=new Date();var html='';
   for(var k=6;k>=0;k--){
     var d=new Date(today);d.setDate(today.getDate()-k);
-    var key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    var key=fmtDs(d);
     var done=store[key]||{};var c=0;
     for(var j=0;j<DAILY_TASKS.length;j++)if(done[j])c++;
     var rate=Math.round(c/DAILY_TASKS.length*100);
-    html+='<div class="cal-day'+(k===0?' today':'')+'">周'+dow[d.getDay()]+'<span class="rate">'+rate+'%</span></div>';
+    var viewing=(key===gameViewDate);
+    html+='<div class="cal-day'+(k===0?' today':'')+'" style="cursor:pointer'+(viewing?';outline:2px solid var(--primary);outline-offset:1px':'')+'" title="'+key+' · 点击查看/补记这天" onclick="gameSetDate(\''+key+'\')">周'+dow[d.getDay()]+'<span class="rate">'+rate+'%</span></div>';
   }
   document.getElementById('weekCal').innerHTML=html;
 }
@@ -5420,15 +5486,29 @@ var BANGHUI_SCHEDULE={
 };
 
 function renderEvents(){
-  var wk=getWeekKey();
+  var wk=gvWeekKey();
   var dow=['日','一','二','三','四','五','六'];
-  var today=getDayOfWeek();
+  var today=gvDow();
 
   // --- 火焰山 ---
   var hstore=gLS('game_huoyan')||{};var hw=hstore[wk]||{};
   var hopen=HUOYAN_DAYS.indexOf(today)>=0;
   var hslots=huoyanSlotsFor(today);
   var hhtml='';
+  // 本周各开放日概览：一眼看出哪天漏勾，点击可跳到那天补记
+  var ov='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px">';
+  [1,2,5,6,0].forEach(function(day){
+    var ds=dateOfWeekday(gameViewDate,day);
+    var sl=huoyanSlotsFor(day);var c=0;
+    for(var i=0;i<sl.length;i++)if(hw[day+'-'+i])c++;
+    var cap=Math.min(HUOYAN_DAY_CAP,sl.length);
+    var fut=isFutureDs(ds);
+    var cur=(day===today);
+    var bg=fut?'transparent':(c>=cap?'rgba(60,180,110,.20)':(c>0?'rgba(255,170,0,.18)':'rgba(255,90,90,.14)'));
+    ov+='<div onclick="'+(fut?'':'gameSetDate(\''+ds+'\')')+'" title="'+ds+(fut?' · 未到':' · 点击查看/补记')+'" style="flex:1;min-width:52px;text-align:center;padding:6px 4px;border-radius:8px;font-size:12px;background:'+bg
+      +';border:'+(cur?'2px solid var(--primary)':'1px solid var(--border)')+';opacity:'+(fut?'.4':'1')+';cursor:'+(fut?'default':'pointer')+'">周'+dow[day]+'<br><b>'+c+'/'+cap+'</b></div>';
+  });
+  ov+='</div>';
   if(hopen){
     hslots.forEach(function(t,i){
       var key=today+'-'+i;var d=hw[key];
@@ -5437,14 +5517,14 @@ function renderEvents(){
   } else {
     hhtml='<div style="font-size:13px;color:var(--sub);padding:6px 0">周三 / 周四 火焰山未开放</div>';
   }
-  document.getElementById('huoyanSlots').innerHTML=hhtml;
+  document.getElementById('huoyanSlots').innerHTML=ov+'<div style="display:flex;flex-wrap:wrap;width:100%">'+hhtml+'</div>';
   var htotal=0;for(var kk in hw)if(hw[kk])htotal++;
   var hcap=HUOYAN_WEEK_CAP;
   document.getElementById('huoyanBar').style.width=Math.min(100,htotal/hcap*100)+'%';
   document.getElementById('huoyanBar').textContent=htotal+' / '+hcap+' 场';
   document.getElementById('huoyanInfo').textContent='已参与 '+htotal+' 场，剩余 '+(hcap-htotal)+' 场';
   var tcnt=0;hslots.forEach(function(t,i){if(hw[today+'-'+i])tcnt++;});
-  document.getElementById('huoyanTodayDone').textContent='今日已完成 '+tcnt+'/'+HUOYAN_DAY_CAP+' 场';
+  document.getElementById('huoyanTodayDone').textContent=(gvIsToday()?'今日':gameViewDate+' ')+'已完成 '+tcnt+'/'+Math.min(HUOYAN_DAY_CAP,hslots.length)+' 场';
   var hsEl=document.getElementById('huoyanStatus');
   if(hsEl){hsEl.textContent=hopen?'可参与':'未开放';hsEl.className='game-status '+(hopen?'status-open':'status-closed');}
 
@@ -5468,8 +5548,9 @@ function renderEvents(){
     for(var si=0;si<YABIAO_PER_DAY;si++){
       var key='yabiao_'+day+'-'+si;
       var d=ww[key];
-      var canDo=(today===day);
-      yghtml+='<div class="yabiao-slot'+(d?' done':'')+(canDo?'':' disabled')+'" onclick="toggleYabiao('+day+','+si+')">周'+dow[day]+'<span class="yb-time">'+ytimes[si]+'</span>'+(d?'✓':'')+'</div>';
+      var ds=dateOfWeekday(gameViewDate,day);
+      var canDo=!isFutureDs(ds); // 今天及以前都可补勾
+      yghtml+='<div class="yabiao-slot'+(d?' done':'')+(canDo?'':' disabled')+'" title="'+ds+(canDo?'（可勾选/补记）':'（未到）')+'" onclick="toggleYabiao('+day+','+si+')">周'+dow[day]+'<span class="yb-time">'+ytimes[si]+'</span>'+(d?'✓':'')+'</div>';
     }
   });
   document.getElementById('yabiaoGrid').innerHTML=yghtml;
@@ -5483,11 +5564,11 @@ function renderEvents(){
   if(ysec)ysec.style.display=yabiaoAvail||yabiaoTotal>0?'block':'block'; // always show
 
   // --- 关宁战场 ---
-  var gstore=gLS('game_event')||{};var ts=todayStr();
+  var gstore=gLS('game_event')||{};var ts=gameViewDate;
   var gd=gstore['guanning_'+ts];
   document.getElementById('cb-guanning').textContent=gd?'✓':'';
   document.getElementById('cb-guanning').parentNode.classList.toggle('done',!!gd);
-  var gnOpen=isDay([1,2,4,6,0]);
+  var gnOpen=[1,2,4,6,0].indexOf(today)>=0;
   document.getElementById('guanningStatus').textContent=gnOpen?'可参与':'未开放';
   document.getElementById('guanningStatus').className='game-status '+(gnOpen?'status-open':'status-closed');
 
@@ -5495,7 +5576,7 @@ function renderEvents(){
   var nd=gstore['ningyuan_'+ts];
   document.getElementById('cb-ningyuan').textContent=nd?'✓':'';
   document.getElementById('cb-ningyuan').parentNode.classList.toggle('done',!!nd);
-  var nyOpen=isDay([4,6]);
+  var nyOpen=[4,6].indexOf(today)>=0;
   document.getElementById('ningyuanStatus').textContent=nyOpen?'可参与':'未开放';
   document.getElementById('ningyuanStatus').className='game-status '+(nyOpen?'status-open':'status-closed');
 
@@ -5508,8 +5589,9 @@ function renderEvents(){
     rounds.forEach(function(round,ri){
       var key=bhKey(day,ri);
       var d=bhw[key];
-      var isToday=(today===day);
-      bhhtml+='<div class="event-slot'+(d?' done':'')+(isToday?'':' disabled')+'" onclick="toggleBanghui('+day+','+ri+')"><span class="slot-time">周'+dow[day]+' '+round.t+'</span><span class="slot-name">'+round.label+(d?' ✓':'')+'</span></div>';
+      var ds=dateOfWeekday(gameViewDate,day);
+      var canDo=!isFutureDs(ds); // 今天及以前都可补勾
+      bhhtml+='<div class="event-slot'+(d?' done':'')+(canDo?'':' disabled')+'" title="'+ds+(canDo?'（可勾选/补记）':'（未到）')+'" onclick="toggleBanghui('+day+','+ri+')"><span class="slot-time">周'+dow[day]+' '+round.t+'</span><span class="slot-name">'+round.label+(d?' ✓':'')+'</span></div>';
     });
   });
   document.getElementById('banghuiSlots').innerHTML=bhhtml;
@@ -5519,10 +5601,10 @@ function renderEvents(){
 function bhKey(day,ri){return 'bh_'+day+'_'+ri;}
 
 function toggleHuoyan(day,s){
-  var today=getDayOfWeek();
-  if(HUOYAN_DAYS.indexOf(today)<0){alert('火焰山今天未开放（周三/周四关闭）');return;}
-  if(day!==today)return;
-  var store=gLS('game_huoyan')||{};var wk=getWeekKey();
+  if(HUOYAN_DAYS.indexOf(day)<0){alert('火焰山这天未开放（周三/周四关闭）');return;}
+  var ds=dateOfWeekday(gameViewDate,day);
+  if(isFutureDs(ds)){alert('不能勾选未来的场次（'+ds+'）');return;}
+  var store=gLS('game_huoyan')||{};var wk=gvWeekKey();
   if(!store[wk])store[wk]={};
   var key=day+'-'+s;
   if(store[wk][key]){delete store[wk][key];sLS('game_huoyan',store);renderEvents();return;} // 取消已勾选，恢复额度
@@ -5534,24 +5616,27 @@ function toggleHuoyan(day,s){
 }
 function toggleEvent(name){
   var allowed={guanning:[1,2,4,6,0],ningyuan:[4,6]}[name];
-  if(allowed.indexOf(getDayOfWeek())<0){alert('今天「'+name+'」未开放');return;}
-  var store=gLS('game_event')||{};var ts=todayStr();var key=name+'_'+ts;
+  if(allowed.indexOf(gvDow())<0){alert('这天「'+name+'」未开放');return;}
+  if(isFutureDs(gameViewDate)){alert('不能勾选未来的日期');return;}
+  var store=gLS('game_event')||{};var ts=gameViewDate;var key=name+'_'+ts;
   if(store[key])delete store[key];else store[key]=true;
   sLS('game_event',store);renderEvents();
 }
 function toggleYabiao(day,si){
-  if(YABIAO_DAYS.indexOf(getDayOfWeek())<0){alert('押镖今天未开放（周一/三/四/五/六）');return;}
-  if(getDayOfWeek()!==day){alert('只能打勾今天的押镖时段');return;}
-  var store=gLS('game_weekly')||{};var wk=getWeekKey();
+  if(YABIAO_DAYS.indexOf(day)<0){alert('押镖这天未开放（周一/三/四/五/六）');return;}
+  var ds=dateOfWeekday(gameViewDate,day);
+  if(isFutureDs(ds)){alert('不能勾选未来的时段（'+ds+'）');return;}
+  var store=gLS('game_weekly')||{};var wk=gvWeekKey();
   if(!store[wk])store[wk]={};
   var key='yabiao_'+day+'-'+si;
   if(store[wk][key])delete store[wk][key];else store[wk][key]=true;
   sLS('game_weekly',store);renderEvents();renderWeekly();
 }
 function toggleBanghui(day,ri){
-  if(BANGHUI_DAYS.indexOf(getDayOfWeek())<0){alert('帮会联赛今天未开放（周五/周六）');return;}
-  if(getDayOfWeek()!==day){alert('只能打勾今天的场次');return;}
-  var store=gLS('game_banghui')||{};var wk=getWeekKey();
+  if(BANGHUI_DAYS.indexOf(day)<0){alert('帮会联赛这天未开放（周五/周六）');return;}
+  var ds=dateOfWeekday(gameViewDate,day);
+  if(isFutureDs(ds)){alert('不能勾选未来的场次（'+ds+'）');return;}
+  var store=gLS('game_banghui')||{};var wk=gvWeekKey();
   if(!store[wk])store[wk]={};
   var key=bhKey(day,ri);
   if(store[wk][key])delete store[wk][key];else store[wk][key]=true;
@@ -5560,8 +5645,12 @@ function toggleBanghui(day,ri){
 
 // ============ GAME: WEEKLY TASKS (冰火残魂 + 免做周常 + 春草/小平 + 天狐启灵) ============
 function renderWeekly(){
-  document.getElementById('weekLabel').textContent=getWeekKey();
-  var store=gLS('game_weekly')||{};var wk=getWeekKey();var w=store[wk]||{};
+  var wk=gvWeekKey();
+  var mon=weekMondayOf(gameViewDate);
+  var sun=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+6);
+  var range=fmtDs(mon).slice(5)+' ~ '+fmtDs(sun).slice(5);
+  document.getElementById('weekLabel').textContent=wk+'（'+range+'）'+(wk===getWeekKey()?'':' · 补记');
+  var store=gLS('game_weekly')||{};var w=store[wk]||{};
 
   var tasks=[
     {id:'binghuo',cbId:'cb-binghuo'},
@@ -5579,7 +5668,8 @@ function renderWeekly(){
 }
 
 function toggleWeeklyTask(name){
-  var store=gLS('game_weekly')||{};var wk=getWeekKey();
+  if(isFutureDs(gameViewDate)){alert('不能勾选未来的周');return;}
+  var store=gLS('game_weekly')||{};var wk=gvWeekKey();
   if(!store[wk])store[wk]={};
   if(store[wk][name])delete store[wk][name];else store[wk][name]=true;
   sLS('game_weekly',store);
@@ -5640,9 +5730,8 @@ function init(){
   setupIrw();
   // Game
   try{
-    var tdn=new Date();
-    var tde=document.getElementById('todayDate');
-    if(tde)tde.textContent=tdn.getFullYear()+'-'+(tdn.getMonth()+1)+'-'+tdn.getDate();
+    gameViewDate=todayStr();
+    renderGameDateBar();
     renderDailyTasks();renderWeekCal();renderEvents();renderWeekly();
     calcBand();
   }catch(e){console.warn('game render error:',e);}
