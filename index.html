@@ -1091,7 +1091,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 45;
+var APP_VERSION = 46;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -1101,9 +1101,9 @@ function renderBjClock(){
   var timeEl=document.getElementById('bjTime');
   if(!dateEl||!timeEl)return;
   var now=new Date();
-  // 第一行：M/D 周X（北京时间）
+  // 第一行：X月X日 周X（北京时间）
   var bj=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Shanghai'}));
-  dateEl.textContent=(bj.getMonth()+1)+'/'+bj.getDate()+' '+bjWd[bj.getDay()];
+  dateEl.textContent=(bj.getMonth()+1)+'月'+bj.getDate()+'日 '+bjWd[bj.getDay()];
   // 第二行：时分秒
   var parts=bjFmt.formatToParts(now);
   var h,m,s;
