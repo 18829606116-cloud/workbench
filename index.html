@@ -1091,20 +1091,19 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 44;
+var APP_VERSION = 45;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-var bjDateFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'long',day:'numeric',weekday:'long'});
+var bjWd=['周日','周一','周二','周三','周四','周五','周六'];
 function renderBjClock(){
   var dateEl=document.getElementById('bjDate');
   var timeEl=document.getElementById('bjTime');
   if(!dateEl||!timeEl)return;
   var now=new Date();
-  // 第一行：月日星期（8月13日 星期四）
-  var dparts=bjDateFmt.formatToParts(now);var ds='';
-  for(var i=0;i<dparts.length;i++){var p=dparts[i];if(p.type==='weekday')ds+=' '+p.value;else ds+=p.value;}
-  dateEl.textContent=ds;
+  // 第一行：M/D 周X（北京时间）
+  var bj=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Shanghai'}));
+  dateEl.textContent=(bj.getMonth()+1)+'/'+bj.getDate()+' '+bjWd[bj.getDay()];
   // 第二行：时分秒
   var parts=bjFmt.formatToParts(now);
   var h,m,s;
