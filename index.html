@@ -344,6 +344,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   <div class="app-bar-left">
     <span class="app-bar-home" onclick="openDrawer()">&#9776;</span>
     <span class="app-bar-title">我的工作台</span>
+    <span id="bjClock" title="北京时间（毫秒级）" style="font-size:12px;font-weight:600;color:var(--sub);font-variant-numeric:tabular-nums;letter-spacing:.3px;margin-left:2px"></span>
   </div>
   <div class="app-bar-right">
     <span id="verBadge" style="font-size:11px;color:#bbb;margin-right:8px"></span>
@@ -1087,7 +1088,21 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 42;
+var APP_VERSION = 43;
+
+// ============ 北京时间（毫秒级）时钟 ============
+var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+function pad3(n){return String(n).padStart(3,'0');}
+function renderBjClock(){
+  var el=document.getElementById('bjClock');
+  if(!el)return;
+  var now=new Date();
+  var parts=bjFmt.formatToParts(now);
+  var h,m,s;
+  for(var i=0;i<parts.length;i++){var p=parts[i];if(p.type==='hour')h=p.value;else if(p.type==='minute')m=p.value;else if(p.type==='second')s=p.value;}
+  el.textContent='🕐 '+h+':'+m+':'+s+'.'+pad3(now.getMilliseconds());
+}
+function startBjClock(){renderBjClock();setInterval(renderBjClock,10);}
 (function(){
   try{
     var b=document.getElementById('verBadge');
@@ -5706,6 +5721,7 @@ function setupIrw(){
 
 // ============ INIT ============
 function init(){
+  startBjClock();
   myWords=gLS('wb_mywords')||{};
   migrateVocab();
   // Weight
