@@ -865,7 +865,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 <!-- Weekly Tasks Tab -->
 <div class="tab-panel" id="game-weekly">
-<div class="weekly-section">
+<div class="game-weekly-cols" style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+<div class="weekly-section" style="flex:1 1 280px;min-width:260px">
 <h3>&#128203; 周常任务 <span style="font-size:13px;color:var(--sub);font-weight:400" id="weekLabel"></span></h3>
 <p style="font-size:13px;color:var(--sub)">每周日后自动重置</p>
 
@@ -877,6 +878,38 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 <div class="check-row" onclick="toggleWeeklyTask('tianhu')"><div class="cb" id="cb-tianhu"></div><div class="label">&#128054; 天狐启灵<div style="font-size:12px;color:var(--sub)">每周提交一次，完成后视为本周已完成</div></div></div>
 <div class="check-row" onclick="toggleWeeklyTask('tianfu')"><div class="cb" id="cb-tianfu"></div><div class="label">&#127891; 购买天赋树<div style="font-size:12px;color:var(--sub)">每周提交一次，完成后视为本周已完成</div></div></div>
+</div>
+<div class="plant-section" style="flex:1 1 280px;min-width:260px">
+  <h3>&#127793; 种菜收菜</h3>
+  <p style="font-size:13px;color:var(--sub)">多茬轮种：每块地可连续种多茬；种植时间以你手动输入为准（默认预填当前北京时间）。</p>
+  <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);margin:6px 0">
+    <span>⏰ 提前提醒阈值：</span>
+    <select id="soonThreshold" onchange="setSoonThreshold()" style="padding:3px 6px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+      <option value="1">1 小时</option>
+      <option value="2" selected>2 小时</option>
+      <option value="6">6 小时</option>
+      <option value="12">12 小时</option>
+    </select>
+  </div>
+  <div id="plantReminder"></div>
+  <div style="display:flex;gap:8px;margin:10px 0">
+    <input type="text" id="bedName" placeholder="新地块名（如 1号地）" style="padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:14px;flex:1" />
+    <button class="btn btn-sm" onclick="addBed()">新增地块</button>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;margin:10px 0;padding:10px;border:1px dashed var(--border);border-radius:10px">
+    <div style="display:flex;gap:8px">
+      <select id="cropBed" style="padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:14px;max-width:120px"></select>
+      <input type="text" id="plantName" placeholder="作物名（选填）" style="padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:14px;flex:1" />
+    </div>
+    <input type="datetime-local" id="plantTime" style="padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:14px" title="种植时间以你手动输入为准，默认预填当前北京时间" />
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="number" id="plantHours" placeholder="成熟小时数" min="0" step="0.5" style="padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:14px;flex:1" />
+      <label style="font-size:12px;color:var(--sub);white-space:nowrap"><input type="checkbox" id="plantRemind" /> 到期提醒</label>
+      <button class="btn btn-primary btn-sm" onclick="addCrop()">添加作物</button>
+    </div>
+  </div>
+  <div id="plantList"></div>
+</div>
 </div>
 </div>
 </div>
@@ -1091,7 +1124,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 46;
+var APP_VERSION = 47;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -5412,7 +5445,7 @@ function gameSetDate(ds){
   if(isFutureDs(ds)){try{toast('不能查看未来的日期');}catch(e){alert('不能查看未来的日期');}return;}
   gameViewDate=ds;
   renderGameDateBar();
-  try{renderDailyTasks();renderWeekCal();renderEvents();renderWeekly();}catch(e){console.warn('game re-render:',e);}
+  try{renderDailyTasks();renderWeekCal();renderEvents();renderWeekly();renderPlants();}catch(e){console.warn('game re-render:',e);}
 }
 function gameShiftDate(delta){
   var d=parseDs(gameViewDate);
@@ -5449,7 +5482,7 @@ function switchGameTab(tab){
   });
   if(tab==='daily'){renderDailyTasks();renderWeekCal();}
   if(tab==='events')renderEvents();
-  if(tab==='weekly')renderWeekly();
+  if(tab==='weekly'){renderWeekly();renderPlants();prefillPlantTime();}
 }
 
 // ============ GAME: DAILY TASKS ============
@@ -5701,6 +5734,155 @@ function toggleWeeklyTask(name){
   renderEvents();
 }
 
+// ============ 种菜收菜（多茬轮种 + 到期提醒） ============
+var plantTimer=null;
+var plantNotified={}; // 已通知过的作物 id（会话内有效）
+var plantJumpBedId=null; // 横幅点击要定位到的地块 id
+function bjDateObj(dt){return new Date(dt.toLocaleString('en-US',{timeZone:'Asia/Shanghai'}));}
+function fmtBj(dt){var b=bjDateObj(dt);var p=function(x){return String(x).padStart(2,'0');};return b.getFullYear()+'-'+p(b.getMonth()+1)+'-'+p(b.getDate())+' '+p(b.getHours())+':'+p(b.getMinutes());}
+function bjInputString(d){var b=bjDateObj(d);var p=function(x){return String(x).padStart(2,'0');};return b.getFullYear()+'-'+p(b.getMonth()+1)+'-'+p(b.getDate())+'T'+p(b.getHours())+':'+p(b.getMinutes());}
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+// 数据现在是「地块(bed)数组」，每块地含多茬作物(crops)；兼容旧版扁平结构
+function loadBeds(){return gLS('game_plants')||[];}
+function saveBeds(b){sLS('game_plants',b);}
+function migratePlants(){
+  var raw=loadBeds();
+  if(!raw.length)return;
+  if(raw[0]&&raw[0].crops)return; // 已是新结构
+  var beds=raw.map(function(p,i){return {id:p.id||Date.now()+i,name:'菜地'+(i+1),crops:[{id:p.id||Date.now()+i,name:p.name||'',plant:p.plant,hours:p.hours,harvest:p.harvest,harvested:false,harvestedAt:null,remind:false}]};});
+  saveBeds(beds);
+}
+function addBed(){
+  var nm=document.getElementById('bedName').value.trim();
+  var beds=loadBeds();
+  beds.push({id:Date.now(),name:nm||('菜地'+(beds.length+1)),crops:[]});
+  saveBeds(beds);
+  document.getElementById('bedName').value='';
+  renderPlants();
+}
+function addCrop(){
+  var sel=document.getElementById('cropBed');
+  if(!sel||!sel.value){alert('请先新增一块地块');return;}
+  var bedId=parseInt(sel.value,10);
+  var beds=loadBeds();
+  var bed=null;
+  beds.forEach(function(b){if(b.id===bedId)bed=b;});
+  if(!bed){alert('请先新增一块地块');return;}
+  var nm=document.getElementById('plantName').value.trim();
+  var ts=document.getElementById('plantTime').value;
+  var hr=parseFloat(document.getElementById('plantHours').value);
+  var remind=document.getElementById('plantRemind').checked;
+  if(!ts||isNaN(hr)||hr<0){alert('请填写种植时间和有效的成熟小时数');return;}
+  var plant=new Date(ts);
+  if(isNaN(plant.getTime())){alert('种植时间格式有误');return;}
+  var harvest=new Date(plant.getTime()+hr*3600*1000);
+  bed.crops.push({id:Date.now(),name:nm,plant:plant.getTime(),hours:hr,harvest:harvest.getTime(),harvested:false,harvestedAt:null,remind:remind});
+  saveBeds(beds);
+  if(remind&&'Notification'in window&&Notification.permission==='default'){Notification.requestPermission();}
+  document.getElementById('plantName').value='';
+  document.getElementById('plantHours').value='';
+  document.getElementById('plantRemind').checked=false;
+  renderPlants();
+}
+function harvestCrop(bedId,cropId){
+  var beds=loadBeds();
+  beds.forEach(function(b){if(b.id===bedId)b.crops.forEach(function(c){if(c.id===cropId){c.harvested=true;c.harvestedAt=Date.now();}});});
+  saveBeds(beds);renderPlants();
+}
+function delCrop(bedId,cropId){
+  var beds=loadBeds();
+  beds.forEach(function(b){if(b.id===bedId)b.crops=b.crops.filter(function(c){return c.id!==cropId;});});
+  saveBeds(beds);renderPlants();
+}
+function delBed(bedId){
+  if(!confirm('确定删除这块地块及其全部作物记录？'))return;
+  var beds=loadBeds().filter(function(b){return b.id!==bedId;});
+  saveBeds(beds);renderPlants();
+}
+// 种植时间完全手动输入；仅在为空时默认预填当前北京时间（不再自动接上一茬）
+function prefillPlantTime(){
+  var t=document.getElementById('plantTime');
+  if(t&&!t.value)t.value=bjInputString(new Date());
+}
+function getSoonThreshold(){var v=parseInt(gLS('wb_plant_soon'),10);if(isNaN(v)||v<=0)v=2;return v*36e5;}
+function setSoonThreshold(){var sel=document.getElementById('soonThreshold');if(!sel)return;var v=parseInt(sel.value,10);if(isNaN(v)||v<=0)v=2;sLS('wb_plant_soon',v);renderPlants();}
+function initSoonThreshold(){var sel=document.getElementById('soonThreshold');if(!sel)return;var v=gLS('wb_plant_soon');if(v!=null)sel.value=String(v);}
+function renderReminder(beds){
+  var el=document.getElementById('plantReminder');if(!el)return;
+  var thr=getSoonThreshold();
+  var mature=0,soon=0,jumpBed=null;
+  beds.forEach(function(b){b.crops.forEach(function(c){if(!c.harvested){var left=c.harvest-Date.now();if(left<=0){mature++;if(!jumpBed)jumpBed=b.id;}else if(left<=thr){soon++;if(!jumpBed)jumpBed=b.id;}}});});
+  plantJumpBedId=jumpBed;
+  if(!mature&&!soon){el.innerHTML='';return;}
+  var hours=Math.round(thr/36e5);
+  var cursor=jumpBed?'cursor:pointer;':'';
+  el.innerHTML='<div onclick="jumpToPlant()" style="'+cursor+'background:'+(mature?'#fff3e0':'#e8f4ff')+';border:1px solid '+(mature?'#ffb74d':'#90caf9')+';border-radius:10px;padding:8px 10px;font-size:13px;margin-bottom:8px">'+
+    (mature?('🌟 <b>'+mature+'</b> 株已成熟，快去收获！ '):'')+
+    (soon?('⏰ <b>'+soon+'</b> 株即将成熟（&lt;'+hours+'h）'):'')+
+    (jumpBed?' <span style="font-size:12px;opacity:.7">（点击定位）</span>':'')+'</div>';
+}
+function jumpToPlant(){
+  if(!plantJumpBedId)return;
+  var el=document.getElementById('bedcard-'+plantJumpBedId);
+  if(!el)return;
+  try{el.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){el.scrollIntoView();}
+  el.style.transition='box-shadow .3s';
+  el.style.boxShadow='0 0 0 3px #ffb74d';
+  setTimeout(function(){if(el)el.style.boxShadow='';},1500);
+}
+function checkPlantNotify(beds){
+  if(!('Notification'in window)||Notification.permission!=='granted')return;
+  beds.forEach(function(b){b.crops.forEach(function(c){
+    if(c.remind&&!c.harvested&&!plantNotified[c.id]&&c.harvest<=Date.now()){
+      try{new Notification('🌱 作物成熟啦！',{body:(c.name||'作物')+' 已可收获'});}catch(e){}
+      plantNotified[c.id]=true;
+    }
+  });});
+}
+function renderPlants(){
+  migratePlants();
+  var beds=loadBeds();
+  var sel=document.getElementById('cropBed');
+  if(sel){
+    var cur=sel.value;
+    sel.innerHTML=beds.map(function(b){return '<option value="'+b.id+'">'+escapeHtml(b.name)+'</option>';}).join('');
+    if(cur&&beds.some(function(b){return String(b.id)===String(cur);}))sel.value=cur;
+  }
+  renderReminder(beds);
+  checkPlantNotify(beds);
+  var el=document.getElementById('plantList');if(!el)return;
+  if(!beds.length){el.innerHTML='<p style="font-size:13px;color:var(--sub)">还没有地块，先在上方新增一块地吧。</p>';return;}
+  var html='';
+  beds.forEach(function(b){
+    var active=b.crops.filter(function(c){return !c.harvested;}).sort(function(a,c){return a.plant-c.plant;})[0];
+    html+='<div id="bedcard-'+b.id+'" style="border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:15px">🟫 '+escapeHtml(b.name)+'</b><button class="btn btn-sm" onclick="delBed('+b.id+')">删除地块</button></div>';
+    if(active){
+      var hp=new Date(active.harvest),left=hp.getTime()-Date.now();
+      var leftTxt,cls,bd;
+      if(left<=0){leftTxt='已成熟，待收获';cls='color:#e65100;font-weight:600';bd='border-color:#ffb74d;background:#fff8ef';}
+      else{var d=Math.floor(left/864e5),h=Math.floor((left%864e5)/36e5),m=Math.floor((left%36e5)/6e4);leftTxt=(d>0?d+'天':'')+h+'时'+m+'分';cls='';bd='';}
+      html+='<div style="margin-top:8px;'+cls+'">当前作物：<b>'+(active.name||'作物')+'</b> · 剩余 '+leftTxt+'</div>';
+      html+='<div style="font-size:12px;color:var(--sub)">种植 '+fmtBj(new Date(active.plant))+' → 收获 '+fmtBj(hp)+'（'+active.hours+'h）'+(active.remind?' 🔔':'')+'</div>';
+      html+='<div style="text-align:right;margin-top:6px"><button class="btn btn-primary btn-sm" onclick="harvestCrop('+b.id+','+active.id+')">✅ 收获</button></div>';
+    }else{
+      html+='<div style="margin-top:8px;font-size:13px;color:var(--sub)">本茬已收完，可再种一茬（种植时间以你手动输入为准）。</div>';
+    }
+    var hist=b.crops.slice().sort(function(a,c){return c.plant-a.plant;});
+    if(hist.length){
+      html+='<div style="margin-top:8px;border-top:1px dashed var(--border);padding-top:6px">';
+      hist.forEach(function(c){
+        var tag=c.harvested?('<span style="color:#2e9e4f">✅ 已收获'+(c.harvestedAt?(' '+fmtBj(new Date(c.harvestedAt))):'')+'</span>'):'<span style="color:var(--sub)">🌱 生长中</span>';
+        html+='<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-top:3px"><span>'+(c.name||'作物')+'：'+fmtBj(new Date(c.plant))+'→'+fmtBj(new Date(c.harvest))+(c.remind?' 🔔':'')+'</span><span>'+tag+' <a href="javascript:void(0)" onclick="delCrop('+b.id+','+c.id+')" style="color:#c33;margin-left:6px">删</a></span></div>';
+      });
+      html+='</div>';
+    }
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+function startPlantTimer(){if(plantTimer)clearInterval(plantTimer);plantTimer=setInterval(function(){var el=document.getElementById('plantList');if(el)renderPlants();},10000);}
+
 // ============ BACKUP ============
 function exportData(){
   var data={};
@@ -5730,6 +5912,8 @@ function setupIrw(){
 // ============ INIT ============
 function init(){
   startBjClock();
+  startPlantTimer();
+  initSoonThreshold();
   myWords=gLS('wb_mywords')||{};
   migrateVocab();
   // Weight
@@ -5756,7 +5940,7 @@ function init(){
   try{
     gameViewDate=todayStr();
     renderGameDateBar();
-    renderDailyTasks();renderWeekCal();renderEvents();renderWeekly();
+    renderDailyTasks();renderWeekCal();renderEvents();renderWeekly();renderPlants();prefillPlantTime();
     calcBand();
   }catch(e){console.warn('game render error:',e);}
   try{cultDailyLogin();}catch(e){console.warn('cultDailyLogin:',e);}
