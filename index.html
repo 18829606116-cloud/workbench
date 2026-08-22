@@ -365,7 +365,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 <body>
 <div id="errBanner" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#c62828;color:#fff;padding:10px 14px;font-size:13px;display:none;white-space:pre-wrap;font-family:monospace;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>
-<div id="verTag" style="position:fixed;bottom:0;left:0;z-index:99998;background:#ffeb3b;color:#000;padding:4px 10px;font-size:12px;font-family:monospace;font-weight:bold;border-radius:0 6px 0 0;box-shadow:0 2px 6px rgba(0,0,0,.2)">v52</div>
+<div id="verTag" style="position:fixed;bottom:0;left:0;z-index:99998;background:#ffeb3b;color:#000;padding:4px 10px;font-size:12px;font-family:monospace;font-weight:bold;border-radius:0 6px 0 0;box-shadow:0 2px 6px rgba(0,0,0,.2)">v53</div>
 <script>
 // 版本水印：把当前时间与 URL 暴露到 DOM，方便你在手机上确认加载到的是否为新版（不依赖任何初始化）
 (function(){
@@ -374,8 +374,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     if(t){
       try{
         var ts=new Date().toISOString();
-        t.textContent='v52 · '+ts.slice(11,19)+' · '+location.pathname;
-      }catch(e){t.textContent='v52';}
+        t.textContent='v53 · '+ts.slice(11,19)+' · '+location.pathname;
+      }catch(e){t.textContent='v53';}
     }
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',tagInit);} else {tagInit();}
@@ -449,6 +449,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 <!-- ===== PAGE: WEIGHT ===== -->
 <div class="module-page active" id="page-weight">
+<div style="background:lime;color:black;padding:20px;text-align:center;font-size:30px;font-weight:bold;border:4px solid red;">⚠️ DEBUG v52：这是 page-weight 容器内顶部<br/>如果你能看到这段绿底红边 = HTML 已加载 + 容器已 display:block<br/>否则 = HTML 没到这</div>
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">每日体重</span></div>
 
 <div class="sec-card">
@@ -1226,7 +1227,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 52;
+var APP_VERSION = 53;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
