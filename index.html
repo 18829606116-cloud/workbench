@@ -311,6 +311,63 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 .rlw-mode-badge.listening{background:#fce4ec;color:#c62828}
 .rlw-mode-badge.writing{background:#fff3e0;color:#e65100}
 
+/* ===== GEM DISASSEMBLY ===== */
+.gem-control-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.gem-control-row label{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600}
+.gem-control-row input[type=number]{width:64px;padding:6px 8px;border:2px solid var(--border);border-radius:8px;font-size:14px;text-align:center;font-variant-numeric:tabular-nums}
+.gem-control-row input:focus{border-color:var(--primary)}
+.gem-actions{display:flex;gap:6px;flex-wrap:wrap}
+.gem-actions .btn{flex:none}
+.gem-active-row{text-align:center;font-size:13px;color:var(--sub);margin:0 0 8px}
+.gem-active-row b{color:var(--primary);margin-left:4px}
+.gem-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin:14px auto;max-width:680px;border:1px solid var(--border)}
+.gem-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--border);padding-bottom:8px;margin-bottom:8px;flex-wrap:wrap}
+.gem-card-name{font-size:15px;font-weight:700;color:var(--primary)}
+.gem-card-price{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--sub)}
+.gem-card-price input{width:70px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:13px;text-align:center;font-variant-numeric:tabular-nums}
+.gem-card-price input:focus{outline:none;border-color:var(--primary)}
+.gem-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0}
+.gem-row-name{font-size:14px;color:var(--text);min-width:100px}
+.gem-row-cnt{display:flex;align-items:center;gap:8px}
+.gem-row-cnt button{width:32px;height:32px;border:none;border-radius:8px;font-size:20px;font-weight:700;cursor:pointer;line-height:1;transition:transform .1s}
+.gem-row-cnt button:active{transform:scale(.92)}
+.gem-btn-minus{background:#fbe4e4;color:#c62828}
+.gem-btn-plus{background:#d4f4dd;color:#2e7d32}
+.gem-row-cnt input{width:64px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:14px;text-align:center;font-variant-numeric:tabular-nums}
+.gem-row-cnt input:focus{outline:none;border-color:var(--primary)}
+.gem-sub{font-size:13px;color:var(--sub);margin-top:8px;text-align:right;padding-top:6px;border-top:1px dashed #f0f2f5}
+.gem-sub b{color:var(--text);font-variant-numeric:tabular-nums;font-size:15px}
+.gem-total-card{text-align:center}
+.gem-total-line{font-size:15px;margin:6px 0;color:var(--text)}
+.gem-total-line b{font-size:22px;font-variant-numeric:tabular-nums;margin:0 4px}
+.gem-total-line.final b{color:var(--primary)}
+.gem-tip{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.5}
+
+/* modal */
+.gem-modal{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;padding:16px}
+.gem-modal.show{display:flex}
+.gem-modal-mask{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.gem-modal-box{position:relative;background:var(--card);border-radius:var(--radius);width:min(560px,100%);max-height:88vh;overflow:hidden;padding:18px 20px;box-shadow:0 12px 40px rgba(0,0,0,.3);display:flex;flex-direction:column}
+.gem-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.gem-modal-title{font-size:16px;font-weight:700;color:var(--primary)}
+.gem-modal-close{font-size:26px;cursor:pointer;color:var(--sub);line-height:1;user-select:none;padding:0 4px}
+.gem-modal-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;align-items:center}
+.gem-modal-tab{padding:6px 11px;border-radius:18px;background:#f0f2f5;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:.15s;border:1px solid transparent}
+.gem-modal-tab.active{background:var(--primary);color:#fff}
+.gem-modal-tab-add{background:#e8f5e9;color:#2e7d32;font-weight:600}
+.gem-modal-tip{font-size:12px;color:var(--sub);margin:6px 0 4px}
+.gem-profile-actions{margin:4px 0 10px;font-size:13px}
+.gem-profile-actions a{color:var(--primary);cursor:pointer;text-decoration:none;margin-right:14px}
+.gem-profile-actions a.danger{color:var(--danger)}
+.gem-price-list{flex:1;overflow-y:auto;padding-right:4px;margin-right:-4px}
+.gem-price-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed #f0f2f5}
+.gem-price-name{flex:1;font-size:14px;color:var(--text)}
+.gem-price-input{width:80px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:14px;font-variant-numeric:tabular-nums}
+.gem-price-input:focus{outline:none;border-color:var(--primary)}
+.gem-price-unit{color:var(--sub);font-size:13px;width:24px}
+.gem-modal-foot{display:flex;gap:10px;margin-top:14px;padding-top:10px;border-top:1px solid var(--border)}
+.gem-modal-foot .btn{flex:1;padding:10px;font-weight:600}
+
 </style>
 </head>
 
@@ -336,6 +393,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     <button class="drawer-item" data-page="weather" onclick="switchPage('weather')"><span class="di-icon">&#127782;</span> 天气预报</button>
     <button class="drawer-item" data-page="cultivate" onclick="switchPage('cultivate')"><span class="di-icon">&#127775;</span> 养成小游戏</button>
     <button class="drawer-item" data-page="dialog" onclick="switchPage('dialog')"><span class="di-icon">&#128172;</span> 场景对话</button>
+    <button class="drawer-item" data-page="gem" onclick="switchPage('gem')"><span class="di-icon">&#128142;</span> 宝石拆解</button>
   </nav>
 </aside>
 
@@ -1108,6 +1166,57 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 </div>
 
+<!-- ===== PAGE: GEM DISASSEMBLY ===== -->
+<div class="module-page" id="page-gem">
+<div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">&#128142; 宝石拆解</span></div>
+
+<div class="sec-card">
+  <div class="gem-control-row">
+    <label>折损率 <input type="number" id="gemRate" value="68" min="0" max="100" step="1" oninput="onGemRateChange()"> %</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="calcGem()">&#9881; 计算</button>
+      <button class="btn btn-sm" onclick="resetGem()">&#8634; 重置</button>
+    </div>
+  </div>
+  <div class="gem-actions">
+    <button class="btn btn-sm" onclick="saveGemPricesCurrent()">&#128190; 单价保存</button>
+    <button class="btn btn-sm" onclick="openGemPriceModal()">&#128181; 区服价格</button>
+    <button class="btn btn-sm" onclick="quickSwitchServer('默认区服')">&#127968; 快捷台服</button>
+    <button class="btn btn-sm" onclick="alert('拆号模式：待开发')">&#128296; 拆号模式</button>
+    <button class="btn btn-sm" onclick="alert('新石之灵：待开发')">&#10024; 新石之灵</button>
+  </div>
+</div>
+
+<div class="gem-active-row">当前区服：<b id="gemActiveServer">默认区服</b></div>
+
+<div id="gemList"></div>
+
+<div class="sec-card gem-total-card">
+  <div class="gem-total-line">毛估总值：<b id="gemRawTotal">0.00</b> 元</div>
+  <div class="gem-total-line final">折损后估价：<b id="gemFinalTotal">0.00</b> 元 （<span id="gemRateShow">68</span>%）</div>
+  <div class="gem-tip">宝石精粹数：1 级 = 基础数，2 级 = ×2，3 级 = ×4，4 级 = ×8，5 级 = ×16。估价 = 颗数 × 精粹数 × 单价 × 折损率。</div>
+</div>
+</div>
+
+<!-- ===== GEM PRICE MODAL ===== -->
+<div class="gem-modal" id="gemModal">
+  <div class="gem-modal-mask" onclick="closeGemPriceModal()"></div>
+  <div class="gem-modal-box">
+    <div class="gem-modal-head">
+      <span class="gem-modal-title">快捷设置区服精粹价</span>
+      <span class="gem-modal-close" onclick="closeGemPriceModal()">×</span>
+    </div>
+    <div class="gem-modal-tabs" id="gemProfileTabs"></div>
+    <div class="gem-modal-tip">修改后记得保存设置</div>
+    <div class="gem-profile-actions" id="gemProfileActions"></div>
+    <div class="gem-price-list" id="gemPriceForm"></div>
+    <div class="gem-modal-foot">
+      <button class="btn btn-success" onclick="saveGemProfile()">&#128190; 保存设置</button>
+      <button class="btn btn-primary" onclick="applyGemPrices()">&#10003; 应用价格</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== BOTTOM NAV ===== -->
 <nav class="bottom-nav">
 <div class="nav-item active" data-mod="weight" onclick="switchPage('weight')"><span class="nav-icon">&#9878;</span>体重</div>
@@ -1119,12 +1228,13 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <div class="nav-item" data-mod="douyin" onclick="switchPage('douyin')"><span class="nav-icon">&#127925;</span>话题</div>
 <div class="nav-item" data-mod="weather" onclick="switchPage('weather')"><span class="nav-icon">&#127782;</span>天气</div>
 <div class="nav-item" data-mod="dialog" onclick="switchPage('dialog')"><span class="nav-icon">&#128172;</span>对话</div>
+<div class="nav-item" data-mod="gem" onclick="switchPage('gem')"><span class="nav-icon">&#128142;</span>宝石</div>
 </nav>
 
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 47;
+var APP_VERSION = 48;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -1209,6 +1319,7 @@ function switchPage(id){
   try{ if(id==='weather')initWeather(); }catch(e){console.warn('initWeather:',e);}
   try{ if(id==='cultivate')renderCultivate(); }catch(e){console.warn('renderCultivate:',e);}
   try{ if(id==='dialog')renderDialog(); }catch(e){console.warn('renderDialog:',e);}
+  try{ if(id==='gem')renderGem(); }catch(e){console.warn('renderGem:',e);}
   try{ if(id==='water')renderWater(); }catch(e){console.warn('renderWater:',e);}
   // 回到顶部（真机一定存在，但仍包 try 防止个别环境抛错阻断）
   try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
@@ -8812,6 +8923,289 @@ function dlgAddToReview(w){
 
 <!-- DIALOG MODULE END -->
 /* ===================== /Cloud Sync ===================== */
+
+// ============ GEM DISASSEMBLY (宝石拆解) ============
+var GEMS=[
+  {name:'偶泊石',qty:30,price:0.5},
+  {name:'东陵玉',qty:31,price:2},
+  {name:'月长石',qty:32,price:5.5},
+  {name:'日长石',qty:33,price:6},
+  {name:'雨花石',qty:34,price:6.5},
+  {name:'焕彩石',qty:35,price:6},
+  {name:'羊脂玉',qty:36,price:6.5},
+  {name:'青金石',qty:37,price:5},
+  {name:'芙蓉石',qty:38,price:7.5},
+  {name:'慕君石',qty:39,price:7.5},
+  {name:'雪花晶',qty:40,price:8},
+  {name:'昆吾石',qty:41,price:7},
+  {name:'独山玉',qty:42,price:10}
+];
+var GEM_LEVELS=5;
+var gemEditingProfile='默认区服';
+
+function defaultGemPrices(){var p={};GEMS.forEach(function(g){p[g.name]=g.price;});return p;}
+function loadGemState(){
+  var s=gLS('wb_gem_state')||{};
+  var c=s.counts||{};
+  GEMS.forEach(function(g){if(!c[g.name])c[g.name]={1:0,2:0,3:0,4:0,5:0};});
+  return {counts:c,rate:s.rate!=null?s.rate:68,activeProfile:s.activeProfile||'默认区服'};
+}
+function saveGemState(st){
+  var cur=gLS('wb_gem_state')||{};
+  sLS('wb_gem_state',{counts:st.counts,rate:st.rate,activeProfile:st.activeProfile||cur.activeProfile||'默认区服'});
+}
+function loadGemPrices(){
+  var p=gLS('wb_gem_prices');
+  if(!p){p=defaultGemPrices();sLS('wb_gem_prices',p);}
+  return p;
+}
+function saveGemPrices(p){sLS('wb_gem_prices',p);}
+function loadGemProfiles(){
+  var ps=gLS('wb_gem_profiles');
+  if(!ps){
+    ps=[{name:'默认区服',prices:defaultGemPrices()}];
+    sLS('wb_gem_profiles',ps);
+  }
+  return ps;
+}
+function saveGemProfiles(ps){sLS('wb_gem_profiles',ps);}
+function gemEssenceAtLevel(g,l){return g.qty*Math.pow(2,l-1);}
+function gemSubtotal(prices,counts,g){
+  var t=0;
+  for(var l=1;l<=GEM_LEVELS;l++){
+    var c=(counts[g.name]&&counts[g.name][l])||0;
+    t+=c*gemEssenceAtLevel(g,l)*prices[g.name];
+  }
+  return t;
+}
+
+function renderGem(){
+  var st=loadGemState();
+  var prices=loadGemPrices();
+  var rateEl=document.getElementById('gemRate');
+  if(rateEl)rateEl.value=st.rate;
+  var apEl=document.getElementById('gemActiveServer');
+  if(apEl)apEl.textContent=st.activeProfile||'默认区服';
+  var html='';
+  GEMS.forEach(function(g,gi){
+    var sub=gemSubtotal(prices,st.counts,g);
+    html+='<div class="gem-card">';
+    html+='<div class="gem-card-head">';
+    html+='<span class="gem-card-name">'+g.name+'石精粹</span>';
+    html+='<span class="gem-card-price">单价 <input type="number" data-gem="'+gi+'" value="'+(prices[g.name]!=null?prices[g.name]:g.price)+'" step="0.01" min="0" onchange="updateGemPrice('+gi+',this.value)"> 元</span>';
+    html+='</div>';
+    for(var l=1;l<=GEM_LEVELS;l++){
+      var c=(st.counts[g.name]&&st.counts[g.name][l])||0;
+      html+='<div class="gem-row">';
+      html+='<span class="gem-row-name">'+l+'级'+g.name+'石</span>';
+      html+='<span class="gem-row-cnt">';
+      html+='<button class="gem-btn-minus" onclick="changeGemCount('+gi+','+l+',-1)">−</button>';
+      html+='<input type="number" id="gem-cnt-'+gi+'-'+l+'" value="'+c+'" min="0" step="1" onfocus="this.select()" onchange="setGemCount('+gi+','+l+',this.value)">';
+      html+='<button class="gem-btn-plus" onclick="changeGemCount('+gi+','+l+',1)">+</button>';
+      html+='</span>';
+      html+='</div>';
+    }
+    html+='<div class="gem-sub">小计：<b data-sub="'+gi+'">'+sub.toFixed(2)+'</b> 元</div>';
+    html+='</div>';
+  });
+  var listEl=document.getElementById('gemList');
+  if(listEl)listEl.innerHTML=html;
+  calcGem();
+}
+
+function updateGemPrice(gi,v){
+  var prices=loadGemPrices();
+  var n=parseFloat(v);if(isNaN(n)||n<0)n=0;
+  prices[GEMS[gi].name]=n;
+  saveGemPrices(prices);
+  refreshSub(gi);
+  calcGem();
+}
+function changeGemCount(gi,l,delta){
+  var st=loadGemState();
+  var cur=(st.counts[GEMS[gi].name][l]||0)+delta;
+  if(cur<0)cur=0;
+  st.counts[GEMS[gi].name][l]=cur;
+  saveGemState(st);
+  var el=document.getElementById('gem-cnt-'+gi+'-'+l);if(el)el.value=cur;
+  refreshSub(gi);
+  calcGem();
+}
+function setGemCount(gi,l,v){
+  var st=loadGemState();
+  var n=parseInt(v);if(isNaN(n)||n<0)n=0;
+  st.counts[GEMS[gi].name][l]=n;
+  saveGemState(st);
+  var el=document.getElementById('gem-cnt-'+gi+'-'+l);if(el)el.value=n;
+  refreshSub(gi);
+  calcGem();
+}
+function refreshSub(gi){
+  var el=document.querySelector('[data-sub="'+gi+'"]');
+  if(!el)return;
+  var prices=loadGemPrices();var st=loadGemState();
+  el.textContent=gemSubtotal(prices,st.counts,GEMS[gi]).toFixed(2);
+}
+function onGemRateChange(){
+  var st=loadGemState();
+  var v=parseFloat(document.getElementById('gemRate').value);
+  if(isNaN(v))v=0;
+  if(v<0)v=0;if(v>100)v=100;
+  st.rate=v;saveGemState(st);
+  calcGem();
+}
+function calcGem(){
+  var st=loadGemState();
+  var prices=loadGemPrices();
+  var raw=0;
+  GEMS.forEach(function(g){raw+=gemSubtotal(prices,st.counts,g);});
+  var rateEl=document.getElementById('gemRate');
+  var rate=rateEl?parseFloat(rateEl.value):st.rate;
+  if(isNaN(rate))rate=0;
+  var final=raw*rate/100;
+  var rawEl=document.getElementById('gemRawTotal');
+  var finEl=document.getElementById('gemFinalTotal');
+  var rateShowEl=document.getElementById('gemRateShow');
+  if(rawEl)rawEl.textContent=raw.toFixed(2);
+  if(finEl)finEl.textContent=final.toFixed(2);
+  if(rateShowEl)rateShowEl.textContent=rate;
+}
+function resetGem(){
+  if(!confirm('重置所有宝石数量为 0？'))return;
+  var st=loadGemState();
+  GEMS.forEach(function(g){st.counts[g.name]={1:0,2:0,3:0,4:0,5:0};});
+  saveGemState(st);
+  renderGem();
+}
+function saveGemPricesCurrent(){
+  var st=loadGemState();
+  var ps=loadGemProfiles();
+  var p=ps.filter(function(x){return x.name===st.activeProfile;})[0];
+  if(!p){alert('未找到当前区服');return;}
+  p.prices=JSON.parse(JSON.stringify(loadGemPrices()));
+  saveGemProfiles(ps);
+  toast('已保存到「'+st.activeProfile+'」');
+}
+
+// ===== 区服价格 modal =====
+function openGemPriceModal(){
+  var st=loadGemState();
+  gemEditingProfile=st.activeProfile||'默认区服';
+  renderGemProfileTabs();
+  renderGemPriceForm();
+  document.getElementById('gemModal').classList.add('show');
+}
+function closeGemPriceModal(){document.getElementById('gemModal').classList.remove('show');}
+function renderGemProfileTabs(){
+  var ps=loadGemProfiles();
+  var cur=(loadGemState().activeProfile||'默认区服');
+  var html='';
+  ps.forEach(function(p){
+    var ac=p.name===cur?' active':'';
+    html+='<span class="gem-modal-tab'+ac+'" onclick="selectGemProfile(\''+p.name.replace(/'/g,"\\'")+'\')">'+p.name+'</span>';
+  });
+  html+='<span class="gem-modal-tab gem-modal-tab-add" onclick="addGemProfile()">+ 新增</span>';
+  document.getElementById('gemProfileTabs').innerHTML=html;
+}
+function renderGemPriceForm(){
+  var ps=loadGemProfiles();
+  var p=ps.filter(function(x){return x.name===gemEditingProfile;})[0];
+  if(!p)return;
+  var actEl=document.getElementById('gemProfileActions');
+  if(p.name!=='默认区服'){
+    actEl.innerHTML='<a onclick="renameGemProfile()">重命名</a><a class="danger" onclick="deleteGemProfile()">删除</a>';
+  }else{
+    actEl.innerHTML='<span style="color:var(--sub);font-size:12px">默认区服不可删除/重命名</span>';
+  }
+  var html='';
+  GEMS.forEach(function(g,gi){
+    var v=p.prices[g.name]!=null?p.prices[g.name]:g.price;
+    html+='<div class="gem-price-row"><span class="gem-price-name">'+g.name+'石精粹：</span>';
+    html+='<input class="gem-price-input" type="number" id="gem-price-'+gi+'" value="'+v+'" step="0.01" min="0">';
+    html+='<span class="gem-price-unit">元</span></div>';
+  });
+  document.getElementById('gemPriceForm').innerHTML=html;
+}
+function selectGemProfile(name){
+  gemEditingProfile=name;
+  var st=loadGemState();st.activeProfile=name;saveGemState(st);
+  var apEl=document.getElementById('gemActiveServer');if(apEl)apEl.textContent=name;
+  renderGemProfileTabs();
+  renderGemPriceForm();
+}
+function addGemProfile(){
+  var ps=loadGemProfiles();
+  var def='区服'+(ps.length+1);
+  var n=prompt('新档位名称：',def);
+  if(!n)return;
+  n=n.trim();
+  if(!n){alert('名称不能为空');return;}
+  if(ps.filter(function(p){return p.name===n;}).length){alert('档位名已存在');return;}
+  ps.push({name:n,prices:defaultGemPrices()});
+  saveGemProfiles(ps);
+  selectGemProfile(n);
+}
+function renameGemProfile(){
+  if(gemEditingProfile==='默认区服')return;
+  var n=prompt('重命名为：',gemEditingProfile);
+  if(!n)return;
+  n=n.trim();if(!n){alert('名称不能为空');return;}
+  if(n===gemEditingProfile)return;
+  var ps=loadGemProfiles();
+  if(ps.filter(function(p){return p.name===n;}).length){alert('档位名已存在');return;}
+  ps.forEach(function(p){if(p.name===gemEditingProfile)p.name=n;});
+  saveGemProfiles(ps);
+  var st=loadGemState();if(st.activeProfile===gemEditingProfile)st.activeProfile=n;saveGemState(st);
+  gemEditingProfile=n;
+  renderGemProfileTabs();
+  renderGemPriceForm();
+}
+function deleteGemProfile(){
+  if(gemEditingProfile==='默认区服')return;
+  if(!confirm('删除档位「'+gemEditingProfile+'」？'))return;
+  var ps=loadGemProfiles().filter(function(p){return p.name!==gemEditingProfile;});
+  saveGemProfiles(ps);
+  selectGemProfile('默认区服');
+}
+function saveGemProfile(){
+  var ps=loadGemProfiles();
+  var p=ps.filter(function(x){return x.name===gemEditingProfile;})[0];
+  if(!p)return;
+  GEMS.forEach(function(g,gi){
+    var el=document.getElementById('gem-price-'+gi);
+    if(!el)return;
+    var v=parseFloat(el.value);
+    if(!isNaN(v)&&v>=0)p.prices[g.name]=v;
+  });
+  saveGemProfiles(ps);
+  toast('档位「'+gemEditingProfile+'」已保存');
+}
+function applyGemPrices(){
+  var ps=loadGemProfiles();
+  var p=ps.filter(function(x){return x.name===gemEditingProfile;})[0];
+  if(!p)return;
+  GEMS.forEach(function(g,gi){
+    var el=document.getElementById('gem-price-'+gi);
+    if(!el)return;
+    var v=parseFloat(el.value);
+    if(!isNaN(v)&&v>=0)p.prices[g.name]=v;
+  });
+  saveGemProfiles(ps);
+  saveGemPrices(JSON.parse(JSON.stringify(p.prices)));
+  var st=loadGemState();st.activeProfile=gemEditingProfile;saveGemState(st);
+  closeGemPriceModal();
+  renderGem();
+  toast('已应用「'+gemEditingProfile+'」的价格');
+}
+function quickSwitchServer(name){
+  var ps=loadGemProfiles();
+  var p=ps.filter(function(x){return x.name===name;})[0];
+  if(!p){toast('档位「'+name+'」不存在');return;}
+  selectGemProfile(name);
+  saveGemPrices(JSON.parse(JSON.stringify(p.prices)));
+  renderGem();
+  toast('已切换到「'+name+'」');
+}
 
 if(document.readyState!=='loading'){init();}else{document.addEventListener('DOMContentLoaded',init);}
 </script>
