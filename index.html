@@ -365,7 +365,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 <body>
 <div id="errBanner" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#c62828;color:#fff;padding:10px 14px;font-size:13px;display:none;white-space:pre-wrap;font-family:monospace;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>
-<div id="verTag" style="position:fixed;top:0;right:0;z-index:99998;background:#ffeb3b;color:#000;padding:2px 6px;font-size:11px;font-family:monospace;font-weight:bold;border-radius:0 0 0 4px;">v51</div>
+<div id="verTag" style="position:fixed;bottom:0;left:0;z-index:99998;background:#ffeb3b;color:#000;padding:4px 10px;font-size:12px;font-family:monospace;font-weight:bold;border-radius:0 6px 0 0;box-shadow:0 2px 6px rgba(0,0,0,.2)">v52</div>
 <script>
 // 版本水印：把当前时间与 URL 暴露到 DOM，方便你在手机上确认加载到的是否为新版（不依赖任何初始化）
 (function(){
@@ -374,8 +374,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     if(t){
       try{
         var ts=new Date().toISOString();
-        t.textContent='v51 · '+ts.slice(11,19)+' · '+location.pathname;
-      }catch(e){t.textContent='v51';}
+        t.textContent='v52 · '+ts.slice(11,19)+' · '+location.pathname;
+      }catch(e){t.textContent='v52';}
     }
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',tagInit);} else {tagInit();}
@@ -1226,7 +1226,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 51;
+var APP_VERSION = 52;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -1665,7 +1665,6 @@ function toggleMed(idx){
   else{
     if(!store[ts])store[ts]={};
     store[ts][key]=true;
-    try{cultGainFromCheckin();}catch(e){}
   }
   sLS('med_new',store);
   renderMedication();
@@ -4612,7 +4611,6 @@ function showRLWSummary(){
     '</div>';
   if(stageInline)stageInline.innerHTML=summaryHtml;
   // 养成经验
-  if(typeof cultGainFromStudy==='function')cultGainFromStudy(rlwState.words.length,s.correct);
 }
 
 function exitRLW(){
@@ -4938,7 +4936,6 @@ function lockOpts(){
 function gameOver(){
   if(G.timer){clearInterval(G.timer);G.timer=null;}
   document.getElementById('gameStage').innerHTML='<div class="game-over"><h3>🎉 本轮完成！</h3><p>答对 '+G.correct+'/'+G.total+' · 得分 <b>'+G.score+'</b></p><button class="gm-btn" onclick="startGame(\''+G.mode+'\')">再来一轮</button> <button class="gm-btn2" onclick="quitGame()">退出</button></div>';
-  try{cultGainFromGame(G.mode,G.score,G.correct,G.total);}catch(e){console.warn('cultGainFromGame:',e);}
 }
 function startMatch(){
   var pairs=G.pool.slice(0,8);
@@ -5215,7 +5212,6 @@ function rateSRS(grade){
   srsUpdate(G.cur.w, grade);
   if(grade<3) bumpWeak(G.cur.w);
   G.correct++;
-  try{cultGainFromVocab(1);}catch(e){}
   var fb=document.getElementById('gqFb');
   if(fb)fb.innerHTML='<span class="ok">已记录，下次间隔约 '+Math.max(1,Math.round((srsGet(G.cur.w).due-Date.now())/86400000))+' 天</span>';
   setTimeout(nextSRS,800);
@@ -5976,7 +5972,6 @@ function init(){
     renderDailyTasks();renderWeekCal();renderEvents();renderWeekly();renderPlants();prefillPlantTime();
     calcBand();
   }catch(e){ try{ if(window.showErr) window.showErr('游戏渲染失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):'')); else console.warn('game render error:',e); }catch(_){ console.warn('game render error:',e); } }
-  try{cultDailyLogin();}catch(e){try{ if(window.showErr) window.showErr('cultDailyLogin 失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):'')); else console.warn('cultDailyLogin:',e); }catch(_){ console.warn('cultDailyLogin:',e); }}
   // cloud auto-sync on load
   if(gLS('wb_sync_auto')==='1' && getSyncCfg() && !sessionStorage.getItem('wb_just_synced')){ syncDownload(); }
   sessionStorage.removeItem('wb_just_synced');
