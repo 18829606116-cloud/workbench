@@ -42,8 +42,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 /* ===== MODULES (SPA – one visible at a time) ===== */
 .module-page{display:none;max-width:700px;margin:0 auto;padding:0 0 70px}
 .module-page.active{display:block!important}
-/* 默认首页 page-weight 用 ID 兜底：JS 任意切换都不会破坏它的可见性，是最后一道防线 */
-#page-weight{display:block!important}
 
 /* ===== SECTION CARD ===== */
 .sec-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin:14px auto;max-width:680px}
@@ -376,8 +374,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     if(t){
       try{
         var ts=new Date().toISOString();
-        t.textContent='v56 · '+ts.slice(11,19)+' · '+location.pathname;
-      }catch(e){t.textContent='v58';}
+        t.textContent='v59 · '+ts.slice(11,19)+' · '+location.pathname;
+      }catch(e){t.textContent='v59';}
     }
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',tagInit);} else {tagInit();}
@@ -399,19 +397,11 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   window.switchPage=function(id){
     try{closeDrawer();}catch(e){}
     var target=document.getElementById('page-'+id);
-    // 隐藏所有 page（但绝不动默认首页 page-weight 的 active / display，避免切走后再切回丢失激活状态）
+    // 统一显隐：全部页面一视同仁，目标页 !important 显示，其余 !important 隐藏（含默认首页，不再特殊化）
     document.querySelectorAll('.module-page').forEach(function(p){
-      if(p.id==='page-weight'){
-        // 默认首页始终保持激活 + 显示，绝不清理（即便用户切到其他 page 也保持可见=再次切回时无需重建）
-        if(!p.classList.contains('active')) p.classList.add('active');
-        p.style.display='block';
-        return;
-      }
-      p.classList.remove('active');
-      p.style.display='none';
+      if(p===target){p.classList.add('active');p.style.setProperty('display','block','important');}
+      else{p.classList.remove('active');p.style.setProperty('display','none','important');}
     });
-    // 显示目标页
-    if(target){target.classList.add('active');target.style.display='block';}
     document.querySelectorAll('.drawer-item').forEach(function(d){d.classList.remove('active');});
     var di=document.querySelector('.drawer-item[data-page="'+id+'"]');
     if(di)di.classList.add('active');
@@ -1258,7 +1248,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 58;
+var APP_VERSION = 59;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -1322,28 +1312,18 @@ function closeDrawer(){
 function switchPage(id){
   // 先关抽屉遮罩，避免残留拦截后续点击
   closeDrawer();
-  // 隐藏所有 page（默认首页 page-weight 永远保持激活 + 显示，是默认页永久可见的兜底）
+  // 统一显隐：目标页用 !important 强制显示，其余用 !important 强制隐藏。
+  // 全部页面一视同仁（含默认首页 page-weight），不再特殊化，否则首页会永远压在最上层挡住切换。
   var target=document.getElementById('page-'+id);
   document.querySelectorAll('.module-page').forEach(function(p){
-    if(p.id==='page-weight'){
-      // 默认首页始终保持激活 + 显示，绝不清理
-      if(!p.classList.contains('active')) p.classList.add('active');
-      p.style.display='block';
-      return;
+    if(p===target){
+      p.classList.add('active');
+      p.style.setProperty('display','block','important');
+    }else{
+      p.classList.remove('active');
+      p.style.setProperty('display','none','important');
     }
-    p.classList.remove('active');
-    p.style.display='none';
   });
-  // 显示目标页（双重保险：class + 强制 inline style，避免 iOS Safari 偶发 CSS 未生效）
-  if(target){target.classList.add('active');target.style.display='block';}
-  // 兜底：再次强制所有 module-page 的 inline style（先把非目标页设 none，目标页设 block）
-  document.querySelectorAll('.module-page').forEach(function(p){
-    if(p!==target && p.id!=='page-weight'){p.style.display='none';}
-  });
-  if(target)target.style.display='block';
-  // 默认首页终极兜底：inline style + !important，保证 JS 后续任何 setProperty('display','none') 都不会赢过它
-  var _w=document.getElementById('page-weight');
-  if(_w){_w.style.setProperty('display','block','important');}
   // 更新抽屉高亮
   document.querySelectorAll('.drawer-item').forEach(function(d){d.classList.remove('active')});
   var di=document.querySelector('.drawer-item[data-page="'+id+'"]');
@@ -6024,13 +6004,12 @@ function init(){
   // cloud auto-sync on load
   if(gLS('wb_sync_auto')==='1' && getSyncCfg() && !sessionStorage.getItem('wb_just_synced')){ syncDownload(); }
   sessionStorage.removeItem('wb_just_synced');
-  // 终极兜底：init 跑完后，无论前面发生了什么，强制默认首页 page-weight 一定可见
+  // 终极兜底：init 跑完后，确保“唯一活动页”可见、其余统一隐藏（不再特殊化 page-weight，否则会挡住切换）
   try{
-    var _w=document.getElementById('page-weight');
-    if(_w){
-      if(!_w.classList.contains('active')) _w.classList.add('active');
-      _w.style.setProperty('display','block','important');
-    }
+    document.querySelectorAll('.module-page').forEach(function(p){
+      if(p.classList.contains('active')) p.style.setProperty('display','block','important');
+      else p.style.setProperty('display','none','important');
+    });
   }catch(_e){}
 }
 
