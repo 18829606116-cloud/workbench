@@ -382,6 +382,21 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   var _origReady=document.readyState;
   window.addEventListener('DOMContentLoaded',function(){try{if(typeof init==='function')init();}catch(e){showErr('init错误: '+(e.message||e)+' @'+(e.stack||'').split('\n')[1]);}});
   if(_origReady!=='loading'){setTimeout(function(){try{if(typeof init==='function')init();}catch(e){showErr('init错误: '+(e.message||e)+' @'+(e.stack||'').split('\n')[1]);}},0);}
+  // 兜底全局函数：保证 inline onclick（如 openDrawer/closeDrawer/switchPage）在主脚本出错时仍能用
+  window.openDrawer=function(){var ov=document.getElementById('drawerOverlay');var dr=document.getElementById('drawer');if(ov&&dr){ov.classList.add('show');dr.classList.add('open');}};
+  window.closeDrawer=function(){var ov=document.getElementById('drawerOverlay');var dr=document.getElementById('drawer');if(ov&&dr){ov.classList.remove('show');dr.classList.remove('open');}};
+  window.switchPage=function(id){
+    try{closeDrawer();}catch(e){}
+    document.querySelectorAll('.module-page').forEach(function(p){p.classList.remove('active');p.style.display='';});
+    var target=document.getElementById('page-'+id);
+    if(target)target.classList.add('active');
+    document.querySelectorAll('.drawer-item').forEach(function(d){d.classList.remove('active');});
+    var di=document.querySelector('.drawer-item[data-page="'+id+'"]');
+    if(di)di.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+    var ni=document.querySelector('.nav-item[data-mod="'+id+'"]');
+    if(ni)ni.classList.add('active');
+  };
 })();
 </script>
 <!-- ===== DRAWER OVERLAY ===== -->
@@ -1246,7 +1261,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 49;
+var APP_VERSION = 50;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
