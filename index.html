@@ -41,7 +41,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 
 /* ===== MODULES (SPA – one visible at a time) ===== */
 .module-page{display:none;max-width:700px;margin:0 auto;padding:0 0 70px}
-.module-page.active{display:block}
+.module-page.active{display:block!important}
 
 /* ===== SECTION CARD ===== */
 .sec-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin:14px auto;max-width:680px}
@@ -374,8 +374,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     if(t){
       try{
         var ts=new Date().toISOString();
-        t.textContent='v54 · '+ts.slice(11,19)+' · '+location.pathname;
-      }catch(e){t.textContent='v54';}
+        t.textContent='v55 · '+ts.slice(11,19)+' · '+location.pathname;
+      }catch(e){t.textContent='v55';}
     }
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',tagInit);} else {tagInit();}
@@ -1226,7 +1226,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 54;
+var APP_VERSION = 55;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -1292,9 +1292,14 @@ function switchPage(id){
   closeDrawer();
   // 隐藏所有页面，并清除历史遗留的内联 display（否则旧页会残留 block 与新手页纵向叠加，看起来“不跳转”）
   document.querySelectorAll('.module-page').forEach(function(p){p.classList.remove('active');p.style.display='';});
-  // 显示目标页（仅依赖 .active，由 CSS 控制 display:block）
+  // 显示目标页（双重保险：class + 强制 inline style，避免 iOS Safari 偶发 CSS 未生效）
   var target=document.getElementById('page-'+id);
-  if(target)target.classList.add('active');
+  if(target){target.classList.add('active');target.style.display='block';}
+  // 兜底：再次强制所有 module-page 的 inline style（先把非目标页设 none，目标页设 block）
+  document.querySelectorAll('.module-page').forEach(function(p){
+    if(p!==target){p.style.display='none';}
+  });
+  if(target)target.style.display='block';
   // 更新抽屉高亮
   document.querySelectorAll('.drawer-item').forEach(function(d){d.classList.remove('active')});
   var di=document.querySelector('.drawer-item[data-page="'+id+'"]');
