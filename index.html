@@ -372,6 +372,18 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </head>
 
 <body>
+<div id="errBanner" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#c62828;color:#fff;padding:10px 14px;font-size:13px;display:none;white-space:pre-wrap;font-family:monospace;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>
+<script>
+(function(){
+  function showErr(msg){var b=document.getElementById('errBanner');if(b){b.style.display='block';b.textContent=msg;}}
+  window.addEventListener('error',function(e){showErr('JS错误: '+(e.message||e)+(e.filename?' @'+e.filename+':'+e.lineno:''));});
+  window.addEventListener('unhandledrejection',function(e){showErr('异步错误: '+((e.reason&&(e.reason.message||e.reason))||e));});
+  // 备份 init 调用，防止一处错误全盘死
+  var _origReady=document.readyState;
+  window.addEventListener('DOMContentLoaded',function(){try{if(typeof init==='function')init();}catch(e){showErr('init错误: '+(e.message||e)+' @'+(e.stack||'').split('\n')[1]);}});
+  if(_origReady!=='loading'){setTimeout(function(){try{if(typeof init==='function')init();}catch(e){showErr('init错误: '+(e.message||e)+' @'+(e.stack||'').split('\n')[1]);}},0);}
+})();
+</script>
 <!-- ===== DRAWER OVERLAY ===== -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 <aside class="drawer" id="drawer">
@@ -1234,7 +1246,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 48;
+var APP_VERSION = 49;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -9207,7 +9219,7 @@ function quickSwitchServer(name){
   toast('已切换到「'+name+'」');
 }
 
-if(document.readyState!=='loading'){init();}else{document.addEventListener('DOMContentLoaded',init);}
+// init 已在 body 顶部的错误捕获脚本里调用（带 try/catch）
 </script>
 </body>
 </html>
