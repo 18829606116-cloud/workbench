@@ -365,7 +365,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 <body>
 <div id="errBanner" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#c62828;color:#fff;padding:10px 14px;font-size:13px;display:none;white-space:pre-wrap;font-family:monospace;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>
-<div id="verTag" style="position:fixed;bottom:0;left:0;z-index:99998;background:#ffeb3b;color:#000;padding:4px 10px;font-size:12px;font-family:monospace;font-weight:bold;border-radius:0 6px 0 0;box-shadow:0 2px 6px rgba(0,0,0,.2)">v53</div>
+<div id="verTag" style="position:fixed;bottom:0;left:0;z-index:99998;background:#ffeb3b;color:#000;padding:4px 10px;font-size:12px;font-family:monospace;font-weight:bold;border-radius:0 6px 0 0;box-shadow:0 2px 6px rgba(0,0,0,.2)">v56</div>
 <script>
 // 版本水印：把当前时间与 URL 暴露到 DOM，方便你在手机上确认加载到的是否为新版（不依赖任何初始化）
 (function(){
@@ -374,8 +374,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     if(t){
       try{
         var ts=new Date().toISOString();
-        t.textContent='v55 · '+ts.slice(11,19)+' · '+location.pathname;
-      }catch(e){t.textContent='v55';}
+        t.textContent='v56 · '+ts.slice(11,19)+' · '+location.pathname;
+      }catch(e){t.textContent='v56';}
     }
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',tagInit);} else {tagInit();}
@@ -396,16 +396,39 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   window.closeDrawer=function(){var ov=document.getElementById('drawerOverlay');var dr=document.getElementById('drawer');if(ov&&dr){ov.classList.remove('show');dr.classList.remove('open');}};
   window.switchPage=function(id){
     try{closeDrawer();}catch(e){}
-    document.querySelectorAll('.module-page').forEach(function(p){p.classList.remove('active');p.style.display='';});
+    // 双重控制：CSS class + inline style，确保 iOS Safari 也能显示
+    document.querySelectorAll('.module-page').forEach(function(p){
+      p.classList.remove('active');
+      p.style.display='none';
+    });
     var target=document.getElementById('page-'+id);
-    if(target)target.classList.add('active');
+    if(target){target.classList.add('active');target.style.display='block';}
     document.querySelectorAll('.drawer-item').forEach(function(d){d.classList.remove('active');});
     var di=document.querySelector('.drawer-item[data-page="'+id+'"]');
     if(di)di.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
     var ni=document.querySelector('.nav-item[data-mod="'+id+'"]');
     if(ni)ni.classList.add('active');
+    // 触发页面专属渲染（与主脚本内的 switchPage 同步调用）
+    try{
+      if(id==='gold' && typeof initGoldPage==='function')initGoldPage();
+      else if(id==='market' && typeof initMarketPage==='function')initMarketPage();
+      else if(id==='eng' && typeof renderVocab==='function')renderVocab();
+      else if(id==='weather' && typeof initWeather==='function')initWeather();
+      else if(id==='dialog' && typeof renderDialog==='function')renderDialog();
+      else if(id==='gem' && typeof renderGem==='function')renderGem();
+      else if(id==='water' && typeof renderWater==='function')renderWater();
+    }catch(e){
+      try{if(window.showErr)window.showErr(id+' 渲染失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):''));}catch(_){}
+    }
+    try{window.scrollTo(0,0);}catch(e){}
   };
+  // 初始化：确保默认活动页（首页）一定 display:block（v55 兜底）
+  try{
+    document.querySelectorAll('.module-page').forEach(function(p){
+      if(p.classList.contains('active')) p.style.display='block'; else p.style.display='none';
+    });
+  }catch(e){}
 })();
 </script>
 <!-- ===== DRAWER OVERLAY ===== -->
@@ -448,7 +471,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </header>
 
 <!-- ===== PAGE: WEIGHT ===== -->
-<div class="module-page active" id="page-weight">
+<div class="module-page active" id="page-weight" style="display:block">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">每日体重</span></div>
 
 <div class="sec-card">
@@ -496,7 +519,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <!-- ===== PAGE: WATER ===== -->
-<div class="module-page" id="page-water">
+<div class="module-page" id="page-water" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">喝水统计</span></div>
 
 <div class="sec-card">
@@ -563,7 +586,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <!-- ===== PAGE: MEDICATION ===== -->
-<div class="module-page" id="page-med">
+<div class="module-page" id="page-med" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">吃药打卡</span></div>
 
 <div class="sec-card">
@@ -590,7 +613,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <!-- ===== PAGE: ENGLISH / IELTS ===== -->
-<div class="module-page" id="page-eng">
+<div class="module-page" id="page-eng" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">英语 &amp; 雅思学习</span></div>
 <div class="sec-card">
 <p class="desc">词汇积累、听说读写、雅思备考一站式。</p>
@@ -873,7 +896,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 </div>
 <!-- ===== PAGE: WEATHER ===== -->
-<div class="module-page" id="page-weather">
+<div class="module-page" id="page-weather" style="display:none">
   <h2 class="mod-title">🌤️ 天气预报</h2>
   <div id="weatherContent">
     <div class="weather-loading">🌍 正在获取天气数据...</div>
@@ -881,7 +904,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <!-- ===== PAGE: GAME ===== -->
-<div class="module-page" id="page-game">
+<div class="module-page" id="page-game" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">新倩女幽魂</span></div>
 <div class="sec-card">
 <p class="desc">每日任务与活动追踪，点击打勾/取消打勾。</p>
@@ -1008,7 +1031,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <!-- ===== PAGE: BACKUP ===== -->
-<div class="module-page" id="page-backup">
+<div class="module-page" id="page-backup" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">数据备份</span></div>
 <div class="sec-card">
 <h3>数据备份</h3>
@@ -1049,7 +1072,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 
 <!-- ===== PAGE: GOLD FINANCE ===== -->
-<div class="module-page" id="page-gold">
+<div class="module-page" id="page-gold" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">黄金行情财经新闻</span></div>
 
 <div class="fin-header">
@@ -1126,7 +1149,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <!-- ===== PAGE: MARKET REVIEW ===== -->
-<div class="module-page" id="page-market">
+<div class="module-page" id="page-market" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">市场每日复盘</span></div>
 
 <div class="fin-header">
@@ -1152,7 +1175,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 
-<div class="module-page" id="page-dialog">
+<div class="module-page" id="page-dialog" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">&#128172; 场景对话</span></div>
 <div class="sec-card">
   <p class="desc">把单词放进真实对话里，才知道「什么时候用、怎么用」。点句子里的<b>任意单词</b>可听发音并看中文释义；想自测就点「隐藏中文」。</p>
@@ -1161,7 +1184,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <!-- ===== PAGE: GEM DISASSEMBLY ===== -->
-<div class="module-page" id="page-gem">
+<div class="module-page" id="page-gem" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">&#128142; 宝石拆解</span></div>
 
 <div class="sec-card">
@@ -1226,7 +1249,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 55;
+var APP_VERSION = 56;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
