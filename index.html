@@ -374,8 +374,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     if(t){
       try{
         var ts=new Date().toISOString();
-        t.textContent='v53 · '+ts.slice(11,19)+' · '+location.pathname;
-      }catch(e){t.textContent='v53';}
+        t.textContent='v54 · '+ts.slice(11,19)+' · '+location.pathname;
+      }catch(e){t.textContent='v54';}
     }
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',tagInit);} else {tagInit();}
@@ -449,7 +449,6 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 <!-- ===== PAGE: WEIGHT ===== -->
 <div class="module-page active" id="page-weight">
-<div style="background:lime;color:black;padding:20px;text-align:center;font-size:30px;font-weight:bold;border:4px solid red;">⚠️ DEBUG v52：这是 page-weight 容器内顶部<br/>如果你能看到这段绿底红边 = HTML 已加载 + 容器已 display:block<br/>否则 = HTML 没到这</div>
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">每日体重</span></div>
 
 <div class="sec-card">
@@ -1227,7 +1226,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 53;
+var APP_VERSION = 54;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
