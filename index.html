@@ -1169,9 +1169,10 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 
 <div class="fin-card">
 <h4>&#128221; 盘面复盘</h4>
-<div class="review-text" id="mktReviewText"></div>
-</div>
-</div>
+      <div class="review-text" id="mktReviewText"></div>
+    </div>
+  </div>
+</div><!-- /page-market (补回缺失的闭合标签，否则 page-dialog/page-gem 会被嵌套进 page-market 而永远隐藏) -->
 
 
 <div class="module-page" id="page-dialog" style="display:none">
@@ -3611,7 +3612,10 @@ function initMarketPage(){
   document.getElementById('mktCloseDate').textContent='\uFF08'+ds+'\uFF09';
   renderMktClose();
   renderMktReview();
-  }catch(e){console.warn('initMarketPage error:',e);}
+  }catch(e){
+    // 不再静默吞错：把真实错误打到红色横幅，方便真机定位
+    try{ if(window.showErr) window.showErr('市场复盘渲染失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):'')); else console.error('initMarketPage error:',e); }catch(_){ console.error('initMarketPage error:',e); }
+  }
 }
 function renderMktClose(){
   var items=[
