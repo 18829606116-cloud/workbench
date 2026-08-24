@@ -360,6 +360,21 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 .gem-modal-foot{display:flex;gap:10px;margin-top:14px;padding-top:10px;border-top:1px solid var(--border)}
 .gem-modal-foot .btn{flex:1;padding:10px;font-weight:600}
 
+/* 累计拆下弹窗（蓝底白字，对齐神兵拆解样式） */
+.gem-breakdown-box{background:#3d6da3;color:#fff;padding:18px 20px 16px}
+.gem-breakdown-box .gem-modal-title{color:#fff;font-size:18px;font-weight:700}
+.gem-breakdown-box .gem-modal-head{border-bottom:1px solid rgba(255,255,255,.25);margin-bottom:8px;padding-bottom:8px}
+.gem-breakdown-box .gem-modal-close{color:#fff;font-size:24px;line-height:1;cursor:pointer;user-select:none;padding:0 4px}
+.gem-breakdown-list{flex:1;overflow-y:auto;padding:4px 0 6px;line-height:1.85;font-size:14px}
+.gem-breakdown-row{display:flex;justify-content:space-between;align-items:baseline;padding:2px 2px;gap:12px}
+.gem-breakdown-row .gem-bd-name{flex:1}
+.gem-breakdown-row .gem-bd-amt{font-variant-numeric:tabular-nums;opacity:.95;white-space:nowrap}
+.gem-breakdown-total{font-size:15px;padding:8px 0 4px;border-top:1px solid rgba(255,255,255,.25);margin-top:8px;display:flex;align-items:baseline;gap:6px}
+.gem-breakdown-total .gem-bd-total-num{color:#ffd54f;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.gem-breakdown-note{font-size:12px;opacity:.78;margin-top:6px}
+.gem-breakdown-link{margin-top:10px;font-size:13px;color:#ffd54f;cursor:pointer;text-align:center;padding:8px;border-radius:6px;background:rgba(255,255,255,.06);transition:.15s}
+.gem-breakdown-link:hover{background:rgba(255,255,255,.12);text-decoration:underline}
+
 </style>
 </head>
 
@@ -374,8 +389,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     if(t){
       try{
         var ts=new Date().toISOString();
-        t.textContent='v60 · '+ts.slice(11,19)+' · '+location.pathname;
-      }catch(e){t.textContent='v60';}
+        t.textContent='v61 · '+ts.slice(11,19)+' · '+location.pathname;
+      }catch(e){t.textContent='v61';}
     }
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',tagInit);} else {tagInit();}
@@ -1191,7 +1206,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   <div class="gem-control-row">
     <label>折损率 <input type="number" id="gemRate" value="68" min="0" max="100" step="1" oninput="onGemRateChange()"> %</label>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn btn-primary btn-sm" onclick="calcGem()">&#9881; 计算</button>
+      <button class="btn btn-primary btn-sm" onclick="showGemBreakdownModal()">&#9881; 计算</button>
       <button class="btn btn-sm" onclick="resetGem()">&#8634; 重置</button>
     </div>
   </div>
@@ -1235,6 +1250,21 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   </div>
 </div>
 
+<!-- ===== GEM BREAKDOWN MODAL (累计拆下) ===== -->
+<div class="gem-modal" id="gemBreakdownModal">
+  <div class="gem-modal-mask" onclick="closeGemBreakdownModal()"></div>
+  <div class="gem-modal-box gem-breakdown-box">
+    <div class="gem-modal-head">
+      <span class="gem-modal-title">累计拆下：</span>
+      <span class="gem-modal-close" onclick="closeGemBreakdownModal()">×</span>
+    </div>
+    <div class="gem-breakdown-list" id="gemBreakdownList"></div>
+    <div class="gem-breakdown-total">共计：<b class="gem-bd-total-num" id="gemBreakdownTotal">0.00</b>元</div>
+    <div class="gem-breakdown-note">以上结果仅供参考，请以实际情况为准。</div>
+    <div class="gem-breakdown-link" onclick="closeGemBreakdownModal();switchPage('gold')">点击前往神兵拆解，计算总价→</div>
+  </div>
+</div>
+
 <!-- ===== BOTTOM NAV ===== -->
 <nav class="bottom-nav">
 <div class="nav-item active" data-mod="weight" onclick="switchPage('weight')"><span class="nav-icon">&#9878;</span>体重</div>
@@ -1250,7 +1280,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 60;
+var APP_VERSION = 61;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -8919,6 +8949,60 @@ function resetGem(){
   GEMS.forEach(function(g){st.counts[g.name]={1:0,2:0,3:0,4:0,5:0};});
   saveGemState(st);
   renderGem();
+}
+
+// ===== 累计拆下 弹窗（神兵拆解风格：逐种宝石精粹数 × 单价 = 小计，全部相加得总金额） =====
+function showGemBreakdownModal(){
+  try{
+    // 先同步刷新底部实时统计（不阻塞弹窗）
+    calcGem();
+    var st=loadGemState();
+    var prices=loadGemPrices();
+    var rateEl=document.getElementById('gemRate');
+    var rate=rateEl?parseFloat(rateEl.value):st.rate;
+    if(isNaN(rate))rate=0;
+    var html='';
+    var total=0;
+    var visibleCount=0;
+    GEMS.forEach(function(g){
+      // 该宝石所有等级的精粹颗数合计
+      var rawEssence=0;
+      for(var l=1;l<=GEM_LEVELS;l++){
+        var c=(st.counts[g.name]&&st.counts[g.name][l])||0;
+        rawEssence += c*gemEssenceAtLevel(g,l);
+      }
+      if(rawEssence<=0)return; // 没有精粹的不列
+      // 折损后精粹颗数：向下取整，舍弃小数，不进一
+      var finalEssence=Math.floor(rawEssence*rate/100);
+      if(finalEssence<=0)return; // 折完为 0 也不列
+      var price=(prices[g.name]!=null)?prices[g.name]:g.price;
+      // 小计：精粹数 × 单价，向下取整到分
+      var sub=Math.floor(finalEssence*price*100)/100;
+      total+=sub;
+      visibleCount++;
+      html+='<div class="gem-breakdown-row">';
+      html+='<span class="gem-bd-name">'+finalEssence+'个'+g.name+'石精粹</span>';
+      html+='<span class="gem-bd-amt">共 '+sub.toFixed(2)+' 元</span>';
+      html+='</div>';
+    });
+    if(visibleCount===0){
+      html='<div class="gem-breakdown-empty" style="opacity:.7;text-align:center;padding:20px 0">暂无精粹数据，请先在下方输入各宝石数量</div>';
+      total=0;
+    }
+    var listEl=document.getElementById('gemBreakdownList');
+    var totEl=document.getElementById('gemBreakdownTotal');
+    if(listEl)listEl.innerHTML=html;
+    if(totEl)totEl.textContent=total.toFixed(2);
+    var modalEl=document.getElementById('gemBreakdownModal');
+    if(modalEl)modalEl.classList.add('show');
+  }catch(e){
+    if(window.showErr) window.showErr('showGemBreakdownModal 失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):''));
+    else console.error(e);
+  }
+}
+function closeGemBreakdownModal(){
+  var modalEl=document.getElementById('gemBreakdownModal');
+  if(modalEl)modalEl.classList.remove('show');
 }
 function saveGemPricesCurrent(){
   var st=loadGemState();
