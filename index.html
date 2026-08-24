@@ -374,8 +374,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     if(t){
       try{
         var ts=new Date().toISOString();
-        t.textContent='v59 · '+ts.slice(11,19)+' · '+location.pathname;
-      }catch(e){t.textContent='v59';}
+        t.textContent='v60 · '+ts.slice(11,19)+' · '+location.pathname;
+      }catch(e){t.textContent='v60';}
     }
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',tagInit);} else {tagInit();}
@@ -1199,7 +1199,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     <button class="btn btn-sm" onclick="saveGemPricesCurrent()">&#128190; 单价保存</button>
     <button class="btn btn-sm" onclick="openGemPriceModal()">&#128181; 区服价格</button>
     <button class="btn btn-sm" onclick="quickSwitchServer('默认区服')">&#127968; 快捷台服</button>
-    <button class="btn btn-sm" onclick="alert('拆号模式：待开发')">&#128296; 拆号模式</button>
+    <button class="btn btn-sm" id="gemModeBtn" onclick="toggleGemMode()">&#128296; 拆号模式</button>
     <button class="btn btn-sm" onclick="alert('新石之灵：待开发')">&#10024; 新石之灵</button>
   </div>
 </div>
@@ -1211,7 +1211,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <div class="sec-card gem-total-card">
   <div class="gem-total-line">毛估总值：<b id="gemRawTotal">0.00</b> 元</div>
   <div class="gem-total-line final">折损后估价：<b id="gemFinalTotal">0.00</b> 元 （<span id="gemRateShow">68</span>%）</div>
-  <div class="gem-tip">宝石精粹数：1 级 = 基础数，2 级 = ×2，3 级 = ×4，4 级 = ×8，5 级 = ×16。估价 = 颗数 × 精粹数 × 单价 × 折损率。</div>
+  <div class="gem-total-line">拆解后精粹：<b id="gemFinalEssence">0</b> 颗 <span class="gem-tip-inline">（颗数 × 折损率，舍弃小数不进一）</span></div>
+  <div class="gem-tip">宝石精粹数：1 级 = 基础数，2 级 = ×2，3 级 = ×4，4 级 = ×8，5 级 = ×16。估价 = 颗数 × 精粹数 × 单价 × 折损率；拆解结果一律向下取整，不四舍五入。</div>
 </div>
 </div>
 
@@ -1249,7 +1250,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 59;
+var APP_VERSION = 60;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -8864,21 +8865,53 @@ function onGemRateChange(){
   st.rate=v;saveGemState(st);
   calcGem();
 }
+function setGemRate(v){
+  var rateEl=document.getElementById('gemRate');
+  if(rateEl)rateEl.value=v;
+  var st=loadGemState(); st.rate=v; saveGemState(st);
+  calcGem();
+}
+function toggleGemMode(){
+  var btn=document.getElementById('gemModeBtn');
+  var rateEl=document.getElementById('gemRate');
+  if(!btn||!rateEl)return;
+  if(btn.textContent.indexOf('拆号')>=0){
+    // 点击「拆号模式」→ 折损率 68%，按钮翻转成「打造模式」
+    setGemRate(68);
+    btn.textContent='打造模式';
+  }else{
+    // 点击「打造模式」→ 折损率 100%，按钮翻转成「拆号模式」
+    setGemRate(100);
+    btn.textContent='拆号模式';
+  }
+}
 function calcGem(){
   var st=loadGemState();
   var prices=loadGemPrices();
-  var raw=0;
-  GEMS.forEach(function(g){raw+=gemSubtotal(prices,st.counts,g);});
+  var raw=0, totalEssence=0;
+  GEMS.forEach(function(g){
+    raw+=gemSubtotal(prices,st.counts,g);
+    for(var l=1;l<=GEM_LEVELS;l++){
+      var c=(st.counts[g.name]&&st.counts[g.name][l])||0;
+      totalEssence+=c*gemEssenceAtLevel(g,l);
+    }
+  });
   var rateEl=document.getElementById('gemRate');
   var rate=rateEl?parseFloat(rateEl.value):st.rate;
   if(isNaN(rate))rate=0;
+  // 折损后估价：乘以折损率后向下取整（舍弃小数，不进一）
   var final=raw*rate/100;
+  final=Math.floor(final*100)/100;
+  // 拆解后精粹颗数：颗数 × 折损率，向下取整（例：独山玉 42 × 0.68 = 28.56 → 28）
+  var finalEssence=Math.floor(totalEssence*rate/100);
   var rawEl=document.getElementById('gemRawTotal');
   var finEl=document.getElementById('gemFinalTotal');
   var rateShowEl=document.getElementById('gemRateShow');
+  var essEl=document.getElementById('gemFinalEssence');
   if(rawEl)rawEl.textContent=raw.toFixed(2);
   if(finEl)finEl.textContent=final.toFixed(2);
   if(rateShowEl)rateShowEl.textContent=rate;
+  if(essEl)essEl.textContent=finalEssence;
 }
 function resetGem(){
   if(!confirm('重置所有宝石数量为 0？'))return;
