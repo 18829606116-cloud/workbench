@@ -371,6 +371,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 .gem-price-unit{color:var(--sub);font-size:13px;width:24px}
 .gem-modal-foot{display:flex;gap:10px;margin-top:14px;padding-top:10px;border-top:1px solid var(--border)}
 .gem-modal-foot .btn{flex:1;padding:10px;font-weight:600}
+.wb-cf-msg{font-size:14px;line-height:1.7;color:var(--text);padding:6px 2px;white-space:pre-line}
 
 /* 累计拆下弹窗（蓝底白字，对齐神兵拆解样式） */
 .gem-breakdown-box{background:#3d6da3;color:#fff;padding:18px 20px 16px}
@@ -384,6 +385,11 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 .gem-breakdown-total{font-size:15px;padding:8px 0 4px;border-top:1px solid rgba(255,255,255,.25);margin-top:8px;display:flex;align-items:baseline;gap:6px}
 .gem-breakdown-total .gem-bd-total-num{color:#ffd54f;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
 .gem-breakdown-note{font-size:12px;opacity:.78;margin-top:6px}
+.gem-bd-discount-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-size:13px;color:#e8ffe8}
+.gem-bd-discount-label{opacity:.85}
+.gem-bd-discount-input{width:64px;padding:6px 4px;border:1px solid rgba(255,255,255,.35);border-radius:6px;background:#fff;color:#1b3a1b;font-size:14px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.gem-bd-discount-input::placeholder{color:#999}
+.gem-bd-discount-unit{opacity:.85}
 .gem-breakdown-link{margin-top:10px;font-size:13px;color:#ffd54f;cursor:pointer;text-align:center;padding:8px;border-radius:6px;background:rgba(255,255,255,.06);transition:.15s}
 .gem-breakdown-link:hover{background:rgba(255,255,255,.12);text-decoration:underline}
 
@@ -418,6 +424,21 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 .sword-extras .sword-extra-title{font-size:13px;color:#e84c4c;font-weight:600;margin-bottom:6px}
 .sword-extras .sword-extra-card input{width:100%;border:1px solid #b6dba6;border-radius:6px;background:#fff;padding:6px 4px;font-size:15px;color:#1b3a1b;text-align:center;font-variant-numeric:tabular-nums}
 .sword-extras .sword-extra-card input::placeholder{color:#bdbdbd;font-style:italic}
+/* 精粹价值（多档）卡片 */
+.sword-extra-sub{font-size:11px;color:#7fc66f;font-weight:500;margin-left:4px}
+.sword-essence-rows{display:flex;flex-direction:column;gap:6px;margin:2px 0 6px}
+.sword-essence-empty{font-size:12px;color:#9bbf90;padding:8px 2px;line-height:1.4}
+.sword-essence-row{display:grid;grid-template-columns:1fr 1.1fr auto auto;gap:4px;align-items:center}
+.sword-essence-default{background:rgba(255,255,255,.35);border-radius:6px;padding:2px;position:relative}
+.sword-essence-default::before{content:"默认";position:absolute;top:-6px;left:2px;font-size:9px;color:#4a7a4a;background:#fff;border:1px solid #b6dba6;border-radius:8px;padding:0 4px;line-height:1.4}
+.sword-essence-label{font-size:12px;color:#1b3a1b;font-weight:600;text-align:left;padding-left:22px}
+.sword-essence-row input[type="number"]{width:100%;border:1px solid #b6dba6;border-radius:6px;background:#fff;padding:5px 2px;font-size:13px;color:#1b3a1b;text-align:center;font-variant-numeric:tabular-nums;min-width:0}
+.sword-essence-rate-wrap{font-size:11px;color:#7a9b76;display:flex;align-items:center;gap:2px;white-space:nowrap}
+.sword-essence-rate-wrap input[type="number"]{width:36px;padding:4px 2px;font-size:12px}
+.sword-essence-del{background:#fde0e0;border:1px solid #f3a8a8;color:#c33;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:14px;line-height:1;padding:0}
+.sword-essence-del:hover{background:#f8c8c8;border-color:#e57373}
+.sword-essence-add{width:100%;background:rgba(255,255,255,.55);border:1px dashed #7fc66f;border-radius:6px;color:#1b3a1b;font-size:13px;padding:6px 0;cursor:pointer;transition:.15s}
+.sword-essence-add:hover{background:rgba(255,255,255,.85);border-style:solid}
 .sword-total-card{margin:10px 12px 8px;padding:10px 14px;background:rgba(255,255,255,.5);border:1px solid #b6dba6;border-radius:8px;color:#1b3a1b}
 .sword-total-card .sword-total-line{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:15px}
 .sword-total-card .sword-total-line b{color:#1b3a1b;font-weight:700;font-variant-numeric:tabular-nums}
@@ -1295,154 +1316,208 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </div>
 
 <!-- ===== PAGE: GEM DISASSEMBLY ===== -->
+<!-- ===== PAGE: 账号估价（估值单） ===== -->
 <div class="module-page" id="page-gem" style="display:none">
-<div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">&#128142; 宝石拆解</span></div>
+  <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">&#128176; 账号估价</span></div>
 
-<div class="sec-card">
-  <div class="gem-control-row">
-    <label>折损率 <input type="number" id="gemRate" value="68" min="0" max="100" step="1" oninput="onGemRateChange()"> %</label>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn btn-primary btn-sm" onclick="showGemBreakdownModal()">&#9881; 计算</button>
-      <button class="btn btn-sm" onclick="resetGem()">&#8634; 重置</button>
+  <style>
+    .sheet-manage-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .sheet-manage-title{font-weight:700;color:#1b3a1b}
+    .sheet-list{display:flex;flex-direction:column;gap:8px}
+    .sheet-item{border:1px solid #e6c98a;border-radius:10px;padding:8px 10px;background:#fffdf6;cursor:pointer;transition:.12s}
+    .sheet-item:hover{border-color:#d9a441}
+    .sheet-item-active{border-color:#2e8b57;background:#eafaf0;box-shadow:0 0 0 2px rgba(46,139,87,.18)}
+    .sheet-item-name{font-weight:600;color:#1b3a1b}
+    .sheet-item-meta{font-size:12px;color:#7a6a3a;margin-top:2px}
+    .sheet-manage-tip{font-size:12px;color:#9a8a5a;margin-top:8px;line-height:1.5}
+    .sheet-edit-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+    .sheet-name-input{flex:1;min-width:120px;padding:7px 9px;border:1px solid #e6c98a;border-radius:8px;font-size:14px;background:#fffdf6}
+    .sheet-rate-label{font-size:13px;color:#7a6a3a;display:flex;align-items:center;gap:4px}
+    .sheet-rate-input{width:54px;padding:6px;border:1px solid #e6c98a;border-radius:7px;text-align:center;font-size:14px;background:#fffdf6;font-weight:700;color:#8a6a1b}
+    .sheet-sec-title{font-weight:700;color:#2e8b57;margin:12px 0 6px;font-size:14px;border-left:3px solid #2e8b57;padding-left:7px}
+    .sheet-gem-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .sheet-gem-card{border:1px solid #eee;border-radius:9px;padding:7px 8px;background:#fbfdf9}
+    .sheet-gem-card.is-empty{background:#f4f4f4;border-color:#e2e2e2;opacity:.55}
+    .sheet-gem-card.is-empty .sheet-gem-name{color:#888}
+    .sheet-gem-card.is-empty .sheet-gem-price{color:#aaa}
+    .sheet-gem-card.is-empty .sheet-gem-foot{color:#aaa}
+    .sheet-gem-name{font-size:13px;font-weight:600;color:#1b3a1b;display:flex;justify-content:space-between;align-items:center}
+    .sheet-gem-price{font-size:11px;color:#9a8a5a;font-weight:500}
+    .sheet-gem-levels{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+    .sheet-gem-row{display:flex;align-items:center;gap:2px;background:#fff;border:1px solid #eee;border-radius:6px;padding:1px 3px}
+    .sheet-gem-row span{font-size:11px;color:#7a6a3a;width:18px;text-align:center}
+    .sheet-gem-row button{width:20px;height:20px;border:none;border-radius:5px;background:#f0e6cf;color:#8a6a1b;font-weight:700;cursor:pointer;line-height:1}
+    .sheet-gem-row input{width:54px;padding:3px 2px;border:1px solid #eee;border-radius:5px;font-size:12px;text-align:center}
+    .sheet-sword-bar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:6px;font-size:13px;color:#7a6a3a}
+    .sheet-sword-bar select,.sheet-sword-bar input{padding:5px 6px;border:1px solid #e6c98a;border-radius:7px;background:#fffdf6}
+    .sheet-sword-table{width:100%;border-collapse:collapse;font-size:13px}
+    .sheet-sword-table th{text-align:left;color:#7a6a3a;font-weight:600;padding:4px 6px;border-bottom:1px solid #eee}
+    .sheet-sword-table td{padding:4px 6px;border-bottom:1px solid #f3f3f3}
+    .sheet-sword-table input{width:84px;padding:5px 6px;border:1px solid #e6c98a;border-radius:7px;text-align:center;background:#fffdf6}
+    .sheet-extras{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .sheet-extra-item{display:flex;flex-direction:column;gap:3px}
+    .sheet-extra-item label{font-size:12px;color:#7a6a3a}
+    .sheet-extra-item input{width:110px;padding:6px 8px;border:1px solid #e6c98a;border-radius:7px;background:#fffdf6}
+    .sheet-subtotal{margin-top:12px;padding:10px;border-radius:10px;background:#eafaf0;text-align:right;font-size:15px;color:#1b3a1b}
+    .sheet-subtotal b{font-size:20px;color:#2e8b57}
+    .combine-head{font-weight:700;color:#1b3a1b;margin-bottom:8px}
+    .combine-list{display:flex;flex-direction:column;gap:5px}
+    .combine-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px dashed #eee}
+    .combine-row i{color:#9a8a5a;font-style:normal;font-size:12px}
+    .combine-total{margin-top:8px;text-align:right;font-size:16px;color:#1b3a1b}
+    .combine-total b{font-size:22px;color:#2e8b57}
+    .combine-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .account-records{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+    .acc-rec{border:1px solid #eee;border-radius:9px;padding:8px 10px;background:#fbfdf9}
+    .acc-rec-time{font-size:12px;color:#9a8a5a}
+    .acc-rec-detail{font-size:12px;color:#5a5a4a;margin:3px 0;line-height:1.4}
+    .acc-rec-total{font-weight:700;color:#1b3a1b}
+    .price-row{display:flex;align-items:center;justify-content:space-between;padding:5px 2px;border-bottom:1px solid #f3f3f3}
+    .price-row span{font-size:13px;color:#1b3a1b}
+    .price-row input{width:90px;padding:5px 6px;border:1px solid #e6c98a;border-radius:7px;text-align:center;background:#fffdf6}
+    .btn-danger-outline{border:1px solid #e08484;color:#c0392b;background:#fff}
+    .empty-hint{padding:18px;text-align:center;color:#9a8a5a;font-size:13px}
+    .sheet-gem-per{font-size:10px;color:#9a8a5a;width:30px;text-align:center;white-space:nowrap}
+    .sheet-gem-foot{font-size:11px;color:#7a6a3a;margin-top:4px;padding-top:4px;border-top:1px dashed #eee}
+    .sheet-gem-foot b{color:#2e8b57;font-size:13px}
+    .acc-sh-name{width:120px;padding:3px 6px;border:1px solid #e6c98a;border-radius:5px;background:#fffdf6;font-size:13px;font-weight:700}
+    .acc-sh input[type=number]{width:46px;padding:2px 4px;border:1px solid #e6c98a;border-radius:5px;text-align:center;background:#fffdf6;font-size:12px}
+    .acc-sh input[type=number]:focus{outline:none;border-color:#b8860b;background:#fffbe6}
+    .acc-sh select{padding:2px 4px;border:1px solid #e6c98a;border-radius:5px;background:#fffdf6;font-size:12px}
+    .acc-gem-lvlin{display:inline-flex;align-items:center;gap:2px;margin:0 2px;font-size:11px;color:#5a5a4a}
+    .acc-row{padding:3px 0;border-bottom:1px dashed #f3f3f3;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px}
+    .acc-row>span{flex-shrink:0}
+    .acc-gem-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .acc-gem-card{border:1px solid #eee;border-radius:9px;padding:6px 7px;background:#fbfdf9}
+    .acc-gem-card .acc-gem-h{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#1b3a1b}
+    .acc-gem-card .acc-gem-p{font-size:11px;color:#9a8a5a;font-weight:500}
+    .acc-gem-card.is-empty{background:#f4f4f4;border-color:#e2e2e2;opacity:.6}
+    .acc-gem-card.is-empty .acc-gem-h{color:#888}
+    .acc-gem-card.is-empty .acc-gem-p{color:#aaa}
+    .acc-gem-card.is-empty .acc-gem-ft{color:#aaa;border-top-color:#e2e2e2}
+    .acc-gem-card.is-empty .acc-gem-ft b{color:#888}
+    .acc-gem-card .acc-gem-lvs{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+    .acc-gem-card .acc-lv{display:inline-flex;align-items:center;gap:1px;background:#fff;border:1px solid #eee;border-radius:5px;padding:1px 3px}
+    .acc-gem-card .acc-lv span{font-size:10px;color:#7a6a3a;width:18px;text-align:center}
+    .acc-gem-card .acc-lv input{width:44px;padding:2px;border:1px solid #eee;border-radius:4px;font-size:11px;text-align:center;background:#fffdf6}
+    .acc-gem-card .acc-gem-ft{font-size:11px;color:#7a6a3a;margin-top:4px;padding-top:4px;border-top:1px dashed #eee}
+    .acc-gem-card .acc-gem-ft b{color:#2e8b57;font-size:13px}
+    .acc-sword-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .acc-sword-card{border:1px solid #eee;border-radius:9px;padding:6px 7px;background:#fbfdf9}
+    .acc-sword-card .acc-sw-h{display:flex;justify-content:space-between;align-items:center;gap:4px;font-size:13px;font-weight:700;color:#1b3a1b}
+    .acc-sword-card .acc-sw-p{font-size:11px;color:#9a8a5a;font-weight:500;white-space:nowrap}
+    .acc-sword-card .acc-sw-in{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+    .acc-sword-card .acc-sw-lv{display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid #eee;border-radius:5px;padding:1px 4px}
+    .acc-sword-card .acc-sw-lv span{font-size:10px;color:#7a6a3a;text-align:center}
+    .acc-sword-card .acc-sw-lv input{width:56px;padding:2px;border:1px solid #eee;border-radius:4px;font-size:11px;text-align:center;background:#fffdf6}
+    .acc-sword-card .acc-sw-ft{font-size:11px;color:#7a6a3a;margin-top:4px;padding-top:4px;border-top:1px dashed #eee}
+    .acc-sword-card .acc-sw-ft b{color:#2e8b57;font-size:13px}
+    .acc-sword-card.is-empty{background:#f4f4f4;border-color:#e2e2e2;opacity:.6}
+    .acc-sword-card.is-empty .acc-sw-h{color:#888}
+    .acc-sword-card.is-empty .acc-sw-p{color:#aaa}
+    .acc-sword-card.is-empty .acc-sw-ft{color:#aaa;border-top-color:#e2e2e2}
+    .acc-sword-card.is-empty .acc-sw-ft b{color:#888}
+    .acc-sh-foot{font-size:12px;color:#7a6a3a;margin-top:6px;padding-top:4px;border-top:1px solid #f3eed8}
+    .acc-sh-foot b{color:#2e8b57;font-size:14px}
+    .acc-toast{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;color:#fff;background:#2e8b57;opacity:0;transition:opacity .25s}
+    .acc-toast-show{opacity:1}
+    .acc-detail{padding:6px 4px;background:rgba(255,255,255,.45);border-radius:6px;margin-top:6px}
+    .sheet-rate-label{font-size:13px;color:#7a6a3a;display:flex;align-items:center;gap:4px}
+    .combine-sub{font-size:11px;color:#9a8a5a;padding:2px 0 4px 2px}
+    .acc-sh{border-top:1px dashed #eee;margin-top:6px;padding-top:6px}
+    .acc-sh:first-child{border-top:none;margin-top:0;padding-top:0}
+    .acc-sh-head{font-weight:600;color:#1b3a1b;font-size:13px}
+    .acc-sh-rate{font-size:11px;color:#9a8a5a;font-weight:500;margin-left:4px}
+    .acc-sh-sub{font-size:11px;color:#2e8b57;font-weight:600;margin:5px 0 2px}
+    .acc-row{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:#5a5a4a;padding:1px 0;align-items:center}
+    .acc-row span{background:#f5f8f3;border-radius:5px;padding:1px 6px;font-size:11px}
+    .acc-sh-foot{font-size:11px;color:#7a6a3a;margin-top:5px;font-weight:600}
+    .acc-detail{padding:6px 2px 2px}
+  </style>
+
+  <!-- 估值单管理 -->
+  <div class="sec-card">
+    <div class="sheet-manage-head">
+      <span class="sheet-manage-title">估值单（按折损率分批估价）</span>
+      <button class="btn btn-primary btn-sm" onclick="newSheet()">＋ 新建估值单</button>
     </div>
-  </div>
-  <div class="gem-actions">
-    <button class="btn btn-sm btn-outline btn-outline-red" onclick="saveGemPricesCurrent()">&#128190; 单价保存</button>
-    <button class="btn btn-sm btn-outline btn-outline-green" onclick="openGemPriceModal()">&#128181; 区服价格</button>
-    <button class="btn btn-sm btn-outline btn-outline-teal" onclick="quickSwitchServer('默认区服')">&#127968; 快捷石灵</button>
-    <button class="btn btn-sm btn-outline btn-outline-purple" id="gemModeBtn" onclick="toggleGemMode()">&#128296; 拆号模式</button>
-    <button class="btn btn-sm btn-outline btn-outline-pink" onclick="alert('新石之灵：待开发')">&#10024; 新石之灵</button>
-    <button class="btn btn-sm btn-outline" style="border-color:#e84c4c;color:#e84c4c;font-weight:600" onclick="switchPage('sword')">&#128299; 神兵拆解</button>
-  </div>
-</div>
-
-<div class="gem-active-row">当前区服：<b id="gemActiveServer">默认区服</b></div>
-
-<div id="gemList"></div>
-
-<div class="sec-card gem-total-card">
-  <div class="gem-total-line">毛估总值：<b id="gemRawTotal">0.00</b> 元</div>
-  <div class="gem-total-line final">折损后估价：<b id="gemFinalTotal">0.00</b> 元 <span class="gem-tip-inline">（各宝石独立折损率，分别向下取整）</span></div>
-  <div class="gem-total-line">拆解后精粹：<b id="gemFinalEssence">0</b> 颗 <span class="gem-tip-inline">（颗数 × 折损率，舍弃小数不进一）</span></div>
-  <div class="gem-tip">宝石精粹数：1 级 = 基础数，2 级 = ×2，3 级 = ×4，4 级 = ×8，5 级 = ×16。估价 = 颗数 × 精粹数 × 单价 × 折损率；拆解结果一律向下取整，不四舍五入。</div>
-</div>
-</div>
-
-<!-- ===== PAGE: SWORD DISASSEMBLY (神兵拆解) ===== -->
-<div class="module-page" id="page-sword" style="display:none">
-<div class="sword-wrap">
-
-  <div class="sword-top">
-    <span class="sword-back" onclick="switchPage('gem')">&larr;</span>
-    <span class="sword-title">神兵拆解</span>
-    <span class="sword-top-right">
-      <span class="sword-extra-btn" onclick="alert('更多功能：待开发')" title="更多">···</span>
-      <span class="sword-extra-btn" onclick="openSwordRecords()" title="打开记录">&#9201;</span>
-    </span>
+    <div id="sheetList" class="sheet-list"></div>
+    <div class="sheet-manage-tip">每单绑定一个折损率：先估 100% 的资产、再估 68% 的资产…… 最后点「合成账号记录」汇总成一条总估价。每个估值单里同时含宝石与神兵，都按本单折损率折算。</div>
   </div>
 
-  <div class="sword-level-row">
-    <div class="sword-level">等级：
-      <select id="swordLevelSel" class="sword-level-select" onchange="selectSwordLevel(parseInt(this.value,10))"></select>
+  <!-- 当前估值单编辑 -->
+  <div class="sec-card" id="sheetEditor">
+    <div class="sheet-edit-head">
+      <input type="text" id="sheetName" class="sheet-name-input" placeholder="估值单名称" oninput="onSheetNameChange()">
+      <label class="sheet-rate-label">宝石折损率
+        <input type="number" id="sheetGemRate" min="0" max="100" step="1" value="100" class="sheet-rate-input" oninput="onSheetGemRateChange()"> %</label>
+      <label class="sheet-rate-label">神兵折损率
+        <input type="number" id="sheetSwordRate" min="0" max="100" step="1" value="100" class="sheet-rate-input" oninput="onSheetSwordRateChange()"> %</label>
+      <button class="btn btn-sm btn-danger-outline" onclick="deleteSheet()">删除本单</button>
     </div>
-    <button class="sword-record-btn" onclick="openSwordRecords()">打开记录</button>
+
+    <div class="sheet-sec-title">宝石（按本单折损率折算）</div>
+    <div id="sheetGemList" class="sheet-gem-list"></div>
+
+    <div class="sheet-sec-title">神兵（按本单折损率折算）</div>
+    <div class="sheet-sword-bar">
+      <label>神兵等级档
+        <select id="sheetSwordLevel" onchange="onSwordLevelChange()"></select></label>
+      <label>单价
+        <input type="number" id="sheetSwordPrice" min="0" step="0.01" value="0.2" oninput="onSwordPriceChange()"> 元</label>
+    </div>
+    <table class="sheet-sword-table">
+      <thead><tr><th>神兵等级</th><th>培养消耗</th><th>件数</th></tr></thead>
+      <tbody id="sheetSwordTbody"></tbody>
+    </table>
+
+    <div class="sheet-sec-title">其它资产（按本单折损率折算）</div>
+    <div id="sheetExtras" class="sheet-extras"></div>
+
+    <div class="sheet-subtotal">本单折损后估价：<b id="sheetSubtotal">0.00</b> 元</div>
   </div>
 
-  <table class="sword-table">
-    <thead>
-      <tr><th>神兵等级</th><th>培养消耗</th><th>累计件数</th><th>折损率</th></tr>
-    </thead>
-    <tbody id="swordTbody"></tbody>
-  </table>
-
-  <div class="sword-quick-row">
-    折损率（<input type="number" id="swordRate" value="78" min="0" max="100" step="1" style="width:50px;padding:3px 6px;border:1px solid #b6dba6;border-radius:6px;text-align:center;font-size:14px" oninput="onSwordRateChange()"> ） %
+  <!-- 合成账号记录 -->
+  <div class="sec-card combine-card">
+    <div class="combine-head">合成账号记录</div>
+    <div id="combineList" class="combine-list"></div>
+    <div class="combine-total">账号总估价：<b id="combineTotal">0.00</b> 元</div>
+    <div class="combine-actions">
+      <button class="btn btn-success" onclick="saveAccountRecord()">保存账号记录</button>
+      <button class="btn btn-sm btn-danger-outline" onclick="resetActiveSheetQty()">重置当前单</button>
+      <button class="btn btn-sm" onclick="openPriceModal()">&#128181; 设置宝石单价</button>
+    </div>
+    <div id="accountRecords" class="account-records"></div>
   </div>
-
-  <div class="sword-quick-row">
-    单价（<input type="number" id="swordPrice" value="0.2" min="0" step="0.01" style="width:60px;padding:3px 6px;border:1px solid #b6dba6;border-radius:6px;text-align:center;font-size:14px" oninput="onSwordPriceChange()"> ） 元
-    <select id="swordPriceQuick" class="sword-price-quick" onchange="selectSwordPrice(parseFloat(this.value))"></select>
-    <button class="btn btn-sm" style="background:linear-gradient(180deg,#ff9d9d,#ff6a6a);color:#fff;border:none;padding:6px 14px;border-radius:18px;font-weight:700;cursor:pointer;margin-left:6px" onclick="calcSwordAndShowModal()">计算</button>
-    <button class="btn btn-sm" style="background:#fff;border:1px solid #7fc66f;color:#3a8a3a;padding:6px 14px;border-radius:18px;font-weight:700;cursor:pointer" onclick="resetSword()">重置</button>
-    <span class="sword-help" onclick="showSwordHelp()">?</span>
-  </div>
-
-  <div class="sword-extras" id="swordExtras"></div>
-
-  <div class="sword-total-card" id="swordTotalCard">
-    <div class="sword-total-line sword-total-final">折下 <b id="swordTotalCnt">0</b> 个神兵，价值 <b id="swordGrandTotal">0.00</b> 元</div>
-  </div>
-
-  <div class="sword-tip-foot">为方便号价计算-- 增加几项输入框</div>
-
 </div>
-</div>
 
-<!-- ===== GEM PRICE MODAL ===== -->
-<div class="gem-modal" id="gemModal">
-  <div class="gem-modal-mask" onclick="closeGemPriceModal()"></div>
+<!-- ===== 宝石单价设置弹窗 ===== -->
+<div class="gem-modal" id="priceModal">
+  <div class="gem-modal-mask" onclick="closePriceModal()"></div>
   <div class="gem-modal-box">
     <div class="gem-modal-head">
-      <span class="gem-modal-title">快捷设置区服精粹价</span>
-      <span class="gem-modal-close" onclick="closeGemPriceModal()">×</span>
+      <span class="gem-modal-title">设置宝石单价（元 / 精粹）</span>
+      <span class="gem-modal-close" onclick="closePriceModal()">×</span>
     </div>
-    <div class="gem-modal-tabs" id="gemProfileTabs"></div>
-    <div class="gem-modal-tip">修改后记得保存设置</div>
-    <div class="gem-profile-actions" id="gemProfileActions"></div>
-    <div class="gem-price-list" id="gemPriceForm"></div>
+    <div id="priceForm" class="gem-price-list"></div>
     <div class="gem-modal-foot">
-      <button class="btn btn-success" onclick="saveGemProfile()">&#128190; 保存设置</button>
-      <button class="btn btn-primary" onclick="applyGemPrices()">&#10003; 应用价格</button>
+      <button class="btn btn-primary" onclick="savePrices()">保存</button>
     </div>
   </div>
 </div>
 
-<!-- ===== GEM BREAKDOWN MODAL (累计拆下) ===== -->
-<div class="gem-modal" id="gemBreakdownModal">
-  <div class="gem-modal-mask" onclick="closeGemBreakdownModal()"></div>
-  <div class="gem-modal-box gem-breakdown-box">
+<!-- ===== 通用确认/提示弹窗（替换原生 confirm/alert，避免沙箱预览被拦截） ===== -->
+<div class="gem-modal" id="wbConfirmModal">
+  <div class="gem-modal-mask" onclick="wbConfirmCancel()"></div>
+  <div class="gem-modal-box">
     <div class="gem-modal-head">
-      <span class="gem-modal-title">累计拆下：</span>
-      <span class="gem-modal-close" onclick="closeGemBreakdownModal()">×</span>
+      <span class="gem-modal-title" id="wbCfTitle">确认</span>
+      <span class="gem-modal-close" onclick="wbConfirmCancel()">×</span>
     </div>
-    <div class="gem-breakdown-list" id="gemBreakdownList"></div>
-    <div class="gem-breakdown-total">共计：<b class="gem-bd-total-num" id="gemBreakdownTotal">0.00</b>元</div>
-    <div class="gem-breakdown-note">以上结果仅供参考，请以实际情况为准。</div>
-    <div class="gem-breakdown-link" onclick="goSwordFromGemModal()">点击前往神兵拆解，计算总价→</div>
-  </div>
-</div>
-
-<!-- ===== SWORD PRICE DETAIL MODAL (价格详情+保存) ===== -->
-<div class="gem-modal" id="swordPriceDetailModal">
-  <div class="gem-modal-mask" onclick="closeSwordPriceDetail()"></div>
-  <div class="gem-modal-box sword-pd-box">
-    <div class="gem-modal-head">
-      <span class="gem-modal-title">价格详情</span>
-      <span class="gem-modal-close" onclick="closeSwordPriceDetail()">×</span>
-    </div>
-    <div class="sword-pd-list" id="swordPDList"></div>
-    <div class="sword-pd-total"><span>总计：</span><b id="swordPDTotal">0.00</b><span> 元</span></div>
-    <div class="sword-pd-form">
-      <label>角色名 <input type="text" id="swordPDRole" placeholder="角色名（必填）" maxlength="40"></label>
-      <label>备注 <input type="text" id="swordPDNote" placeholder="备注（选填）" maxlength="120"></label>
-      <button class="sword-pd-save" onclick="saveSwordRecord()">保存记录</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SWORD RECORDS LIST MODAL (打开记录) ===== -->
-<div class="gem-modal" id="swordRecordsModal">
-  <div class="gem-modal-mask" onclick="closeSwordRecords()"></div>
-  <div class="gem-modal-box sword-rec-box">
-    <div class="gem-modal-head">
-      <span class="gem-modal-title">保存的记录</span>
-      <span class="gem-modal-close" onclick="closeSwordRecords()">×</span>
-    </div>
-    <div class="sword-rec-list" id="swordRecList"></div>
-    <div class="sword-rec-empty" id="swordRecEmpty" style="display:none">暂无保存的记录</div>
-    <div class="sword-rec-foot" id="swordRecFoot">
-      <button onclick="exportSwordRecords()">导出 JSON</button>
-      <button onclick="clearAllSwordRecords()">清空全部</button>
+    <div class="wb-cf-msg" id="wbCfMsg"></div>
+    <div class="gem-modal-foot">
+      <button class="btn btn-sm" id="wbCfCancel" onclick="wbConfirmCancel()">取消</button>
+      <button class="btn btn-sm btn-primary" id="wbCfOk" onclick="wbConfirmOk()">确定</button>
     </div>
   </div>
 </div>
@@ -1462,7 +1537,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 64;
+var APP_VERSION = 80;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -1554,7 +1629,6 @@ function switchPage(id){
   try{ if(id==='weather')initWeather(); }catch(e){_e('initWeather',e);}
   try{ if(id==='dialog')renderDialog(); }catch(e){_e('renderDialog',e);}
   try{ if(id==='gem')renderGem(); }catch(e){_e('renderGem',e);}
-  try{ if(id==='sword')renderSword(); }catch(e){_e('renderSword',e);}
   try{ if(id==='water')renderWater(); }catch(e){_e('renderWater',e);}
   // 回到顶部（真机一定存在，但仍包 try 防止个别环境抛错阻断）
   try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
@@ -8948,7 +9022,9 @@ function dlgAddToReview(w){
 <!-- DIALOG MODULE END -->
 /* ===================== /Cloud Sync ===================== */
 
-// ============ GEM DISASSEMBLY (宝石拆解) ============
+// ============ 账号估价（估值单模型） ============
+// 模型：一个账号 = 若干「估值单」，每单绑定一个折损率，含宝石/神兵/其它资产；
+//       每单算出折损后小计，所有单「合成」得到账号总估价。
 var GEMS=[
   {name:'偶泊石',qty:30,price:0.5},
   {name:'东陵玉',qty:31,price:2},
@@ -8965,208 +9041,18 @@ var GEMS=[
   {name:'独山玉',qty:42,price:10}
 ];
 var GEM_LEVELS=5;
-var gemEditingProfile='默认区服';
-
 function defaultGemPrices(){var p={};GEMS.forEach(function(g){p[g.name]=g.price;});return p;}
-function loadGemState(){
-  var s=gLS('wb_gem_state')||{};
-  var c=s.counts||{};
-  GEMS.forEach(function(g){if(!c[g.name])c[g.name]={1:0,2:0,3:0,4:0,5:0};});
-  // 每颗宝石独立折损率（向后兼容：旧档无 rates 时用统一 rate 初始化）
-  var rates=s.rates||{};
-  var defRate=(s.rate!=null)?s.rate:68;
-  GEMS.forEach(function(g){ if(rates[g.name]==null) rates[g.name]=defRate; });
-  return {counts:c,rate:defRate,rates:rates,activeProfile:s.activeProfile||'默认区服'};
-}
-function saveGemState(st){
-  var cur=gLS('wb_gem_state')||{};
-  sLS('wb_gem_state',{counts:st.counts,rates:st.rates||{},rate:st.rate!=null?st.rate:68,activeProfile:st.activeProfile||cur.activeProfile||'默认区服'});
-}
 function loadGemPrices(){
   var p=gLS('wb_gem_prices');
   if(!p){p=defaultGemPrices();sLS('wb_gem_prices',p);}
+  // 补全缺失宝石（数据更新时兼容）
+  GEMS.forEach(function(g){if(p[g.name]==null)p[g.name]=g.price;});
   return p;
 }
 function saveGemPrices(p){sLS('wb_gem_prices',p);}
-function loadGemProfiles(){
-  var ps=gLS('wb_gem_profiles');
-  if(!ps){
-    ps=[{name:'默认区服',prices:defaultGemPrices()}];
-    sLS('wb_gem_profiles',ps);
-  }
-  return ps;
-}
-function saveGemProfiles(ps){sLS('wb_gem_profiles',ps);}
 function gemEssenceAtLevel(g,l){return g.qty*Math.pow(2,l-1);}
-function gemSubtotal(prices,counts,g){
-  var t=0;
-  for(var l=1;l<=GEM_LEVELS;l++){
-    var c=(counts[g.name]&&counts[g.name][l])||0;
-    t+=c*gemEssenceAtLevel(g,l)*prices[g.name];
-  }
-  return t;
-}
 
-function renderGem(){
-  var st=loadGemState();
-  var prices=loadGemPrices();
-  var rateEl=document.getElementById('gemRate');
-  if(rateEl)rateEl.value=st.rate;
-  var apEl=document.getElementById('gemActiveServer');
-  if(apEl)apEl.textContent=st.activeProfile||'默认区服';
-  var html='';
-  GEMS.forEach(function(g,gi){
-    html+='<div class="gem-card">';
-    // 左侧：宝石名 + 单价（竖排，居中）
-    html+='<div class="gem-card-left">';
-    html+='<div class="gem-card-name">'+g.name+'精粹</div>';
-    html+='<div class="gem-card-price">单价 <input type="number" data-gem="'+gi+'" value="'+(prices[g.name]!=null?prices[g.name]:g.price)+'" step="0.01" min="0" onchange="updateGemPrice('+gi+',this.value)"> 元</div>';
-    html+='<div class="gem-card-rate">折损率 <input type="number" id="gem-rate-'+gi+'" data-gem-rate="'+gi+'" value="'+(st.rates[g.name]!=null?st.rates[g.name]:68)+'" min="0" max="100" step="1" oninput="onGemCardRateChange('+gi+',this.value)"> %</div>';
-    html+='</div>';
-    // 右侧：5 个等级紧凑行
-    html+='<div class="gem-card-right">';
-    for(var l=1;l<=GEM_LEVELS;l++){
-      var c=(st.counts[g.name]&&st.counts[g.name][l])||0;
-      html+='<div class="gem-row">';
-      html+='<span class="gem-row-name">'+l+'级'+g.name+'</span>';
-      html+='<span class="gem-row-cnt">';
-      html+='<button class="gem-btn-minus" onclick="changeGemCount('+gi+','+l+',-1)">−</button>';
-      html+='<input type="number" id="gem-cnt-'+gi+'-'+l+'" value="'+c+'" min="0" step="1" onfocus="this.select()" onchange="setGemCount('+gi+','+l+',this.value)">';
-      html+='<button class="gem-btn-plus" onclick="changeGemCount('+gi+','+l+',1)">+</button>';
-      html+='<span class="gem-row-unit">颗</span>';
-      html+='</span>';
-      html+='</div>';
-    }
-    html+='</div>'; // /gem-card-right
-    html+='</div>'; // /gem-card
-  });
-  var listEl=document.getElementById('gemList');
-  if(listEl)listEl.innerHTML=html;
-  calcGem();
-}
-
-function updateGemPrice(gi,v){
-  var prices=loadGemPrices();
-  var n=parseFloat(v);if(isNaN(n)||n<0)n=0;
-  prices[GEMS[gi].name]=n;
-  saveGemPrices(prices);
-  refreshSub(gi);
-  calcGem();
-}
-function changeGemCount(gi,l,delta){
-  var st=loadGemState();
-  var cur=(st.counts[GEMS[gi].name][l]||0)+delta;
-  if(cur<0)cur=0;
-  st.counts[GEMS[gi].name][l]=cur;
-  saveGemState(st);
-  var el=document.getElementById('gem-cnt-'+gi+'-'+l);if(el)el.value=cur;
-  refreshSub(gi);
-  calcGem();
-}
-function setGemCount(gi,l,v){
-  var st=loadGemState();
-  var n=parseInt(v);if(isNaN(n)||n<0)n=0;
-  st.counts[GEMS[gi].name][l]=n;
-  saveGemState(st);
-  var el=document.getElementById('gem-cnt-'+gi+'-'+l);if(el)el.value=n;
-  refreshSub(gi);
-  calcGem();
-}
-function refreshSub(gi){
-  var el=document.querySelector('[data-sub="'+gi+'"]');
-  if(!el)return;
-  var prices=loadGemPrices();var st=loadGemState();
-  el.textContent=gemSubtotal(prices,st.counts,GEMS[gi]).toFixed(2);
-}
-// 把顶部「统一折损率」应用到所有宝石（批量）
-function setAllGemRates(v){
-  var st=loadGemState();
-  GEMS.forEach(function(g){ st.rates[g.name]=v; });
-  st.rate=v;
-  saveGemState(st);
-  // 同步每个宝石卡片里的折损率输入框
-  GEMS.forEach(function(g,gi){
-    var el=document.getElementById('gem-rate-'+gi);
-    if(el)el.value=v;
-  });
-  calcGem();
-}
-// 单颗宝石改折损率
-function onGemCardRateChange(gi,v){
-  var st=loadGemState();
-  var n=parseFloat(v);
-  if(isNaN(n))n=0;
-  if(n<0)n=0; if(n>100)n=100;
-  st.rates[GEMS[gi].name]=n;
-  saveGemState(st);
-  calcGem();
-}
-function onGemRateChange(){
-  var v=parseFloat(document.getElementById('gemRate').value);
-  if(isNaN(v))v=0;
-  if(v<0)v=0;if(v>100)v=100;
-  setAllGemRates(v);
-}
-function setGemRate(v){
-  var rateEl=document.getElementById('gemRate');
-  if(rateEl)rateEl.value=v;
-  setAllGemRates(v);
-}
-function toggleGemMode(){
-  var btn=document.getElementById('gemModeBtn');
-  var rateEl=document.getElementById('gemRate');
-  if(!btn||!rateEl)return;
-  if(btn.textContent.indexOf('拆号')>=0){
-    // 点击「拆号模式」→ 折损率 68%，按钮翻转成「打造模式」
-    setAllGemRates(68);
-    btn.textContent='打造模式';
-  }else{
-    // 点击「打造模式」→ 折损率 100%，按钮翻转成「拆号模式」
-    setAllGemRates(100);
-    btn.textContent='拆号模式';
-  }
-}
-function calcGem(){
-  var st=loadGemState();
-  var prices=loadGemPrices();
-  var raw=0, totalEssence=0;          // 未折损
-  var finalValue=0, finalEssence=0;   // 折损后（逐颗宝石分别取整再累加）
-  GEMS.forEach(function(g){
-    var rawValue=gemSubtotal(prices,st.counts,g);   // 该宝石未折损价值
-    raw+=rawValue;
-    var rawEss=0;
-    for(var l=1;l<=GEM_LEVELS;l++){
-      var c=(st.counts[g.name]&&st.counts[g.name][l])||0;
-      rawEss+=c*gemEssenceAtLevel(g,l);
-    }
-    totalEssence+=rawEss;
-    // 该宝石自身的折损率
-    var r=st.rates[g.name];
-    if(r==null)r=st.rate;
-    if(isNaN(r))r=0;
-    // 折损后价值（向下取整到分）
-    finalValue += Math.floor(rawValue*r/100*100+1e-9)/100;
-    // 折损后精粹颗数（向下取整到整数）
-    finalEssence += Math.floor(rawEss*r/100+1e-9);
-  });
-  var rawEl=document.getElementById('gemRawTotal');
-  var finEl=document.getElementById('gemFinalTotal');
-  var essEl=document.getElementById('gemFinalEssence');
-  if(rawEl)rawEl.textContent=raw.toFixed(2);
-  if(finEl)finEl.textContent=finalValue.toFixed(2);
-  if(essEl)essEl.textContent=finalEssence;
-}
-function resetGem(){
-  if(!confirm('重置所有宝石数量为 0？'))return;
-  var st=loadGemState();
-  GEMS.forEach(function(g){st.counts[g.name]={1:0,2:0,3:0,4:0,5:0};});
-  saveGemState(st);
-  renderGem();
-}
-
-// ===== SWORD DISASSEMBLY (神兵拆解) =====
 var SWORD_LEVELS=[69,89,109,129,150];
-// 培养消耗：键 = 神兵档位等级；值 = {1,4,7,10} 四档消耗
 var SWORD_DATA={
   150:{1:289,4:742,7:1765,10:3537},
   129:{1:233,4:600,7:1428,10:2862},
@@ -9174,7 +9060,6 @@ var SWORD_DATA={
    89:{1:165,4:445,7:1078,10:2166},
    69:{1:138,4:374,7:909,10:1837}
 };
-// 附加项（号价补充）：精粹价值/仓库切装/灵兽灵伴/外观家园/灵宝宝珠/其它细节
 var SWORD_EXTRAS=[
   {key:'essence',   label:'精粹价值'},
   {key:'warehouse', label:'仓库、切装'},
@@ -9183,630 +9068,796 @@ var SWORD_EXTRAS=[
   {key:'orb',       label:'灵宝、宝珠'},
   {key:'other',     label:'其它：细节'}
 ];
-// 快捷单价 0.10 ~ 0.30（步进 0.01），下拉直接选
-var SWORD_PRICES=[];
-for(var _p=10;_p<=30;_p++){SWORD_PRICES.push((_p/100).toFixed(2));}
+var SWORD_PRICES=[];for(var _p=10;_p<=30;_p++){SWORD_PRICES.push((_p/100).toFixed(2));}
 
-function loadSwordState(){
-  var s=null;
-  try{var raw=localStorage.getItem('wb_sword_state');if(raw)s=JSON.parse(raw);}catch(_){}
-  s=s||{};
-  // 每档独立折损率（向后兼容：旧档无 rates 时用统一 rate 初始化）
-  var def=(s.rate!=null)?s.rate:78;
-  var rates=s.rates||{};
-  [1,4,7,10].forEach(function(l){ if(rates[l]==null) rates[l]=def; });
-  return {
-    level: s.level||150,
-    rate: def,
-    price: (s.price!=null?s.price:0.2),
-    counts: s.counts||{1:0,4:0,7:0,10:0},
-    rates: rates,
-    extras: s.extras||{essence:0,warehouse:0,pet:0,appearance:0,orb:0,other:0}
-  };
+// 全局配置：神兵等级档 / 神兵单价（账号级，跨估值单共享）
+function loadEstConfig(){
+  var c=gLS('wb_est_config')||{};
+  var lvl=(SWORD_LEVELS.indexOf(c.swordLevel)>=0)?c.swordLevel:150;
+  return {swordLevel:lvl, swordPrice:(isFinite(c.swordPrice)?c.swordPrice:0.2)};
 }
-function saveSwordState(st){
-  try{localStorage.setItem('wb_sword_state',JSON.stringify(st));}catch(_){}
+function saveEstConfig(c){sLS('wb_est_config',c);}
+
+// 估值单数据
+var SHEET_KEY='wb_est_sheets';
+function defaultGemCounts(){var c={};GEMS.forEach(function(g){c[g.name]={1:0,2:0,3:0,4:0,5:0};});return c;}
+function defaultExtras(){var e={};SWORD_EXTRAS.forEach(function(x){e[x.key]=0;});return e;}
+function loadSheets(){
+  var s=gLS(SHEET_KEY);
+  if(!Array.isArray(s)||s.length===0){
+    s=[{id:'s'+Date.now(), name:'100%估值单', gemRate:100, swordRate:100, gemCounts:defaultGemCounts(), swordCounts:{1:0,4:0,7:0,10:0}, extras:defaultExtras()}];
+    sLS(SHEET_KEY,s);
+  } else {
+    // 旧数据迁移：单一 rate → 宝石/神兵双率（同值）
+    s.forEach(function(sh){
+      if(sh.gemRate==null)sh.gemRate=(isFinite(sh.rate)?sh.rate:100);
+      if(sh.swordRate==null)sh.swordRate=(isFinite(sh.rate)?sh.rate:100);
+    });
+  }
+  return s;
+}
+var sheets=loadSheets();
+var activeSheetId=sheets.length?sheets[0].id:null;
+function saveSheets(){sLS(SHEET_KEY,sheets);}
+function getActiveSheet(){
+  if(!activeSheetId&&sheets.length)activeSheetId=sheets[0].id;
+  for(var i=0;i<sheets.length;i++){if(sheets[i].id===activeSheetId)return sheets[i];}
+  return sheets[0]||null;
 }
 
-function renderSword(){
-  var st=loadSwordState();
-  var selEl=document.getElementById('swordLevelSel');
-  if(selEl){
-    selEl.innerHTML=SWORD_LEVELS.map(function(l){return '<option value="'+l+'">'+l+' 级</option>';}).join('');
-    selEl.value=st.level;
-  }
-  var rateEl=document.getElementById('swordRate');
-  if(rateEl)rateEl.value=st.rate;
-  var priceEl=document.getElementById('swordPrice');
-  if(priceEl)priceEl.value=st.price;
+// ===== 渲染入口（switchPage('gem') 调用）=====
+function renderGem(){
+  renderSheetList();
+  renderSheetEditor();
+  renderCombine();
+  renderAccountRecords();
+}
 
-  // 表格行：1级/4级/7级/10级（按当前档位等级 st.level 的培养消耗）
-  var lv=st.level;
-  var data=SWORD_DATA[lv]||SWORD_DATA[150];
-  var rows=[1,4,7,10].map(function(l){
-    return '<tr>'+
-      '<td>'+l+'级神兵</td>'+
-      '<td>'+data[l]+'</td>'+
-      '<td class="sword-cnt-cell"><input type="number" min="0" step="1" placeholder="输入数量" value="'+(st.counts[l]||0)+'" data-sword-cnt="'+l+'" oninput="onSwordCntChange('+l+',this.value)"></td>'+
-      '<td class="sword-rate-cell"><input type="number" id="sword-rate-'+l+'" min="0" max="100" step="1" placeholder="%" value="'+(st.rates[l]!=null?st.rates[l]:78)+'" data-sword-rate="'+l+'" oninput="onSwordGradeRateChange('+l+',this.value)"></td>'+
-      '</tr>';
-  }).join('');
-  var tb=document.getElementById('swordTbody');
-  if(tb)tb.innerHTML=rows;
-
-  // 快捷单价下拉
-  var pSel=document.getElementById('swordPriceQuick');
-  if(pSel){
-    pSel.innerHTML=SWORD_PRICES.map(function(p){return '<option value="'+p+'">'+p+'</option>';}).join('');
-    var pKey=(isFinite(st.price)?st.price:0).toFixed(2);
-    pSel.value = SWORD_PRICES.indexOf(pKey)>=0 ? pKey : SWORD_PRICES[0];
-  }
-
-  // 附加项 2x3 卡片
-  var ehtml=SWORD_EXTRAS.map(function(e,i){
-    var v=(st.extras&&st.extras[e.key])||0;
-    return '<div class="sword-extra-card">'+
-      '<div class="sword-extra-title">'+e.label+'</div>'+
-      '<input type="number" min="0" step="0.01" placeholder="0" value="'+v+'" data-sword-extra="'+e.key+'" oninput="onSwordExtraChange(\''+e.key+'\',this.value)">'+
+function renderSheetList(){
+  var el=document.getElementById('sheetList');
+  if(!el)return;
+  if(sheets.length===0){el.innerHTML='<div class="empty-hint">还没有估值单，点「新建估值单」开始</div>';return;}
+  el.innerHTML=sheets.map(function(s){
+    var sub=calcSheet(s).subtotal;
+    var active=(s.id===activeSheetId)?' sheet-item-active':'';
+    return '<div class="sheet-item'+active+'" onclick="selectSheet(\''+s.id+'\')">'+
+      '<div class="sheet-item-name">'+escHtml(s.name)+'</div>'+
+      '<div class="sheet-item-meta">宝石 '+s.gemRate+'% · 神兵 '+s.swordRate+'% · 小计 <b>'+sub.toFixed(2)+'</b> 元</div>'+
       '</div>';
   }).join('');
-  var eEl=document.getElementById('swordExtras');
-  if(eEl)eEl.innerHTML=ehtml;
-
-  calcSword();
 }
 
-// 单档改折损率
-function onSwordGradeRateChange(l,v){
-  var n=parseFloat(v); if(isNaN(n))n=0; if(n<0)n=0; if(n>100)n=100;
-  var st=loadSwordState();
-  st.rates[l]=n;
-  st.rate=n; // 兼容显示
-  saveSwordState(st);
-  calcSword();
+function renderSheetEditor(){
+  var sh=getActiveSheet();
+  var editor=document.getElementById('sheetEditor');
+  if(!sh){if(editor)editor.style.display='none';return;}
+  if(editor)editor.style.display='';
+  var nameEl=document.getElementById('sheetName'); if(nameEl)nameEl.value=sh.name;
+  var grEl=document.getElementById('sheetGemRate'); if(grEl)grEl.value=sh.gemRate;
+  var srEl=document.getElementById('sheetSwordRate'); if(srEl)srEl.value=sh.swordRate;
+
+  // 宝石（独立渲染，便于数量/折损率变化时实时刷新明细）
+  renderSheetGemList();
+
+  // 神兵
+  var cfg=loadEstConfig();
+  var lvSel=document.getElementById('sheetSwordLevel');
+  if(lvSel){lvSel.innerHTML=SWORD_LEVELS.map(function(l){return '<option value="'+l+'">'+l+'级</option>';}).join('');lvSel.value=cfg.swordLevel;}
+  var prEl=document.getElementById('sheetSwordPrice'); if(prEl)prEl.value=cfg.swordPrice;
+  var data=SWORD_DATA[cfg.swordLevel]||SWORD_DATA[150];
+  var tbHtml=[1,4,7,10].map(function(l){
+    var c=sh.swordCounts[l]||0;
+    return '<tr><td>'+l+'级神兵</td><td>'+data[l]+'</td>'+
+      '<td><input type="number" min="0" value="'+c+'" oninput="onShSwordCnt('+l+',this.value)"></td></tr>';
+  }).join('');
+  var tb=document.getElementById('sheetSwordTbody'); if(tb)tb.innerHTML=tbHtml;
+
+  // 其它资产
+  var exHtml=SWORD_EXTRAS.map(function(e){
+    var v=(sh.extras&&isFinite(sh.extras[e.key]))?Math.max(0,Math.floor(sh.extras[e.key]*100+1e-9)/100):0;
+    return '<div class="sheet-extra-item"><label>'+e.label+'</label><input type="number" min="0" step="0.01" value="'+v+'" oninput="onShExtra(\''+e.key+'\',this.value)"></div>';
+  }).join('');
+  var ex=document.getElementById('sheetExtras'); if(ex)ex.innerHTML=exHtml;
+
+  var subEl=document.getElementById('sheetSubtotal'); if(subEl)subEl.textContent=calcSheet(sh).subtotal.toFixed(2);
 }
-// 顶部「统一折损率」应用到全部 4 档（批量）
-function onSwordRateChange(){
-  var v=parseFloat(document.getElementById('swordRate').value);
-  if(isNaN(v))v=0; if(v<0)v=0; if(v>100)v=100;
-  var st=loadSwordState();
-  [1,4,7,10].forEach(function(l){ st.rates[l]=v; });
-  st.rate=v;
-  saveSwordState(st);
-  // 同步各档输入框
-  [1,4,7,10].forEach(function(l){
-    var el=document.getElementById('sword-rate-'+l);
-    if(el)el.value=v;
+
+// 仅重渲宝石列表（数量/宝石折损率变化时实时刷新每颗明细脚注），不动神兵/附加项输入框焦点
+function renderSheetGemList(){
+  var sh=getActiveSheet();
+  var gl=document.getElementById('sheetGemList'); if(!gl)return;
+  if(!sh)return;
+  var prices=loadGemPrices();
+  var gr=isFinite(sh.gemRate)?sh.gemRate:100; if(gr<0)gr=0; if(gr>100)gr=100;
+  var gemHtml=GEMS.map(function(g,gi){
+    var counts=sh.gemCounts[g.name]||{1:0,2:0,3:0,4:0,5:0};
+    var rows=''; var totalEss=0; var price=(prices[g.name]!=null?prices[g.name]:g.price);
+    for(var l=1;l<=GEM_LEVELS;l++){
+      var c=counts[l]||0; var per=gemEssenceAtLevel(g,l); totalEss+=c*per;
+      rows+='<div class="sheet-gem-row"><span>'+l+'级</span>'+
+        '<button type="button" onclick="shGemCnt('+gi+','+l+',-1)">−</button>'+
+        '<input type="number" id="shgem-'+gi+'-'+l+'" min="0" value="'+c+'" onchange="setShGemCnt('+gi+','+l+',this.value)">'+
+        '<button type="button" onclick="shGemCnt('+gi+','+l+',1)">＋</button>'+
+        '<span class="sheet-gem-per">'+per+'精</span></div>';
+    }
+    var _dGem=calcDiscount(totalEss, gr, price);
+    var postQty=_dGem.postQty;
+    var discGem=_dGem.amount;
+    var emptyCls=(totalEss===0)?' is-empty':'';
+    return '<div class="sheet-gem-card'+emptyCls+'"><div class="sheet-gem-name"><span>'+g.name+'</span><span class="sheet-gem-price">'+price+'元/精</span></div><div class="sheet-gem-levels">'+rows+'</div><div class="sheet-gem-foot">折前 '+totalEss+' 精粹 · 折后 '+postQty+' 精粹 · 折后 <b>'+discGem.toFixed(2)+'</b> 元</div></div>';
+  }).join('');
+  gl.innerHTML=gemHtml;
+}
+
+// 只刷新小计/合成/列表/宝石明细，不重渲神兵与附加项输入框（保留焦点）
+function recomputeLight(){
+  var sh=getActiveSheet();
+  if(sh){var sEl=document.getElementById('sheetSubtotal');if(sEl)sEl.textContent=calcSheet(sh).subtotal.toFixed(2);}
+  renderSheetGemList();
+  renderCombine();
+  renderSheetList();
+}
+
+// v80：折后金额统一推导
+// 折后数量 = floor(折前数量 × 折损率/100)（向下取整，不进一）
+// 折后金额 = floor(折后数量 × 单价 × 100) / 100（必须「从折后数量推导」，确保「折后 N 个」与「折后 M 元」一致）
+function calcDiscount(preQty, rate, price){
+  var r = isFinite(rate)?rate:0; if(r<0)r=0; if(r>100)r=100;
+  var p = isFinite(price)?price:0; if(p<0)p=0;
+  var pre = isFinite(preQty)?preQty:0;
+  var postQty = Math.floor(pre * r/100 + 1e-9);
+  var amount = Math.floor(postQty * p * 100 + 1e-9) / 100;
+  return {postQty:postQty, amount:amount};
+}
+
+// 单张估值单估价（宝石按 gemRate、神兵+附加项按 swordRate）
+function calcSheet(sh){
+  var prices=loadGemPrices();
+  var gr=isFinite(sh.gemRate)?sh.gemRate:100; if(gr<0)gr=0; if(gr>100)gr=100;
+  var sr=isFinite(sh.swordRate)?sh.swordRate:100; if(sr<0)sr=0; if(sr>100)sr=100;
+  // 宝石：每颗独立向下取整到分
+  var gemValue=0;
+  GEMS.forEach(function(g){
+    var counts=sh.gemCounts[g.name]||{};
+    var gEss=0;
+    for(var l=1;l<=GEM_LEVELS;l++){var c=counts[l]||0;gEss+=c*gemEssenceAtLevel(g,l);}
+    gemValue+=calcDiscount(gEss, gr, (prices[g.name]||0)).amount;
   });
-  calcSword();
+  // 神兵：先算折下个数（每件按率取整），再乘单价取整到分
+  var cfg=loadEstConfig();
+  var data=SWORD_DATA[cfg.swordLevel]||SWORD_DATA[150];
+  var price=isFinite(cfg.swordPrice)?cfg.swordPrice:0;
+  var cntDown=0; var weaponValue=0;
+  [1,4,7,10].forEach(function(l){
+    var c=sh.swordCounts[l]||0;
+    var _ds=calcDiscount(data[l]*c, sr, price);
+    cntDown+=_ds.postQty;
+    weaponValue+=_ds.amount;
+  });
+  weaponValue=Math.floor(weaponValue*100+1e-9)/100;
+  // 其它资产：按神兵折损率折算（向下取整到分）
+  var extrasValue=0;
+  SWORD_EXTRAS.forEach(function(e){
+    var v=(sh.extras&&isFinite(sh.extras[e.key]))?Math.max(0,sh.extras[e.key]):0;
+    extrasValue+=calcDiscount(v, sr, 1).amount;
+  });
+  var subtotal=Math.floor((gemValue+weaponValue+extrasValue)*100+1e-9)/100;
+  return {gemValue:gemValue,weaponValue:weaponValue,extrasValue:extrasValue,subtotal:subtotal,cntDown:cntDown,gemRate:gr,swordRate:sr};
+}
+
+// ===== 估值单操作 =====
+function selectSheet(id){activeSheetId=id;renderGem();}
+function newSheet(){
+  var id='s'+Date.now()+'-'+Math.floor(Math.random()*1000);
+  var sh={id:id,name:'估值单 '+(sheets.length+1),gemRate:100,swordRate:100,gemCounts:defaultGemCounts(),swordCounts:{1:0,4:0,7:0,10:0},extras:defaultExtras()};
+  sheets.push(sh);activeSheetId=id;saveSheets();renderGem();
+}
+function deleteSheet(){
+  if(sheets.length<=1){wbAlert('提示','至少保留一个估值单');return;}
+  var sh=getActiveSheet();if(!sh)return;
+  wbConfirm('删除估值单','确定删除「'+sh.name+'」？此操作不可撤销。',function(){
+    sheets=sheets.filter(function(s){return s.id!==sh.id;});
+    if(activeSheetId===sh.id)activeSheetId=sheets[0].id;
+    saveSheets();renderGem();
+  });
+}
+function onSheetNameChange(){
+  var sh=getActiveSheet();if(!sh)return;
+  var el=document.getElementById('sheetName');if(!el)return;
+  sh.name=el.value;saveSheets();renderSheetList();
+}
+function onSheetGemRateChange(){
+  var sh=getActiveSheet();if(!sh)return;
+  var el=document.getElementById('sheetGemRate');if(!el)return;
+  var v=parseFloat(el.value);if(isNaN(v))v=0;if(v<0)v=0;if(v>100)v=100;
+  sh.gemRate=v;saveSheets();recomputeLight();
+}
+function onSheetSwordRateChange(){
+  var sh=getActiveSheet();if(!sh)return;
+  var el=document.getElementById('sheetSwordRate');if(!el)return;
+  var v=parseFloat(el.value);if(isNaN(v))v=0;if(v<0)v=0;if(v>100)v=100;
+  sh.swordRate=v;saveSheets();recomputeLight();
+}
+function onSwordLevelChange(){
+  var cfg=loadEstConfig();
+  var el=document.getElementById('sheetSwordLevel');if(!el)return;
+  cfg.swordLevel=parseInt(el.value,10)||150;saveEstConfig(cfg);renderSheetEditor();recomputeLight();
 }
 function onSwordPriceChange(){
-  var v=parseFloat(document.getElementById('swordPrice').value);
-  if(isNaN(v)||v<0)v=0;
-  var st=loadSwordState();st.price=v;saveSwordState(st);
-  var pSel=document.getElementById('swordPriceQuick');
-  if(pSel){var k=v.toFixed(2);if(SWORD_PRICES.indexOf(k)>=0)pSel.value=k;}
-  calcSword();
+  var cfg=loadEstConfig();
+  var el=document.getElementById('sheetSwordPrice');if(!el)return;
+  var v=parseFloat(el.value);if(isNaN(v)||v<0)v=0;
+  cfg.swordPrice=v;saveEstConfig(cfg);recomputeLight();
 }
-function onSwordCntChange(l,v){
-  var n=parseInt(v,10);if(isNaN(n)||n<0)n=0;
-  var st=loadSwordState();st.counts[l]=n;saveSwordState(st);
-  calcSword();
+function shGemCnt(gi,l,delta){
+  var sh=getActiveSheet();if(!sh)return;
+  if(!sh.gemCounts[GEMS[gi].name])sh.gemCounts[GEMS[gi].name]={1:0,2:0,3:0,4:0,5:0};
+  var cur=sh.gemCounts[GEMS[gi].name][l]||0;cur+=delta;if(cur<0)cur=0;
+  sh.gemCounts[GEMS[gi].name][l]=cur;saveSheets();
+  var inp=document.getElementById('shgem-'+gi+'-'+l);if(inp)inp.value=cur;
+  recomputeLight();
 }
-function onSwordExtraChange(k,v){
-  var n=parseFloat(v);if(isNaN(n)||n<0)n=0;
-  var st=loadSwordState();
-  if(!st.extras)st.extras={};
-  st.extras[k]=n;saveSwordState(st);
-  calcSword();
+function setShGemCnt(gi,l,val){
+  var sh=getActiveSheet();if(!sh)return;
+  if(!sh.gemCounts[GEMS[gi].name])sh.gemCounts[GEMS[gi].name]={1:0,2:0,3:0,4:0,5:0};
+  var n=parseInt(val,10);if(isNaN(n)||n<0)n=0;
+  sh.gemCounts[GEMS[gi].name][l]=n;saveSheets();recomputeLight();
 }
-function selectSwordPrice(p){
-  var st=loadSwordState();
-  st.price=isFinite(p)?p:0;saveSwordState(st);
-  var inp=document.getElementById('swordPrice');
-  if(inp)inp.value=st.price;
-  calcSword();
+function onShSwordCnt(l,val){
+  var sh=getActiveSheet();if(!sh)return;
+  var n=parseInt(val,10);if(isNaN(n)||n<0)n=0;
+  sh.swordCounts[l]=n;saveSheets();recomputeLight();
 }
-function selectSwordLevel(lv){
-  var st=loadSwordState();
-  if(SWORD_LEVELS.indexOf(lv)<0)lv=SWORD_LEVELS[0];
-  st.level=lv;saveSwordState(st);
-  renderSword();
-}
-function calcSword(){
-  try{
-    var st=loadSwordState();
-    var data=SWORD_DATA[st.level]||SWORD_DATA[150];
-    // 逐档计算：培养消耗 × 件数 × 该档折损率 → 该档折下个数，再累加
-    var totalConsume=0;
-    var cntDown=0;
-    [1,4,7,10].forEach(function(l){
-      var c=(st.counts[l]||0);
-      var gradeConsume=data[l]*c;
-      totalConsume+=gradeConsume;
-      var r=st.rates[l]; if(r==null)r=st.rate; if(isNaN(r))r=0;
-      // 该档折下个数 = floor(培养消耗 × 件数 × 折损率%)  -- 先把个数截断到整数
-      var gradeDown=Math.floor(gradeConsume*r/100+1e-9);
-      cntDown+=gradeDown;
-    });
-    var price=isFinite(st.price)?st.price:0;
-    // 折下价值（主）= floor(折下总个数 × 单价)  -- 向下取整到分
-    var mainValue=Math.floor(cntDown*price*100+1e-9)/100;
-    var extrasVals={essence:0,warehouse:0,pet:0,appearance:0,orb:0,other:0};
-    var extrasSum=0;
-    SWORD_EXTRAS.forEach(function(e){
-      var v=(st.extras&&st.extras[e.key])?parseFloat(st.extras[e.key])||0:0;
-      extrasVals[e.key]=Math.floor(v*100+1e-9)/100;
-      extrasSum+=extrasVals[e.key];
-    });
-    // 总价值 = 折下价值（主）+ 附加项；最终再向下取整到分
-    var grand=Math.floor((mainValue+extrasSum)*100+1e-9)/100;
-
-    function set(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
-    set('swordTotalCnt',cntDown);
-    set('swordGrandTotal',grand.toFixed(2));
-
-    // 同时返回结构化明细，供「价格详情」弹窗使用
-    return {cntDown:cntDown,mainValue:mainValue,extras:extrasVals,extrasSum:Math.floor(extrasSum*100+1e-9)/100,grand:grand,level:st.level,rates:st.rates,rate:st.rate,price:st.price};
-  }catch(e){
-    try{if(window.showErr)window.showErr('神兵拆解 计算失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):''));}catch(_){}
-    return null;
-  }
-}
-function resetSword(){
-  if(!confirm('重置神兵拆解的全部输入为 0？'))return;
-  var st=loadSwordState();
-  st.counts={1:0,4:0,7:0,10:0};
-  st.extras={essence:0,warehouse:0,pet:0,appearance:0,orb:0,other:0};
-  saveSwordState(st);
-  renderSword();
-}
-function showSwordHelp(){
-  alert(
-    '神兵拆解 计算说明：\n'+
-    '毛估精粹 = 各档 培养消耗 × 对应件数 之和\n'+
-    '折下个数 = 毛估精粹 × 折损率%（向下取整到整数）\n'+
-    '折下价值 = 折下个数 × 单价（向下取整到分）\n'+
-    '总价值 = 折下价值 + 6项附加（精粹价值/仓库切装/灵兽灵伴/外观家园/灵宝宝珠/其它细节）\n'+
-    '快捷单价 0.10~0.30：下拉直接选，写入「单价」\n'+
-    '等级切换：用下拉直接选 69/89/109/129/150 任意档，切档会刷新培养消耗\n'+
-    '点击「计算」弹窗「价格详情」/点击「打开记录」查看历史保存的记录'
-  );
+function onShExtra(k,val){
+  var sh=getActiveSheet();if(!sh)return;
+  var n=parseFloat(val);if(isNaN(n)||n<0)n=0;
+  if(!sh.extras)sh.extras=defaultExtras();
+  sh.extras[k]=n;saveSheets();recomputeLight();
 }
 
-// ===== 计算→弹价格详情 =====
-function calcSwordAndShowModal(){
-  try{
-    var b=calcSword();
-    if(!b)return;
-    showSwordPriceDetail(b);
-  }catch(e){
-    try{if(window.showErr)window.showErr('calcSwordAndShowModal 失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):''));}catch(_){console.error(e);}
-  }
+// ===== 合成账号记录 =====
+function renderCombine(){
+  var el=document.getElementById('combineList');
+  if(!el)return;
+  if(sheets.length===0){el.innerHTML='';var t=document.getElementById('combineTotal');if(t)t.textContent='0.00';return;}
+  var total=0;
+  el.innerHTML=sheets.map(function(s){
+    var c=calcSheet(s);total+=c.subtotal;
+    return '<div class="combine-row"><span>'+escHtml(s.name)+' <i>宝石'+c.gemRate+'% / 神兵'+c.swordRate+'%</i></span><b>'+c.subtotal.toFixed(2)+' 元</b></div>'+
+      '<div class="combine-sub">宝石 '+c.gemValue.toFixed(2)+' + 神兵 '+c.weaponValue.toFixed(2)+' + 其它 '+c.extrasValue.toFixed(2)+'</div>';
+  }).join('');
+  var t=document.getElementById('combineTotal');if(t)t.textContent=total.toFixed(2);
 }
-function showSwordPriceDetail(b){
-  try{
-    if(!b)b=calcSword();
-    if(!b)return;
-    var labels=[
-      {key:'main',     label:'神兵拆解：'},
-      {key:'essence',  label:'精粹价值：'},
-      {key:'warehouse',label:'仓库、切装：'},
-      {key:'pet',      label:'灵兽、灵伴：'},
-      {key:'appearance',label:'外观、家园：'},
-      {key:'orb',      label:'灵宝、宝珠：'},
-      {key:'other',    label:'其它：'}
-    ];
-    function rowObj(k,v){
-      return '<div class="sword-pd-row">'+
-        '<span class="sword-pd-key">'+k+'</span>'+
-        '<span class="sword-pd-val">'+v.toFixed(2)+' 元</span>'+
-        '</div>';
+
+var ACC_KEY='wb_est_accounts';
+function _sheetDetail(s){
+  var prices=loadGemPrices();
+  var gr=isFinite(s.gemRate)?s.gemRate:100; if(gr<0)gr=0; if(gr>100)gr=100;
+  var sr=isFinite(s.swordRate)?s.swordRate:100; if(sr<0)sr=0; if(sr>100)sr=100;
+  var cfg=loadEstConfig(); var lvl=cfg.swordLevel; var data=SWORD_DATA[lvl]||SWORD_DATA[150]; var sp=isFinite(cfg.swordPrice)?cfg.swordPrice:0;
+  var gemDetail=GEMS.map(function(g){
+    var counts=s.gemCounts[g.name]||{}; var ess=0;
+    for(var l=1;l<=GEM_LEVELS;l++){var c=counts[l]||0; ess+=c*gemEssenceAtLevel(g,l);}
+    return {name:g.name, counts:counts, essence:ess, price:(prices[g.name]!=null?prices[g.name]:g.price)};
+  }).filter(function(d){var has=false; for(var l=1;l<=GEM_LEVELS;l++){if((d.counts[l]||0)>0)has=true;} return has;});
+  var swordDetail=[1,4,7,10].map(function(l){return {lvl:l, count:(s.swordCounts[l]||0), consume:data[l]};}).filter(function(d){return d.count>0;});
+  var extrasDetail=SWORD_EXTRAS.map(function(e){var v=(s.extras&&isFinite(s.extras[e.key]))?Math.max(0,s.extras[e.key]):0; return {key:e.key, label:e.label, value:v};}).filter(function(d){return d.value>0;});
+  var c=calcSheet(s);
+  return {name:s.name, gemRate:gr, swordRate:sr, swordLevel:lvl, swordPrice:sp, gemDetail:gemDetail, swordDetail:swordDetail, extrasDetail:extrasDetail, gemValue:c.gemValue, weaponValue:c.weaponValue, extrasValue:c.extrasValue, subtotal:c.subtotal};
+}
+function saveAccountRecord(){
+  if(sheets.length===0){wbAlert('提示','还没有估值单');return;}
+  var shs=sheets.map(function(s){return _sheetDetail(s);});
+  var total=shs.reduce(function(a,b){return a+b.subtotal;},0);
+  var recs=gLS(ACC_KEY)||[];
+  recs.unshift({time:new Date().toLocaleString('zh-CN'),sheets:shs,total:Math.floor(total*100+1e-9)/100});
+  sLS(ACC_KEY,recs);
+  renderAccountRecords();
+  wbAlert('已保存','账号记录已保存，总估价 '+total.toFixed(2)+' 元');
+}
+// 重置当前正在编辑的估值单：仅清零数量（宝石等级/神兵/附加项），折损率/单价/名称/等级保持不变
+function resetActiveSheetQty(){
+  var sh=getActiveSheet();
+  if(!sh){wbAlert('提示','还没有估值单');return;}
+  wbConfirm('重置估值单','确定要重置当前估值单的数量吗？未保存的修改会丢失。',function(){
+    if(!sh.gemCounts)sh.gemCounts={};
+    GEMS.forEach(function(g){ sh.gemCounts[g.name]={1:0,2:0,3:0,4:0,5:0}; });
+    [1,4,7,10].forEach(function(l){ sh.swordCounts[l]=0; });
+    if(!sh.extras)sh.extras=defaultExtras();
+    SWORD_EXTRAS.forEach(function(e){ sh.extras[e.key]=0; });
+    saveSheets();
+    renderSheetEditor();
+  });
+}
+function _migrateAccRecord(r){
+  if(!r||!Array.isArray(r.sheets))return;
+  var _cfg=loadEstConfig();
+  var hasAnyDetail=false;
+  r.sheets.forEach(function(s){
+    if(!s)return;
+    if(!isFinite(s.gemRate))s.gemRate=100;
+    if(!isFinite(s.swordRate))s.swordRate=100;
+    if(!isFinite(s.swordLevel))s.swordLevel=_cfg.swordLevel;
+    if(!isFinite(s.swordPrice))s.swordPrice=_cfg.swordPrice;
+    s.gemRate=Math.max(0,Math.min(100,s.gemRate));
+    s.swordRate=Math.max(0,Math.min(100,s.swordRate));
+    if(s.swordPrice<0)s.swordPrice=0;
+    if(!Array.isArray(s.gemDetail))s.gemDetail=[];
+    if(!Array.isArray(s.swordDetail))s.swordDetail=[];
+    if(!Array.isArray(s.extrasDetail))s.extrasDetail=[];
+    // 兼容旧版「直接存整张 sheet」的记录：若明细数组为空，但 sheet 仍保留旧式 gemCounts/swordCounts/extras 字段，
+    // 则从中恢复出 gemDetail/swordDetail/extrasDetail（只取非零项），让旧记录携带的真实明细则能正确显示。
+    // 仅当确实恢复出数据时才置 hasAnyDetail，空旧字段不会触发重算，老纯无明细记录 subtotal 保持原值（v74 兼容）。
+    if(s.gemDetail.length===0 && s.gemCounts && typeof s.gemCounts==='object'){
+      GEMS.forEach(function(g){
+        var counts=s.gemCounts[g.name]||{};
+        var has=false; for(var l=1;l<=GEM_LEVELS;l++){ if(Number(counts[l])>0)has=true; }
+        if(!has)return;
+        var c={1:0,2:0,3:0,4:0,5:0};
+        for(var l2=1;l2<=GEM_LEVELS;l2++){ c[l2]=Math.max(0,Number(counts[l2])||0); }
+        s.gemDetail.push({name:g.name, counts:c, essence:0, price:(typeof g.price==='number'?g.price:0)});
+      });
     }
-    var html='';
-    html+=rowObj('神兵拆解：', b.mainValue);
-    // 折损率说明（各档独立）
-    var rateStr=[1,4,7,10].map(function(l){return l+'级'+(b.rates&&b.rates[l]!=null?b.rates[l]:b.rate)+'%';}).join(' / ');
-    html+='<div class="sword-pd-rate-note">折损率：'+rateStr+'</div>';
-    var pair=[
-      ['精粹价值：', b.extras.essence||0],
-      ['仓库、切装：', b.extras.warehouse||0],
-      ['灵兽、灵伴：', b.extras.pet||0],
-      ['外观、家园：', b.extras.appearance||0],
-      ['灵宝、宝珠：', b.extras.orb||0],
-      ['其它：', b.extras.other||0]
-    ];
-    pair.forEach(function(p){ html+=rowObj(p[0], p[1]); });
-    var listEl=document.getElementById('swordPDList');
-    if(listEl)listEl.innerHTML=html;
-    var totEl=document.getElementById('swordPDTotal');
-    if(totEl)totEl.textContent=b.grand.toFixed(2);
-    var modalEl=document.getElementById('swordPriceDetailModal');
-    if(modalEl)modalEl.classList.add('show');
-    // 焦点放到角色名输入框
-    try{var r=document.getElementById('swordPDRole');if(r)setTimeout(function(){r.focus();},30);}catch(_){}
-  }catch(e){
-    try{if(window.showErr)window.showErr('showSwordPriceDetail 失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):''));}catch(_){console.error(e);}
-  }
-}
-function closeSwordPriceDetail(){
-  var modalEl=document.getElementById('swordPriceDetailModal');
-  if(modalEl)modalEl.classList.remove('show');
-}
-
-// ===== 记录存储（localStorage）=====
-function loadSwordRecords(){
-  try{var s=localStorage.getItem('wb_sword_records');if(s)return JSON.parse(s);}catch(_){}
-  return [];
-}
-function saveSwordRecords(arr){
-  try{localStorage.setItem('wb_sword_records', JSON.stringify(arr));return true;}catch(e){
-    try{if(window.showErr)window.showErr('保存到 localStorage 失败: '+((e&&e.message)||e));}catch(_){}
-    return false;
-  }
-}
-function saveSwordRecord(){
-  try{
-    var roleEl=document.getElementById('swordPDRole');
-    var noteEl=document.getElementById('swordPDNote');
-    var role=roleEl?(roleEl.value||'').trim():'';
-    var note=noteEl?(noteEl.value||'').trim():'';
-    if(!role){try{alert('请填写角色名');}catch(_){};if(roleEl){roleEl.focus();}return;}
-    var b=calcSword();if(!b)return;
-    var rec={
-      id:Date.now(),
-      ts:new Date().toISOString(),
-      role:role,
-      note:note,
-      level:b.level,rates:b.rates,rate:b.rate,price:b.price,
-      mainValue:b.mainValue,
-      extras:{essence:b.extras.essence,warehouse:b.extras.warehouse,pet:b.extras.pet,appearance:b.extras.appearance,orb:b.extras.orb,other:b.extras.other},
-      grand:b.grand
-    };
-    var arr=loadSwordRecords();
-    arr.unshift(rec);
-    if(arr.length>200)arr.length=200; // 上限保护
-    if(!saveSwordRecords(arr))return;
-    try{alert('已保存「'+role+'」的记录');}catch(_){}
-    if(roleEl)roleEl.value='';
-    if(noteEl)noteEl.value='';
-    closeSwordPriceDetail();
-  }catch(e){
-    try{if(window.showErr)window.showErr('saveSwordRecord 失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):''));}catch(_){console.error(e);}
-  }
-}
-
-// ===== 打开记录列表 =====
-function openSwordRecords(){
-  try{
-    var arr=loadSwordRecords();
-    var listEl=document.getElementById('swordRecList');
-    var emptyEl=document.getElementById('swordRecEmpty');
-    if(arr.length===0){
-      if(listEl)listEl.innerHTML='';
-      if(emptyEl)emptyEl.style.display='block';
-    }else{
-      if(emptyEl)emptyEl.style.display='none';
-      var html=arr.map(function(r){
-        var dt='';
-        try{
-          var d=new Date(r.ts);
-          if(!isNaN(d.getTime())){
-            var p=function(n){return (n<10?'0':'')+n;};
-            dt=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
-          }
-        }catch(_){}
-        return '<div class="sword-rec-item">'+
-          '<div class="sword-rec-head"><span class="sword-rec-role">'+escHtml(r.role)+'</span><span class="sword-rec-dt">'+dt+'</span></div>'+
-          '<div class="sword-rec-body">总计 <b>'+(Number(r.grand)||0).toFixed(2)+'</b> 元（神兵拆解 '+(Number(r.mainValue)||0).toFixed(2)+' 元）</div>'+
-          '<div class="sword-rec-detail">等级 '+(r.level||'-')+' · '+((r.rates)?('折损率 1级'+(r.rates[1]!=null?r.rates[1]:'-')+'% / 4级'+(r.rates[4]!=null?r.rates[4]:'-')+'% / 7级'+(r.rates[7]!=null?r.rates[7]:'-')+'% / 10级'+(r.rates[10]!=null?r.rates[10]:'-')+'%'):('折损率 '+(r.rate||0)+'%'))+' · 单价 '+(Number(r.price)||0).toFixed(2)+' 元</div>'+
-          (r.note?'<div class="sword-rec-note">备注：'+escHtml(r.note)+'</div>':'')+
-          '<div class="sword-rec-actions">'+
-            '<button class="rec-load" onclick="loadSwordRecord('+r.id+')">载入</button>'+
-            '<button class="rec-del" onclick="deleteSwordRecord('+r.id+')">删除</button>'+
-          '</div>'+
-        '</div>';
-      }).join('');
-      if(listEl)listEl.innerHTML=html;
+    if(s.swordDetail.length===0 && s.swordCounts && typeof s.swordCounts==='object'){
+      var _sdata=SWORD_DATA[_effSwordLevel(s)]||SWORD_DATA[150];
+      [1,4,7,10].forEach(function(l){
+        var c=Math.max(0,Number(s.swordCounts[l])||0);
+        if(c>0) s.swordDetail.push({lvl:l, count:c, consume:_sdata[l]||0});
+      });
     }
-    var modalEl=document.getElementById('swordRecordsModal');
-    if(modalEl)modalEl.classList.add('show');
-  }catch(e){
-    try{if(window.showErr)window.showErr('openSwordRecords 失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):''));}catch(_){console.error(e);}
+    if(s.extrasDetail.length===0 && s.extras && typeof s.extras==='object'){
+      SWORD_EXTRAS.forEach(function(e){
+        var v=Math.max(0,Number(s.extras[e.key])||0);
+        if(v>0) s.extrasDetail.push({key:e.key, label:e.label, value:v});
+      });
+    }
+    // 数值字段兜底（老 records 缺这些字段），不重算，仅保证渲染安全
+    if(!isFinite(s.gemValue))s.gemValue=0;
+    if(!isFinite(s.weaponValue))s.weaponValue=0;
+    if(!isFinite(s.extrasValue))s.extrasValue=0;
+    if(s.gemDetail.length||s.swordDetail.length||s.extrasDetail.length)hasAnyDetail=true;
+  });
+  // 没明细 → 不重算 subtotal/total，保留原值
+  if(!hasAnyDetail)return;
+  r.sheets.forEach(function(s){
+    if(!s)return;
+    var data=SWORD_DATA[s.swordLevel]||SWORD_DATA[150];
+    var gr=s.gemRate,sr=s.swordRate,sp=s.swordPrice;
+    var gv=0;
+    s.gemDetail.forEach(function(d){
+      if(!d||!d.name)return; d.counts=d.counts||{};
+      var g=GEMS.find(function(x){return x.name===d.name;}); if(!g)return;
+      d.essence=0; var raw=0;
+      for(var l=1;l<=GEM_LEVELS;l++){var c=Number(d.counts[l])||0; if(c<0)c=0; d.counts[l]=c; var per=gemEssenceAtLevel(g,l); d.essence+=c*per; raw+=c*per*(d.price||0);}
+      gv+=calcDiscount(d.essence, gr, (d.price||0)).amount;
+    });
+    s.gemValue=Math.floor(gv*100+1e-9)/100;
+    var wv=0;
+    s.swordDetail.forEach(function(d){
+      if(!d)return;
+      d.lvl=Number(d.lvl)||1;
+      d.consume=data[d.lvl]||0;
+      var c=Number(d.count)||0; if(c<0)c=0; d.count=c;
+      wv+=calcDiscount(d.consume*c, sr, sp).amount;
+    });
+    s.weaponValue=Math.floor(wv*100+1e-9)/100;
+    var ev=0;
+    s.extrasDetail.forEach(function(d){
+      if(!d)return; var v=Number(d.value)||0; if(v<0)v=0; d.value=v;
+      ev+=calcDiscount(v, sr, 1).amount;
+    });
+    s.extrasValue=Math.floor(ev*100+1e-9)/100;
+    s.subtotal=Math.floor((s.gemValue+s.weaponValue+s.extrasValue)*100+1e-9)/100;
+  });
+  r.total=Math.floor(r.sheets.reduce(function(a,b){return a+(Number(b&&b.subtotal)||0);},0)*100+1e-9)/100;
+}
+// 把 sheet 的宝石展开成 view 数组：13 种宝石全列，已存在的 d 共用真实引用，缺失的是 ghost（不入 s.gemDetail）
+function _ensureAccGemView(s){
+  if(!Array.isArray(s.gemDetail))s.gemDetail=[];
+  var realIdxMap={};
+  s.gemDetail.forEach(function(d,i){ if(d&&d.name)realIdxMap[d.name]=i; });
+  return GEMS.map(function(g){
+    var realIdx = (realIdxMap[g.name]!=null) ? realIdxMap[g.name] : -1;
+    var d;
+    if(realIdx>=0){ d = s.gemDetail[realIdx]; }
+    else { d = {name:g.name, counts:{1:0,2:0,3:0,4:0,5:0}, essence:0, price:g.price, _ghost:true}; }
+    var totalEss=0;
+    for(var l=1;l<=5;l++){ totalEss += (Number(d.counts[l])||0) * gemEssenceAtLevel(g,l); }
+    return {g:g, d:d, realIdx:realIdx, totalEss:totalEss};
+  });
+}
+// gLS 每次都 JSON.parse 出全新对象，所以输入处理里必须在「最新」数组里按业务键重新定位条目，
+// 不能沿用渲染期 view 里缓存的对象引用（否则改动会被 sLS 覆盖丢弃）
+function _findDetail(arr,pred){
+  if(!Array.isArray(arr))return null;
+  for(var i=0;i<arr.length;i++){ if(arr[i]&&pred(arr[i]))return arr[i]; }
+  return null;
+}
+// 有效神兵等级档：老记录可能存了非法值（历史上等级 select 误用 1/4/7/10），统一回落到 150
+function _effSwordLevel(s){
+  var n=Number(s&&s.swordLevel);
+  return (SWORD_LEVELS.indexOf(n)>=0)?n:150;
+}
+// 把 sheet 的神兵展开成 view 数组：4 个等级档（1/4/7/10 级神兵）全列，
+// 已存在的 d 指向 s.swordDetail 里的条目，缺失的是 ghost（不入 s.swordDetail）
+function _ensureAccSwordView(s){
+  if(!Array.isArray(s.swordDetail))s.swordDetail=[];
+  var data=SWORD_DATA[_effSwordLevel(s)]||SWORD_DATA[150];
+  var realIdxMap={};
+  s.swordDetail.forEach(function(d,i){ var l=Number(d&&d.lvl); if(isFinite(l)&&realIdxMap[l]==null)realIdxMap[l]=i; });
+  return [1,4,7,10].map(function(l){
+    var realIdx=(realIdxMap[l]!=null)?realIdxMap[l]:-1;
+    var d;
+    if(realIdx>=0){ d=s.swordDetail[realIdx]; d.lvl=l; d.consume=data[l]||0; d.count=Math.max(0,Number(d.count)||0); }
+    else { d={lvl:l, count:0, consume:data[l]||0, _ghost:true}; }
+    return {lvl:l, d:d, realIdx:realIdx, count:Number(d.count)||0};
+  });
+}
+// 把 sheet 的其它资产展开成 view 数组：SWORD_EXTRAS 6 项全列，缺失的是 ghost（不入 s.extrasDetail）
+function _ensureAccExtraView(s){
+  if(!Array.isArray(s.extrasDetail))s.extrasDetail=[];
+  var realIdxMap={};
+  s.extrasDetail.forEach(function(d,i){ if(d&&d.key&&realIdxMap[d.key]==null)realIdxMap[d.key]=i; });
+  return SWORD_EXTRAS.map(function(e){
+    var realIdx=(realIdxMap[e.key]!=null)?realIdxMap[e.key]:-1;
+    var d;
+    if(realIdx>=0){ d=s.extrasDetail[realIdx]; if(!d.label)d.label=e.label; d.value=Math.max(0,Number(d.value)||0); }
+    else { d={key:e.key, label:e.label, value:0, _ghost:true}; }
+    return {e:e, d:d, realIdx:realIdx, value:Number(d.value)||0};
+  });
+}
+function _accView(idx,si){
+  return (window._accViewCache && window._accViewCache[idx] && window._accViewCache[idx][si]) || null;
+}
+function accDetailHtml(r,idx){
+  // 老数据兜底：补齐每条 sheet 快照字段 + 就地重算（只对有明细数据的 records 重算）
+  _migrateAccRecord(r);
+  // 视图层缓存：每条 sheet 维护一份包含 ghost 的宝石视图数组（13 种宝石全展示，未填的是 ghost）；
+  //   真正的 d 引用与 s.gemDetail 共用，ghost 项不入 s.gemDetail，输入时才被"激活"
+  window._accViewCache = window._accViewCache || {};
+  window._accViewCache[idx] = window._accViewCache[idx] || {};
+  var out=[];
+  r.sheets.forEach(function(s,si){
+    var effLvl=_effSwordLevel(s);
+    var data=SWORD_DATA[effLvl]||SWORD_DATA[150];
+    var sp=isFinite(s.swordPrice)?s.swordPrice:0;
+    var lvlsOpts=SWORD_LEVELS.map(function(l){return '<option value="'+l+'"'+(effLvl===l?' selected':'')+'>'+l+'级</option>';}).join('');
+    out.push('<div class="acc-sh" data-sh-idx="'+si+'"><div class="acc-sh-head"><input type="text" class="acc-sh-name" value="'+escHtml(s.name)+'" oninput="onAccSheetName('+idx+','+si+',this.value)"> '+
+      '<span class="acc-sh-rate">宝石折损 <input type="number" min="0" max="100" step="1" value="'+s.gemRate+'" oninput="onAccGemRate('+idx+','+si+',this.value)">% / 神兵折损 <input type="number" min="0" max="100" step="1" value="'+s.swordRate+'" oninput="onAccSwordRate('+idx+','+si+',this.value)">% / 单价 <input type="number" min="0" step="0.0001" value="'+sp+'" oninput="onAccSwordPrice('+idx+','+si+',this.value)"> 元 / 等级 <select onchange="onAccSwordLevel('+idx+','+si+',this.value)">'+lvlsOpts+'</select></span></div>');
+
+    // 宝石区：13 张卡片全展示（v75 风格），缺的在 view 层补 ghost，DOM 用 vi 作索引
+    var gemView = _ensureAccGemView(s);
+    var swordView = _ensureAccSwordView(s);
+    var extraView = _ensureAccExtraView(s);
+    window._accViewCache[idx][si] = {gem:gemView, sword:swordView, extra:extraView};
+    out.push('<div class="acc-sh-sub">宝石（<span id="accGemRateTag-'+idx+'-'+si+'">'+s.gemRate+'</span>% 折损）</div>');
+    out.push('<div class="acc-gem-cards">');
+    gemView.forEach(function(item,vi){
+      var empty = (item.totalEss===0) ? ' is-empty' : '';
+      var lvls = '';
+      for(var l=1; l<=5; l++){
+        var c = Number(item.d.counts[l])||0;
+        lvls += '<span class="acc-lv"><span>'+l+'级</span><input type="number" min="0" step="1" value="'+c+'" oninput="onAccGemInput('+idx+','+si+','+vi+','+l+',this.value)"></span>';
+      }
+      var gemPrice=(item.d.price||0);
+      var _dGem2=calcDiscount(item.totalEss, s.gemRate, gemPrice);
+      var postQty=_dGem2.postQty;
+      var disc=_dGem2.amount;
+      out.push('<div class="acc-gem-card'+empty+'" id="accGemCard-'+idx+'-'+si+'-'+vi+'"><div class="acc-gem-h"><span>'+escHtml(item.g.name)+'</span><span class="acc-gem-p">'+gemPrice.toFixed(2)+'元/精</span></div><div class="acc-gem-lvs">'+lvls+'</div><div class="acc-gem-ft">折前 <span id="accGemEss-'+idx+'-'+si+'-'+vi+'">'+item.totalEss+'</span> 精粹 · 折后 <span id="accGemPost-'+idx+'-'+si+'-'+vi+'">'+postQty+'</span> 精粹 · 折后 <b id="accGemDisc-'+idx+'-'+si+'-'+vi+'">'+disc.toFixed(2)+'</b> 元</div></div>');
+    });
+    out.push('</div>');
+    // 神兵区：1/4/7/10 级神兵 4 张卡片全展示，未填的整张灰化，ghost 项输入非 0 时才写入 swordDetail
+    out.push('<div class="acc-sh-sub">神兵（<span id="accSwordRateTag-'+idx+'-'+si+'">'+s.swordRate+'</span>% 折损 / 单价 <span id="accSwordPriceTag-'+idx+'-'+si+'">'+sp+'</span> 元 / 等级 <span id="accSwordLevelTag-'+idx+'-'+si+'">'+effLvl+'</span>）</div>');
+    out.push('<div class="acc-sword-cards">');
+    swordView.forEach(function(item,vi){
+      var empty=(item.count===0)?' is-empty':'';
+        var consume=item.d.consume||0;
+        var preQty=consume*item.count;
+        var _dSw2=calcDiscount(preQty, s.swordRate, sp);
+        var down=_dSw2.postQty;
+        var swordDisc=_dSw2.amount;
+        out.push('<div class="acc-sword-card'+empty+'" id="accSwordCard-'+idx+'-'+si+'-'+vi+'">'+
+          '<div class="acc-sw-h"><span>'+item.lvl+'级神兵</span><span class="acc-sw-p">单件 <span id="accSwordConsume-'+idx+'-'+si+'-'+vi+'">'+consume+'</span> 精</span></div>'+
+          '<div class="acc-sw-in"><span class="acc-sw-lv"><span>件数</span><input type="number" min="0" step="1" value="'+item.count+'" oninput="onAccSwordInput('+idx+','+si+','+vi+',this.value)"></span></div>'+
+          '<div class="acc-sw-ft">折前 <span id="accSwordPre-'+idx+'-'+si+'-'+vi+'">'+preQty+'</span> 精粹 · 折后 <span id="accSwordDown-'+idx+'-'+si+'-'+vi+'">'+down+'</span> 精粹 · 折(<span id="accSwordRateIn-'+idx+'-'+si+'-'+vi+'">'+s.swordRate+'</span>%)后 <b id="accSwordDisc-'+idx+'-'+si+'-'+vi+'">'+swordDisc.toFixed(2)+'</b> 元</div></div>');
+    });
+    out.push('</div>');
+    // 其它资产区：SWORD_EXTRAS 6 项全展示，同样 ghost 机制 + 灰化
+    out.push('<div class="acc-sh-sub">其它资产（<span id="accExtrasRateTag-'+idx+'-'+si+'">'+s.swordRate+'</span>% 折损）</div>');
+    out.push('<div class="acc-sword-cards">');
+    extraView.forEach(function(item,vi){
+        var empty=(item.value===0)?' is-empty':'';
+        var preQty=item.value;
+        var _dEx2=calcDiscount(item.value, s.swordRate, 1);
+        var postQty=_dEx2.postQty;
+        var disc=_dEx2.amount;
+        out.push('<div class="acc-sword-card'+empty+'" id="accExtraCard-'+idx+'-'+si+'-'+vi+'">'+
+          '<div class="acc-sw-h"><span>'+escHtml(item.e.label)+'</span></div>'+
+          '<div class="acc-sw-in"><span class="acc-sw-lv"><span>金额</span><input type="number" min="0" step="0.01" value="'+item.value+'" oninput="onAccExtraInput('+idx+','+si+','+vi+',this.value)"></span></div>'+
+          '<div class="acc-sw-ft">折前 <span id="accExtraPre-'+idx+'-'+si+'-'+vi+'">'+preQty+'</span> 数量 · 折后 <span id="accExtraPost-'+idx+'-'+si+'-'+vi+'">'+postQty+'</span> 数量 · 折(<span id="accExtraRateIn-'+idx+'-'+si+'-'+vi+'">'+s.swordRate+'</span>%)后 <b id="accExtraDisc-'+idx+'-'+si+'-'+vi+'">'+disc.toFixed(2)+'</b> 元</div></div>');
+    });
+    out.push('</div>');
+    out.push('<div class="acc-sh-foot">本单小计 <b id="accShFoot-'+idx+'-'+si+'">'+s.subtotal.toFixed(2)+'</b> 元（宝石 <span id="accShGemVal-'+idx+'-'+si+'">'+s.gemValue.toFixed(2)+'</span> + 神兵 <span id="accShWeaponVal-'+idx+'-'+si+'">'+s.weaponValue.toFixed(2)+'</span> + 其它 <span id="accShExtrasVal-'+idx+'-'+si+'">'+s.extrasValue.toFixed(2)+'</span>）</div>');
+    out.push('</div>');
+  });
+  return out.join('');
+}
+function toggleAccDetail(idx){var el=document.getElementById('accDetail-'+idx); if(el)el.style.display=(el.style.display==='none')?'block':'none';}
+function _recalcAccSheetAndSave(idx,si,recs){
+  var r=recs[idx]; if(!r)return; var s=r.sheets[si]; if(!s)return;
+  var _cfg=loadEstConfig();
+  if(!Array.isArray(s.gemDetail))s.gemDetail=[];
+  if(!Array.isArray(s.swordDetail))s.swordDetail=[];
+  if(!Array.isArray(s.extrasDetail))s.extrasDetail=[];
+  var gr=isFinite(s.gemRate)?s.gemRate:100; if(gr<0)gr=0; if(gr>100)gr=100; s.gemRate=gr;
+  var sr=isFinite(s.swordRate)?s.swordRate:100; if(sr<0)sr=0; if(sr>100)sr=100; s.swordRate=sr;
+  if(!isFinite(s.swordLevel))s.swordLevel=_cfg.swordLevel;
+  var data=SWORD_DATA[s.swordLevel]||SWORD_DATA[150];
+  if(!isFinite(s.swordPrice))s.swordPrice=_cfg.swordPrice; if(s.swordPrice<0)s.swordPrice=0;
+  var sp=s.swordPrice;
+  var gemValue=0;
+  s.gemDetail.forEach(function(d){
+    var g=GEMS.find(function(x){return x.name===d.name;}); if(!g)return;
+    d.essence=0; var raw=0;
+    for(var l=1;l<=GEM_LEVELS;l++){var c=Number(d.counts[l])||0; if(c<0)c=0; d.counts[l]=c; var per=gemEssenceAtLevel(g,l); d.essence+=c*per; raw+=c*per*(d.price||0);}
+    gemValue+=calcDiscount(d.essence, gr, (d.price||0)).amount;
+  });
+  s.gemValue=Math.floor(gemValue*100+1e-9)/100;
+  var weaponValue=0;
+  s.swordDetail.forEach(function(d){d.consume=data[d.lvl]||0; var c=Number(d.count)||0; if(c<0)c=0; d.count=c; weaponValue+=calcDiscount(d.consume*c, sr, sp).amount;});
+  s.weaponValue=Math.floor(weaponValue*100+1e-9)/100;
+  var extrasValue=0;
+  s.extrasDetail.forEach(function(d){var v=Number(d.value)||0; if(v<0)v=0; d.value=v; extrasValue+=calcDiscount(v, sr, 1).amount;});
+  s.extrasValue=Math.floor(extrasValue*100+1e-9)/100;
+  s.subtotal=Math.floor((s.gemValue+s.weaponValue+s.extrasValue)*100+1e-9)/100;
+  r.total=Math.floor(r.sheets.reduce(function(a,b){return a+(Number(b.subtotal)||0);},0)*100+1e-9)/100;
+  sLS(ACC_KEY,recs);
+  _updateAccDom(idx,si);
+}
+function _updateAccDom(idx,si){
+  var recs=gLS(ACC_KEY)||[]; var r=recs[idx]; if(!r)return; var s=r.sheets[si]; if(!s)return;
+  var f2=function(n){return isFinite(n)?n.toFixed(2):'0.00';};
+  var tot=document.getElementById('accRecTotal-'+idx); if(tot)tot.textContent=f2(r.total);
+  var foot=document.getElementById('accShFoot-'+idx+'-'+si); if(foot)foot.textContent=f2(s.subtotal);
+  var gv=document.getElementById('accShGemVal-'+idx+'-'+si); if(gv)gv.textContent=f2(s.gemValue);
+  var wv=document.getElementById('accShWeaponVal-'+idx+'-'+si); if(wv)wv.textContent=f2(s.weaponValue);
+  var ev=document.getElementById('accShExtrasVal-'+idx+'-'+si); if(ev)ev.textContent=f2(s.extrasValue);
+  var grTag=document.getElementById('accGemRateTag-'+idx+'-'+si); if(grTag)grTag.textContent=s.gemRate;
+  var srTag=document.getElementById('accSwordRateTag-'+idx+'-'+si); if(srTag)srTag.textContent=s.swordRate;
+  var erTag=document.getElementById('accExtrasRateTag-'+idx+'-'+si); if(erTag)erTag.textContent=s.swordRate;
+  var spTag=document.getElementById('accSwordPriceTag-'+idx+'-'+si); if(spTag)spTag.textContent=s.swordPrice;
+  var effLvl=_effSwordLevel(s);
+  var slTag=document.getElementById('accSwordLevelTag-'+idx+'-'+si); if(slTag)slTag.textContent=effLvl;
+  var vc=_accView(idx,si)||{};
+  // 卡片一律按 view 索引刷新，数值取自刚落盘的最新 s（按名称/等级/key 定位），避免用渲染期的旧引用
+  (vc.gem||[]).forEach(function(item,vi){
+    var d=_findDetail(s.gemDetail,function(x){return x.name===item.g.name;});
+    var ess=d?(Number(d.essence)||0):(Number(item.totalEss)||0);
+    var price=d?(Number(d.price)||0):(Number(item.d&&item.d.price)||0);
+    var e=document.getElementById('accGemEss-'+idx+'-'+si+'-'+vi); if(e)e.textContent=ess;
+    var _dGem3=calcDiscount(ess, s.gemRate, price);
+    var postQty=_dGem3.postQty;
+    var pe=document.getElementById('accGemPost-'+idx+'-'+si+'-'+vi); if(pe)pe.textContent=postQty;
+    var disc=_dGem3.amount;
+    var dd=document.getElementById('accGemDisc-'+idx+'-'+si+'-'+vi); if(dd)dd.textContent=disc.toFixed(2);
+    var card=document.getElementById('accGemCard-'+idx+'-'+si+'-'+vi);
+    if(card){ if(ess===0) card.classList.add('is-empty'); else card.classList.remove('is-empty'); }
+  });
+  var sdata=SWORD_DATA[effLvl]||SWORD_DATA[150];
+  (vc.sword||[]).forEach(function(item,vi){
+    var d=_findDetail(s.swordDetail,function(x){return Number(x.lvl)===item.lvl;});
+    var cnt=d?(Number(d.count)||0):0;
+    var consume=sdata[item.lvl]||0;
+    var preQty=consume*cnt;
+    var de2=document.getElementById('accSwordPre-'+idx+'-'+si+'-'+vi); if(de2)de2.textContent=preQty;
+    var _dSw3=calcDiscount(consume*cnt, s.swordRate, s.swordPrice);
+    var down=_dSw3.postQty;
+    var swordDisc=_dSw3.amount;
+    var ce=document.getElementById('accSwordConsume-'+idx+'-'+si+'-'+vi); if(ce)ce.textContent=consume;
+    var de=document.getElementById('accSwordDown-'+idx+'-'+si+'-'+vi); if(de)de.textContent=down;
+    var re=document.getElementById('accSwordRateIn-'+idx+'-'+si+'-'+vi); if(re)re.textContent=s.swordRate;
+    var di=document.getElementById('accSwordDisc-'+idx+'-'+si+'-'+vi); if(di)di.textContent=swordDisc.toFixed(2);
+    var card=document.getElementById('accSwordCard-'+idx+'-'+si+'-'+vi);
+    if(card){ if(cnt===0) card.classList.add('is-empty'); else card.classList.remove('is-empty'); }
+  });
+  (vc.extra||[]).forEach(function(item,vi){
+    var d=_findDetail(s.extrasDetail,function(x){return x.key===item.e.key;});
+    var val=d?(Number(d.value)||0):0;
+    var preQty=val;
+    var pe=document.getElementById('accExtraPre-'+idx+'-'+si+'-'+vi); if(pe)pe.textContent=preQty;
+    var _dEx3=calcDiscount(val, s.swordRate, 1);
+    var postQty=_dEx3.postQty;
+    var po=document.getElementById('accExtraPost-'+idx+'-'+si+'-'+vi); if(po)po.textContent=postQty;
+    var disc=_dEx3.amount;
+    var re=document.getElementById('accExtraRateIn-'+idx+'-'+si+'-'+vi); if(re)re.textContent=s.swordRate;
+    var de=document.getElementById('accExtraDisc-'+idx+'-'+si+'-'+vi); if(de)de.textContent=disc.toFixed(2);
+    var card=document.getElementById('accExtraCard-'+idx+'-'+si+'-'+vi);
+    if(card){ if(val===0) card.classList.add('is-empty'); else card.classList.remove('is-empty'); }
+  });
+}
+function onAccSheetName(idx,si,v){var recs=gLS(ACC_KEY)||[]; var r=recs[idx]; if(!r)return; r.sheets[si].name=v; sLS(ACC_KEY,recs);}
+function onAccGemRate(idx,si,v){var recs=gLS(ACC_KEY)||[]; var n=parseFloat(v); if(isNaN(n))n=0; if(n<0)n=0; if(n>100)n=100; recs[idx].sheets[si].gemRate=n; _recalcAccSheetAndSave(idx,si,recs);}
+function onAccSwordRate(idx,si,v){var recs=gLS(ACC_KEY)||[]; var n=parseFloat(v); if(isNaN(n))n=0; if(n<0)n=0; if(n>100)n=100; recs[idx].sheets[si].swordRate=n; _recalcAccSheetAndSave(idx,si,recs);}
+function onAccSwordPrice(idx,si,v){var recs=gLS(ACC_KEY)||[]; var n=parseFloat(v); if(isNaN(n))n=0; if(n<0)n=0; recs[idx].sheets[si].swordPrice=n; _recalcAccSheetAndSave(idx,si,recs);}
+function onAccSwordLevel(idx,si,v){var recs=gLS(ACC_KEY)||[]; var n=parseFloat(v); if(isNaN(n))n=150; recs[idx].sheets[si].swordLevel=n; _recalcAccSheetAndSave(idx,si,recs);}
+function onAccGemCount(idx,si,gi,l,v){var recs=gLS(ACC_KEY)||[]; var n=parseFloat(v); if(isNaN(n))n=0; if(n<0)n=0; recs[idx].sheets[si].gemDetail[gi].counts[l]=n; _recalcAccSheetAndSave(idx,si,recs);}
+// 账号记录明细的宝石输入：基于 view 数组（vi=GEMS 数组内的索引），ghost 项首次输入时 push 到 gemDetail
+function onAccGemInput(idx,si,vi,l,v){
+  var vc=_accView(idx,si); var view=vc&&vc.gem;
+  if(!view || !view[vi])return;
+  var item = view[vi];
+  var n = parseFloat(v); if(isNaN(n))n=0; if(n<0)n=0;
+  var recs = gLS(ACC_KEY)||[]; var s = recs[idx] && recs[idx].sheets && recs[idx].sheets[si];
+  if(!s)return;
+  if(!Array.isArray(s.gemDetail))s.gemDetail=[];
+  // 在最新的 gemDetail 里按宝石名定位真实条目；ghost 项只有输入非 0 时才"激活"入库（0 不污染数据）
+  var d=_findDetail(s.gemDetail,function(x){return x.name===item.g.name;});
+  if(!d && n>0){
+    d={name:item.g.name, counts:{1:0,2:0,3:0,4:0,5:0}, essence:0, price:(item.d&&item.d.price!=null)?item.d.price:item.g.price};
+    s.gemDetail.push(d);
   }
+  // 未激活时把输入落在 view 的 ghost 上，仅用于显示
+  var vd = d || item.d;
+  vd.counts = vd.counts || {};
+  vd.counts[l] = n;
+  item.d = vd;
+  item.realIdx = d ? s.gemDetail.indexOf(d) : -1;
+  if(d) delete d._ghost;
+  // 重算该 view 项 totalEss + 局部刷新
+  var te=0;
+  for(var ll=1; ll<=5; ll++){ te += (Number(vd.counts[ll])||0) * gemEssenceAtLevel(item.g, ll); }
+  item.totalEss = te;
+  vd.essence = te;
+  var essEl = document.getElementById('accGemEss-'+idx+'-'+si+'-'+vi); if(essEl)essEl.textContent = te;
+  var disc = calcDiscount(te, s.gemRate, (vd.price||0)).amount;
+  var discEl = document.getElementById('accGemDisc-'+idx+'-'+si+'-'+vi); if(discEl)discEl.textContent = disc.toFixed(2);
+  var cardEl = document.getElementById('accGemCard-'+idx+'-'+si+'-'+vi);
+  if(cardEl){ if(te===0) cardEl.classList.add('is-empty'); else cardEl.classList.remove('is-empty'); }
+  _recalcAccSheetAndSave(idx, si, recs);
 }
-function closeSwordRecords(){
-  var modalEl=document.getElementById('swordRecordsModal');
-  if(modalEl)modalEl.classList.remove('show');
+// 账号记录明细的神兵输入：基于 view 数组（vi = [1,4,7,10] 的索引），ghost 项首次输入非 0 时写入 swordDetail
+function onAccSwordInput(idx,si,vi,v){
+  var vc=_accView(idx,si); var view=vc&&vc.sword;
+  if(!view || !view[vi])return;
+  var item=view[vi];
+  var n=parseFloat(v); if(isNaN(n))n=0; if(n<0)n=0;
+  var recs=gLS(ACC_KEY)||[]; var s=recs[idx] && recs[idx].sheets && recs[idx].sheets[si];
+  if(!s)return;
+  if(!Array.isArray(s.swordDetail))s.swordDetail=[];
+  var data=SWORD_DATA[_effSwordLevel(s)]||SWORD_DATA[150];
+  var consume=data[item.lvl]||0;
+  var d=_findDetail(s.swordDetail,function(x){return Number(x.lvl)===item.lvl;});
+  if(!d && n>0){
+    d={lvl:item.lvl, count:0, consume:consume};
+    s.swordDetail.push(d);
+  }
+  var vd = d || item.d;
+  vd.lvl=item.lvl; vd.consume=consume; vd.count=n;
+  item.d=vd; item.count=n;
+  item.realIdx = d ? s.swordDetail.indexOf(d) : -1;
+  if(d) delete d._ghost;
+  var _dSw4=calcDiscount(consume*n, s.swordRate, (isFinite(s.swordPrice)?s.swordPrice:0));
+  var down=_dSw4.postQty;
+  var sp=isFinite(s.swordPrice)?s.swordPrice:0;
+  var disc=_dSw4.amount;
+  var dEl=document.getElementById('accSwordDown-'+idx+'-'+si+'-'+vi); if(dEl)dEl.textContent=down;
+  var cEl=document.getElementById('accSwordDisc-'+idx+'-'+si+'-'+vi); if(cEl)cEl.textContent=disc.toFixed(2);
+  var cardEl=document.getElementById('accSwordCard-'+idx+'-'+si+'-'+vi);
+  if(cardEl){ if(n===0) cardEl.classList.add('is-empty'); else cardEl.classList.remove('is-empty'); }
+  _recalcAccSheetAndSave(idx,si,recs);
 }
+// 账号记录明细的其它资产输入：基于 view 数组（vi = SWORD_EXTRAS 索引），ghost 项首次输入非 0 时写入 extrasDetail
+function onAccExtraInput(idx,si,vi,v){
+  var vc=_accView(idx,si); var view=vc&&vc.extra;
+  if(!view || !view[vi])return;
+  var item=view[vi];
+  var n=parseFloat(v); if(isNaN(n))n=0; if(n<0)n=0;
+  var recs=gLS(ACC_KEY)||[]; var s=recs[idx] && recs[idx].sheets && recs[idx].sheets[si];
+  if(!s)return;
+  if(!Array.isArray(s.extrasDetail))s.extrasDetail=[];
+  var d=_findDetail(s.extrasDetail,function(x){return x.key===item.e.key;});
+  if(!d && n>0){
+    d={key:item.e.key, label:item.e.label, value:0};
+    s.extrasDetail.push(d);
+  }
+  var vd = d || item.d;
+  vd.key=item.e.key; if(!vd.label)vd.label=item.e.label; vd.value=n;
+  item.d=vd; item.value=n;
+  item.realIdx = d ? s.extrasDetail.indexOf(d) : -1;
+  if(d) delete d._ghost;
+  var disc=calcDiscount(n, s.swordRate, 1).amount;
+  var dEl=document.getElementById('accExtraDisc-'+idx+'-'+si+'-'+vi); if(dEl)dEl.textContent=disc.toFixed(2);
+  var cardEl=document.getElementById('accExtraCard-'+idx+'-'+si+'-'+vi);
+  if(cardEl){ if(n===0) cardEl.classList.add('is-empty'); else cardEl.classList.remove('is-empty'); }
+  _recalcAccSheetAndSave(idx,si,recs);
+}
+function saveAccEdit(idx){
+  var recs=gLS(ACC_KEY)||[]; if(idx<0||idx>=recs.length)return;
+  sLS(ACC_KEY,recs);
+  var t=document.getElementById('accToast-'+idx); if(t){t.textContent='已保存于 '+new Date().toLocaleTimeString('zh-CN'); t.classList.add('acc-toast-show'); setTimeout(function(){t.classList.remove('acc-toast-show');},1500);}
+}
+function renderAccountRecords(){
+  var el=document.getElementById('accountRecords');if(!el)return;
+  var recs=gLS(ACC_KEY)||[];
+  if(!recs.length){el.innerHTML='';return;}
+  recs.forEach(_migrateAccRecord);
+  el.innerHTML=recs.map(function(r,idx){
+    var detail=r.sheets.map(function(s){return escHtml(s.name)+'(宝石'+s.gemRate+'%/神兵'+s.swordRate+'%):'+(isFinite(s.subtotal)?s.subtotal.toFixed(2):'?');}).join(' + ');
+    return '<div class="acc-rec"><div class="acc-rec-time">'+r.time+'</div>'+
+      '<div class="acc-rec-detail">'+detail+'</div>'+
+      '<div class="acc-rec-total">总估价 <b id="accRecTotal-'+idx+'">'+(isFinite(r.total)?r.total.toFixed(2):'0.00')+'</b> 元 '+
+      '<span class="acc-toast" id="accToast-'+idx+'"></span> '+
+      '<button class="btn btn-sm" style="float:right;margin-left:6px" onclick="saveAccEdit('+idx+')">保存修改</button>'+
+      '<button class="btn btn-sm" style="float:right;margin-left:6px" onclick="toggleAccDetail('+idx+')">明细</button>'+
+      '<button class="btn btn-sm" style="float:right" onclick="delAccountRecord('+idx+')">删除</button></div>'+
+      '<div class="acc-detail" id="accDetail-'+idx+'" style="display:none">'+accDetailHtml(r,idx)+
+      '<div style="text-align:center;margin:12px 0"><button class="btn btn-primary" onclick="saveAccEdit('+idx+')">保存修改</button></div>'+
+      '</div></div>';
+  }).join('');
+}
+function delAccountRecord(idx){
+  var recs=gLS(ACC_KEY)||[];
+  if(idx<0||idx>=recs.length)return;
+  wbConfirm('删除记录','确定删除这条账号记录？',function(){
+    recs.splice(idx,1);sLS(ACC_KEY,recs);renderAccountRecords();
+  });
+}
+
+// ===== 宝石单价设置 =====
+function openPriceModal(){
+  var prices=loadGemPrices();
+  var html=GEMS.map(function(g,gi){
+    return '<div class="price-row"><span>'+g.name+'</span><input type="number" step="0.01" min="0" value="'+(prices[g.name]!=null?prices[g.name]:g.price)+'" data-gi="'+gi+'"></div>';
+  }).join('');
+  var f=document.getElementById('priceForm');if(f)f.innerHTML=html;
+  var m=document.getElementById('priceModal');if(m)m.classList.add('show');
+}
+function closePriceModal(){var m=document.getElementById('priceModal');if(m)m.classList.remove('show');}
+function savePrices(){
+  var prices=loadGemPrices();
+  var inputs=document.querySelectorAll('#priceForm input');
+  for(var i=0;i<inputs.length;i++){
+    var gi=parseInt(inputs[i].getAttribute('data-gi'),10);
+    var v=parseFloat(inputs[i].value);if(isNaN(v)||v<0)v=0;
+    prices[GEMS[gi].name]=v;
+  }
+  saveGemPrices(prices);
+  closePriceModal();
+  renderSheetEditor();
+  recomputeLight();
+}
+
+// ===== 通用确认/提示弹窗（其它模块也依赖，保留）=====
 function escHtml(s){if(s==null)return '';return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function loadSwordRecord(id){
-  try{
-    var arr=loadSwordRecords();
-    var r=null;
-    for(var i=0;i<arr.length;i++)if(arr[i].id===id){r=arr[i];break;}
-    if(!r){try{alert('记录已不存在');}catch(_){};return;}
-    var st=loadSwordState();
-    st.level=isFinite(r.level)?r.level:150;
-    st.rate=isFinite(r.rate)?r.rate:78;
-    st.price=isFinite(r.price)?r.price:0.2;
-    // 还原各档折损率（兼容旧记录只有单一 rate 的情况）
-    var baseRates={1:78,4:78,7:78,10:78};
-    if(r.rates){ [1,4,7,10].forEach(function(l){ baseRates[l]=(r.rates[l]!=null?r.rates[l]:(isFinite(r.rate)?r.rate:78)); }); }
-    else { var dr=(isFinite(r.rate)?r.rate:78); [1,4,7,10].forEach(function(l){ baseRates[l]=dr; }); }
-    st.rates=baseRates;
-    st.extras={essence:Number(r.extras&&r.extras.essence)||0,warehouse:Number(r.extras&&r.extras.warehouse)||0,pet:Number(r.extras&&r.extras.pet)||0,appearance:Number(r.extras&&r.extras.appearance)||0,orb:Number(r.extras&&r.extras.orb)||0,other:Number(r.extras&&r.extras.other)||0};
-    // counts 不在记录里（旧版本没有），不强行覆盖
-    saveSwordState(st);
-    renderSword();
-    closeSwordRecords();
-    try{alert('已载入「'+r.role+'」');}catch(_){}
-  }catch(e){
-    try{if(window.showErr)window.showErr('loadSwordRecord 失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):''));}catch(_){console.error(e);}
-  }
+var _wbCfCb=null;
+function wbConfirm(title,msg,onYes){
+  _wbCfCb=onYes||null;
+  var m=document.getElementById('wbConfirmModal');
+  var t=document.getElementById('wbCfTitle'); if(t)t.textContent=title||'确认';
+  var x=document.getElementById('wbCfMsg'); if(x)x.textContent=msg||'';
+  var ok=document.getElementById('wbCfOk'); if(ok)ok.style.display='';
+  var cancel=document.getElementById('wbCfCancel'); if(cancel)cancel.style.display='';
+  if(m)m.classList.add('show');
 }
-function deleteSwordRecord(id){
-  try{
-    if(!confirm('确认删除这条记录？'))return;
-    var arr=loadSwordRecords();
-    arr=arr.filter(function(x){return x.id!==id;});
-    saveSwordRecords(arr);
-    openSwordRecords();
-  }catch(e){
-    try{if(window.showErr)window.showErr('deleteSwordRecord 失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):''));}catch(_){console.error(e);}
-  }
+function wbAlert(title,msg){
+  _wbCfCb=null;
+  var m=document.getElementById('wbConfirmModal');
+  var t=document.getElementById('wbCfTitle'); if(t)t.textContent=title||'提示';
+  var x=document.getElementById('wbCfMsg'); if(x)x.textContent=msg||'';
+  var ok=document.getElementById('wbCfOk'); if(ok){ok.textContent='知道了';}
+  var cancel=document.getElementById('wbCfCancel'); if(cancel)cancel.style.display='none';
+  if(m)m.classList.add('show');
 }
-function clearAllSwordRecords(){
-  try{
-    if(!confirm('确认清空全部神兵拆解记录？此操作不可撤销。'))return;
-    saveSwordRecords([]);
-    openSwordRecords();
-  }catch(_){}
+function wbConfirmOk(){
+  var m=document.getElementById('wbConfirmModal'); if(m)m.classList.remove('show');
+  var ok=document.getElementById('wbCfOk'); if(ok)ok.textContent='确定';
+  var cb=_wbCfCb; _wbCfCb=null; if(cb)cb();
 }
-function exportSwordRecords(){
-  try{
-    var arr=loadSwordRecords();
-    if(arr.length===0){try{alert('暂无记录可导出');}catch(_){};return;}
-    var data=JSON.stringify(arr,null,2);
-    var blob=new Blob([data],{type:'application/json'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url;
-    a.download='sword-records-'+(new Date()).toISOString().slice(0,10)+'.json';
-    document.body.appendChild(a);a.click();
-    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},200);
-  }catch(e){
-    try{if(window.showErr)window.showErr('exportSwordRecords 失败: '+((e&&e.message)||e));}catch(_){console.error(e);}
-  }
+function wbConfirmCancel(){
+  var m=document.getElementById('wbConfirmModal'); if(m)m.classList.remove('show');
+  var ok=document.getElementById('wbCfOk'); if(ok)ok.textContent='确定';
+  _wbCfCb=null;
 }
-
-// ===== 累计拆下 弹窗（神兵拆解风格：逐种宝石精粹数 × 单价 = 小计，全部相加得总金额） =====
-function showGemBreakdownModal(){
-  try{
-    // 先同步刷新底部实时统计（不阻塞弹窗）
-    calcGem();
-    var st=loadGemState();
-    var prices=loadGemPrices();
-    var html='';
-    var total=0;
-    var visibleCount=0;
-    GEMS.forEach(function(g){
-      // 该宝石所有等级的精粹颗数合计
-      var rawEssence=0;
-      for(var l=1;l<=GEM_LEVELS;l++){
-        var c=(st.counts[g.name]&&st.counts[g.name][l])||0;
-        rawEssence += c*gemEssenceAtLevel(g,l);
-      }
-      if(rawEssence<=0)return; // 没有精粹的不列
-      // 该宝石自身的折损率
-      var r=st.rates[g.name]; if(r==null)r=st.rate; if(isNaN(r))r=0;
-      // 折损后精粹颗数：向下取整，舍弃小数，不进一
-      var finalEssence=Math.floor(rawEssence*r/100+1e-9);
-      if(finalEssence<=0)return; // 折完为 0 也不列
-      var price=(prices[g.name]!=null)?prices[g.name]:g.price;
-      // 小计：精粹数 × 单价，向下取整到分
-      var sub=Math.floor(finalEssence*price*100)/100;
-      total+=sub;
-      visibleCount++;
-      html+='<div class="gem-breakdown-row">';
-      html+='<span class="gem-bd-name">'+finalEssence+'个'+g.name+'精粹</span>';
-      html+='<span class="gem-bd-amt">共 '+sub.toFixed(2)+' 元</span>';
-      html+='</div>';
-    });
-
-    if(visibleCount===0){
-      html='<div class="gem-breakdown-empty" style="opacity:.7;text-align:center;padding:20px 0">暂无精粹数据，请先在下方输入各宝石数量</div>';
-      total=0;
-    }
-    var listEl=document.getElementById('gemBreakdownList');
-    var totEl=document.getElementById('gemBreakdownTotal');
-    if(listEl)listEl.innerHTML=html;
-    if(totEl)totEl.textContent=total.toFixed(2);
-    var modalEl=document.getElementById('gemBreakdownModal');
-    if(modalEl)modalEl.classList.add('show');
-  }catch(e){
-    if(window.showErr) window.showErr('showGemBreakdownModal 失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):''));
-    else console.error(e);
-  }
-}
-function closeGemBreakdownModal(){
-  var modalEl=document.getElementById('gemBreakdownModal');
-  if(modalEl)modalEl.classList.remove('show');
-}
-// 入口：宝石弹窗→神兵拆解；同步把宝石精粹价值累计写入神兵页「精粹价值」附加项
-function goSwordFromGemModal(){
-  try{
-    var gemTotal=computeGemTotal();
-    try{
-      var sst=loadSwordState();
-      if(!sst.extras)sst.extras={essence:0,warehouse:0,pet:0,appearance:0,orb:0,other:0};
-      sst.extras.essence=Math.floor(gemTotal*100+1e-9)/100;
-      saveSwordState(sst);
-    }catch(_){}
-    closeGemBreakdownModal();
-    switchPage('sword');
-    try{renderSword();}catch(_){}
-  }catch(e){
-    if(window.showErr) window.showErr('goSwordFromGemModal 失败: '+((e&&e.message)||e));
-    else console.error(e);
-  }
-}
-// 独立计算宝石精粹价值累计（向下取整到分），与 showGemBreakdownModal 内显示口径一致
-function computeGemTotal(){
-  try{
-    var st=loadGemState();
-    var prices=loadGemPrices();
-    var rateEl=document.getElementById('gemRate');
-    var rate=rateEl?parseFloat(rateEl.value):st.rate;
-    if(isNaN(rate))rate=0;
-    var total=0;
-    GEMS.forEach(function(g){
-      var rawEssence=0;
-      for(var l=1;l<=GEM_LEVELS;l++){
-        var c=(st.counts[g.name]&&st.counts[g.name][l])||0;
-        rawEssence+=c*gemEssenceAtLevel(g,l);
-      }
-      if(rawEssence<=0)return;
-      var r=st.rates[g.name]; if(r==null)r=st.rate; if(isNaN(r))r=0;
-      var finalEssence=Math.floor(rawEssence*r/100+1e-9);
-      if(finalEssence<=0)return;
-      var price=(prices[g.name]!=null)?prices[g.name]:g.price;
-      total+=Math.floor(finalEssence*price*100+1e-9)/100;
-    });
-    return Math.floor(total*100+1e-9)/100;
-  }catch(_){ return 0; }
-}
-function saveGemPricesCurrent(){
-  var st=loadGemState();
-  var ps=loadGemProfiles();
-  var p=ps.filter(function(x){return x.name===st.activeProfile;})[0];
-  if(!p){alert('未找到当前区服');return;}
-  p.prices=JSON.parse(JSON.stringify(loadGemPrices()));
-  saveGemProfiles(ps);
-  toast('已保存到「'+st.activeProfile+'」');
-}
-
-// ===== 区服价格 modal =====
-function openGemPriceModal(){
-  var st=loadGemState();
-  gemEditingProfile=st.activeProfile||'默认区服';
-  renderGemProfileTabs();
-  renderGemPriceForm();
-  document.getElementById('gemModal').classList.add('show');
-}
-function closeGemPriceModal(){document.getElementById('gemModal').classList.remove('show');}
-function renderGemProfileTabs(){
-  var ps=loadGemProfiles();
-  var cur=(loadGemState().activeProfile||'默认区服');
-  var html='';
-  ps.forEach(function(p){
-    var ac=p.name===cur?' active':'';
-    html+='<span class="gem-modal-tab'+ac+'" onclick="selectGemProfile(\''+p.name.replace(/'/g,"\\'")+'\')">'+p.name+'</span>';
-  });
-  html+='<span class="gem-modal-tab gem-modal-tab-add" onclick="addGemProfile()">+ 新增</span>';
-  document.getElementById('gemProfileTabs').innerHTML=html;
-}
-function renderGemPriceForm(){
-  var ps=loadGemProfiles();
-  var p=ps.filter(function(x){return x.name===gemEditingProfile;})[0];
-  if(!p)return;
-  var actEl=document.getElementById('gemProfileActions');
-  if(p.name!=='默认区服'){
-    actEl.innerHTML='<a onclick="renameGemProfile()">重命名</a><a class="danger" onclick="deleteGemProfile()">删除</a>';
-  }else{
-    actEl.innerHTML='<span style="color:var(--sub);font-size:12px">默认区服不可删除/重命名</span>';
-  }
-  var html='';
-  GEMS.forEach(function(g,gi){
-    var v=p.prices[g.name]!=null?p.prices[g.name]:g.price;
-    html+='<div class="gem-price-row"><span class="gem-price-name">'+g.name+'精粹：</span>';
-    html+='<input class="gem-price-input" type="number" id="gem-price-'+gi+'" value="'+v+'" step="0.01" min="0">';
-    html+='<span class="gem-price-unit">元</span></div>';
-  });
-  document.getElementById('gemPriceForm').innerHTML=html;
-}
-function selectGemProfile(name){
-  gemEditingProfile=name;
-  var st=loadGemState();st.activeProfile=name;saveGemState(st);
-  var apEl=document.getElementById('gemActiveServer');if(apEl)apEl.textContent=name;
-  renderGemProfileTabs();
-  renderGemPriceForm();
-}
-function addGemProfile(){
-  var ps=loadGemProfiles();
-  var def='区服'+(ps.length+1);
-  var n=prompt('新档位名称：',def);
-  if(!n)return;
-  n=n.trim();
-  if(!n){alert('名称不能为空');return;}
-  if(ps.filter(function(p){return p.name===n;}).length){alert('档位名已存在');return;}
-  ps.push({name:n,prices:defaultGemPrices()});
-  saveGemProfiles(ps);
-  selectGemProfile(n);
-}
-function renameGemProfile(){
-  if(gemEditingProfile==='默认区服')return;
-  var n=prompt('重命名为：',gemEditingProfile);
-  if(!n)return;
-  n=n.trim();if(!n){alert('名称不能为空');return;}
-  if(n===gemEditingProfile)return;
-  var ps=loadGemProfiles();
-  if(ps.filter(function(p){return p.name===n;}).length){alert('档位名已存在');return;}
-  ps.forEach(function(p){if(p.name===gemEditingProfile)p.name=n;});
-  saveGemProfiles(ps);
-  var st=loadGemState();if(st.activeProfile===gemEditingProfile)st.activeProfile=n;saveGemState(st);
-  gemEditingProfile=n;
-  renderGemProfileTabs();
-  renderGemPriceForm();
-}
-function deleteGemProfile(){
-  if(gemEditingProfile==='默认区服')return;
-  if(!confirm('删除档位「'+gemEditingProfile+'」？'))return;
-  var ps=loadGemProfiles().filter(function(p){return p.name!==gemEditingProfile;});
-  saveGemProfiles(ps);
-  selectGemProfile('默认区服');
-}
-function saveGemProfile(){
-  var ps=loadGemProfiles();
-  var p=ps.filter(function(x){return x.name===gemEditingProfile;})[0];
-  if(!p)return;
-  GEMS.forEach(function(g,gi){
-    var el=document.getElementById('gem-price-'+gi);
-    if(!el)return;
-    var v=parseFloat(el.value);
-    if(!isNaN(v)&&v>=0)p.prices[g.name]=v;
-  });
-  saveGemProfiles(ps);
-  toast('档位「'+gemEditingProfile+'」已保存');
-}
-function applyGemPrices(){
-  var ps=loadGemProfiles();
-  var p=ps.filter(function(x){return x.name===gemEditingProfile;})[0];
-  if(!p)return;
-  GEMS.forEach(function(g,gi){
-    var el=document.getElementById('gem-price-'+gi);
-    if(!el)return;
-    var v=parseFloat(el.value);
-    if(!isNaN(v)&&v>=0)p.prices[g.name]=v;
-  });
-  saveGemProfiles(ps);
-  saveGemPrices(JSON.parse(JSON.stringify(p.prices)));
-  var st=loadGemState();st.activeProfile=gemEditingProfile;saveGemState(st);
-  closeGemPriceModal();
-  renderGem();
-  toast('已应用「'+gemEditingProfile+'」的价格');
-}
-function quickSwitchServer(name){
-  var ps=loadGemProfiles();
-  var p=ps.filter(function(x){return x.name===name;})[0];
-  if(!p){toast('档位「'+name+'」不存在');return;}
-  selectGemProfile(name);
-  saveGemPrices(JSON.parse(JSON.stringify(p.prices)));
-  renderGem();
-  toast('已切换到「'+name+'」');
-}
-
-// init 已在 body 顶部的错误捕获脚本里调用（带 try/catch）
 </script>
 </body>
 </html>
