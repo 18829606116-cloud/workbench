@@ -1419,6 +1419,20 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     .acc-sword-card.is-empty .acc-sw-p{color:#aaa}
     .acc-sword-card.is-empty .acc-sw-ft{color:#aaa;border-top-color:#e2e2e2}
     .acc-sword-card.is-empty .acc-sw-ft b{color:#888}
+    /* 附加项（其它资产）专属：1 列 grid + 加宽金额 input，容纳 6 位以上金额（v82） */
+    .acc-extra-cards{display:grid;grid-template-columns:1fr;gap:9px}
+    .acc-extra-card{border:1px solid #eee;border-radius:9px;padding:7px 9px;background:#fbfdf9}
+    .acc-extra-card .acc-sw-h{font-size:13px;font-weight:700;color:#1b3a1b;margin-bottom:3px}
+    .acc-extra-card .acc-sw-in{margin-top:3px}
+    .acc-extra-card .acc-sw-amt{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #eee;border-radius:5px;padding:2px 8px}
+    .acc-extra-card .acc-sw-amt span{font-size:12px;color:#7a6a3a}
+    .acc-extra-card .acc-sw-amt input{width:130px;padding:3px 5px;border:1px solid #eee;border-radius:4px;font-size:13px;text-align:right;background:#fffdf6}
+    .acc-extra-card .acc-sw-ft{font-size:12px;color:#5a4a2a;margin-top:5px;padding-top:5px;border-top:1px dashed #eee;line-height:1.55;word-break:break-all}
+    .acc-extra-card .acc-sw-ft b{color:#2e8b57;font-size:14px}
+    .acc-extra-card.is-empty{background:#f4f4f4;border-color:#e2e2e2;opacity:.6}
+    .acc-extra-card.is-empty .acc-sw-h{color:#888}
+    .acc-extra-card.is-empty .acc-sw-ft{color:#aaa;border-top-color:#e2e2e2}
+    .acc-extra-card.is-empty .acc-sw-ft b{color:#888}
     .acc-sh-foot{font-size:12px;color:#7a6a3a;margin-top:6px;padding-top:4px;border-top:1px solid #f3eed8}
     .acc-sh-foot b{color:#2e8b57;font-size:14px}
     .acc-toast{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;color:#fff;background:#2e8b57;opacity:0;transition:opacity .25s}
@@ -1428,8 +1442,13 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     .combine-sub{font-size:11px;color:#9a8a5a;padding:2px 0 4px 2px}
     .acc-sh{border-top:1px dashed #eee;margin-top:6px;padding-top:6px}
     .acc-sh:first-child{border-top:none;margin-top:0;padding-top:0}
-    .acc-sh-head{font-weight:600;color:#1b3a1b;font-size:13px}
-    .acc-sh-rate{font-size:11px;color:#9a8a5a;font-weight:500;margin-left:4px}
+    .acc-sh-head{font-weight:600;color:#1b3a1b;font-size:13px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-width:0}
+    .acc-sh-head .acc-sh-name{max-width:140px}
+    .acc-sh-rate{font-size:11px;color:#9a8a5a;font-weight:500;display:inline-flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+    .acc-r-cell{display:inline-flex;align-items:center;gap:3px;white-space:nowrap;font-size:11px;color:#9a8a5a}
+    .acc-r-cell>input{width:72px}
+    .acc-r-cell>select{width:80px}
+    .acc-r-cell>input[type=number]{width:78px}
     .acc-sh-sub{font-size:11px;color:#2e8b57;font-weight:600;margin:5px 0 2px}
     .acc-row{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:#5a5a4a;padding:1px 0;align-items:center}
     .acc-row span{background:#f5f8f3;border-radius:5px;padding:1px 6px;font-size:11px}
@@ -1539,7 +1558,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 81;
+var APP_VERSION = 82;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -9525,7 +9544,7 @@ function accDetailHtml(r,idx){
     var sp=isFinite(s.swordPrice)?s.swordPrice:0;
     var lvlsOpts=SWORD_LEVELS.map(function(l){return '<option value="'+l+'"'+(effLvl===l?' selected':'')+'>'+l+'级</option>';}).join('');
     out.push('<div class="acc-sh" data-sh-idx="'+si+'"><div class="acc-sh-head"><input type="text" class="acc-sh-name" value="'+escHtml(s.name)+'" oninput="onAccSheetName('+idx+','+si+',this.value)"> '+
-      '<span class="acc-sh-rate">宝石折损 <input type="number" min="0" max="100" step="1" value="'+s.gemRate+'" oninput="onAccGemRate('+idx+','+si+',this.value)">% / 神兵折损 <input type="number" min="0" max="100" step="1" value="'+s.swordRate+'" oninput="onAccSwordRate('+idx+','+si+',this.value)">% / 单价 <input type="number" min="0" step="0.0001" value="'+sp+'" oninput="onAccSwordPrice('+idx+','+si+',this.value)"> 元 / 等级 <select onchange="onAccSwordLevel('+idx+','+si+',this.value)">'+lvlsOpts+'</select></span></div>');
+      '<span class="acc-sh-rate"><span class="acc-r-cell">宝石折损 <input type="number" min="0" max="100" step="1" value="'+s.gemRate+'" oninput="onAccGemRate('+idx+','+si+',this.value)">%</span><span class="acc-r-cell">神兵折损 <input type="number" min="0" max="100" step="1" value="'+s.swordRate+'" oninput="onAccSwordRate('+idx+','+si+',this.value)">%</span><span class="acc-r-cell">单价 <input type="number" min="0" step="0.0001" value="'+sp+'" oninput="onAccSwordPrice('+idx+','+si+',this.value)"> 元</span><span class="acc-r-cell">等级 <select onchange="onAccSwordLevel('+idx+','+si+',this.value)">'+lvlsOpts+'</select></span></span></div>');
 
     // 宝石区：13 张卡片全展示（v75 风格），缺的在 view 层补 ghost，DOM 用 vi 作索引
     var gemView = _ensureAccGemView(s);
@@ -9564,18 +9583,18 @@ function accDetailHtml(r,idx){
           '<div class="acc-sw-ft">折前 <span id="accSwordPre-'+idx+'-'+si+'-'+vi+'">'+preQty+'</span> 精粹 · 折后 <span id="accSwordDown-'+idx+'-'+si+'-'+vi+'">'+down+'</span> 精粹 · 折(<span id="accSwordRateIn-'+idx+'-'+si+'-'+vi+'">'+s.swordRate+'</span>%)后 <b id="accSwordDisc-'+idx+'-'+si+'-'+vi+'">'+swordDisc.toFixed(2)+'</b> 元</div></div>');
     });
     out.push('</div>');
-    // 其它资产区：SWORD_EXTRAS 6 项全展示，同样 ghost 机制 + 灰化
+    // 其它资产区：SWORD_EXTRAS 6 项全展示，1 列 grid + 加宽金额 input，容纳 6 位以上金额（v82）
     out.push('<div class="acc-sh-sub">其它资产（<span id="accExtrasRateTag-'+idx+'-'+si+'">'+s.swordRate+'</span>% 折损）</div>');
-    out.push('<div class="acc-sword-cards">');
+    out.push('<div class="acc-extra-cards">');
     extraView.forEach(function(item,vi){
         var empty=(item.value===0)?' is-empty':'';
         var preQty=item.value;
         var _dEx2=calcDiscount(item.value, s.swordRate, 1);
         var postQty=_dEx2.postQty;
         var disc=_dEx2.amount;
-        out.push('<div class="acc-sword-card'+empty+'" id="accExtraCard-'+idx+'-'+si+'-'+vi+'">'+
+        out.push('<div class="acc-extra-card'+empty+'" id="accExtraCard-'+idx+'-'+si+'-'+vi+'">'+
           '<div class="acc-sw-h"><span>'+escHtml(item.e.label)+'</span></div>'+
-          '<div class="acc-sw-in"><span class="acc-sw-lv"><span>金额</span><input type="number" min="0" step="0.01" value="'+item.value+'" oninput="onAccExtraInput('+idx+','+si+','+vi+',this.value)"></span></div>'+
+          '<div class="acc-sw-in"><span class="acc-sw-amt"><span>金额</span><input type="number" min="0" step="0.01" value="'+item.value+'" oninput="onAccExtraInput('+idx+','+si+','+vi+',this.value)"></span></div>'+
           '<div class="acc-sw-ft">折前 <span id="accExtraPre-'+idx+'-'+si+'-'+vi+'">'+preQty+'</span> 数量 · 折后 <span id="accExtraPost-'+idx+'-'+si+'-'+vi+'">'+postQty+'</span> 数量 · 折(<span id="accExtraRateIn-'+idx+'-'+si+'-'+vi+'">'+s.swordRate+'</span>%)后 <b id="accExtraDisc-'+idx+'-'+si+'-'+vi+'">'+disc.toFixed(2)+'</b> 元</div></div>');
     });
     out.push('</div>');
