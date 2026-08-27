@@ -7,7 +7,6 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>个人工作台</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{--bg:#f5f6fa;--card:#fff;--text:#2c3e50;--sub:#7f8c8d;--primary:#3498db;--success:#27ae60;--warning:#f39c12;--danger:#e74c3c;--purple:#9b59b6;--teal:#1abc9c;--border:#e0e4e8;--radius:12px;--shadow:0 2px 10px rgba(0,0,0,.06);--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -533,7 +532,8 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   window.switchPage=function(id){
     try{closeDrawer();}catch(e){}
     var target=document.getElementById('page-'+id);
-    // 统一显隐：全部页面一视同仁，目标页 !important 显示，其余 !important 隐藏（含默认首页，不再特殊化）
+    // 防御：目标页不存在则不切换（保持当前页），避免所有子页面被强制隐藏导致整片空白
+    if(!target){ return; }
     document.querySelectorAll('.module-page').forEach(function(p){
       if(p===target){p.classList.add('active');p.style.setProperty('display','block','important');}
       else{p.classList.remove('active');p.style.setProperty('display','none','important');}
@@ -544,7 +544,6 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
     var ni=document.querySelector('.nav-item[data-mod="'+id+'"]');
     if(ni)ni.classList.add('active');
-    // 触发页面专属渲染（与主脚本内的 switchPage 同步调用）
     try{
       if(id==='gold' && typeof initGoldPage==='function')initGoldPage();
       else if(id==='eng' && typeof renderVocab==='function')renderVocab();
@@ -1531,7 +1530,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 88;
+var APP_VERSION = 89;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -1593,14 +1592,10 @@ function closeDrawer(){
   document.getElementById('drawer').classList.remove('open');
 }
 function switchPage(origId){
-  // 先关抽屉遮罩，避免残留拦截后续点击
-  closeDrawer();
-  // 神兵拆解已并入「账号估价」页（宝石+神兵合一），统一跳到该页并定位神兵区
+  try{ closeDrawer(); }catch(e){}
   var id=(origId==='sword')?'gem':origId;
-  // 统一显隐：目标页用 !important 强制显示，其余用 !important 强制隐藏。
-  // 全部页面一视同仁（含默认首页 page-weight），不再特殊化，否则首页会永远压在最上层挡住切换。
   var target=document.getElementById('page-'+id);
-  // 防御：目标页不存在则不切换（保持当前页），避免所有子页面被强制隐藏导致整片空白（v84 修复）
+  // 防御：目标页不存在则不切换（保持当前页），避免所有子页面被强制隐藏导致整片空白
   if(!target){ return; }
   document.querySelectorAll('.module-page').forEach(function(p){
     if(p===target){
@@ -1611,15 +1606,12 @@ function switchPage(origId){
       p.style.setProperty('display','none','important');
     }
   });
-  // 更新抽屉高亮（用原始 id，保持用户在抽屉里点的按钮高亮）
   document.querySelectorAll('.drawer-item').forEach(function(d){d.classList.remove('active')});
   var di=document.querySelector('.drawer-item[data-page="'+origId+'"]');
   if(di)di.classList.add('active');
-  // 更新底部导航高亮
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
   var ni=document.querySelector('.nav-item[data-mod="'+origId+'"]');
   if(ni)ni.classList.add('active');
-  // 页面专属初始化（每个独立 try，失败时把错误推到红色横幅，绝不沉默）
   function _e(tag, e){ try{ if(window.showErr) window.showErr(tag+' 渲染失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):'')); else console.warn(tag,e); }catch(_){ console.warn(tag,e); } }
   try{ if(id==='gold')initGoldPage(); }catch(e){_e('initGoldPage',e);}
   try{ if(id==='eng')renderVocab(); }catch(e){_e('renderVocab',e);}
@@ -1627,9 +1619,7 @@ function switchPage(origId){
   try{ if(id==='dialog')renderDialog(); }catch(e){_e('renderDialog',e);}
   try{ if(id==='gem')renderGem(); }catch(e){_e('renderGem',e);}
   try{ if(id==='water')renderWater(); }catch(e){_e('renderWater',e);}
-  // 回到顶部（真机一定存在，但仍包 try 防止个别环境抛错阻断）
   try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
-  // 神兵拆解：定位到神兵区，让用户直接看到神兵内容
   if(origId==='sword'){
     var sec=document.getElementById('gemSwordSection');
     if(sec){ try{ sec.scrollIntoView({behavior:'smooth',block:'start'}); }catch(_){} }
@@ -1763,20 +1753,11 @@ function renderWeight(){
     if(nList.length)ds.push({label:'睡前',data:nVals,borderColor:'#f39c12',backgroundColor:'rgba(243,156,18,0.12)',fill:false,tension:.3,pointRadius:3,pointHoverRadius:6,spanGaps:true,borderDash:[5,3]});
     var ctx=document.getElementById('weightChart');
     if(ctx){
-      if(weightChart)weightChart.destroy();
-      weightChart=new Chart(ctx,{
-        type:'line',
-        data:{labels:labels,datasets:ds},
-        options:{responsive:true,maintainAspectRatio:false,
-          interaction:{mode:'index',intersect:false},
-          plugins:{legend:{display:ds.length>1,position:'top',labels:{boxWidth:12,font:{size:11}}},
-            tooltip:{callbacks:{label:function(c){return c.dataset.label+'：'+c.parsed.y+' kg';}}}},
-          scales:{y:{beginAtZero:false,title:{display:false}},x:{ticks:{maxRotation:45}}}
-        }
-      });
+      if(weightChart){ try{ctx.innerHTML='';}catch(_){};weightChart=null;}
+      try{ renderWeightSvg(ctx, labels, mVals, nVals); weightChart=1; }catch(_e){ try{ctx.innerHTML='';}catch(_){}; weightChart=null; }
     }
   }else{
-    if(weightChart){weightChart.destroy();weightChart=null}
+    if(weightChart){ try{ctx.innerHTML='';}catch(_){};weightChart=null}
     if(hintEl){hintEl.style.display='block';hintEl.textContent='空腹或睡前任一项至少需要 2 条记录才能显示趋势图。';}
   }
 
@@ -1870,6 +1851,42 @@ function renderMonthOverview(data){
   el.innerHTML=ov;
 }
 function fmtChg(c){var s=c>0?'+':'';return s+c.toFixed(1)+' kg';}
+
+/* SVG 自绘趋势图（v89 替换 Chart.js — 彻底去除外部 CDN 依赖，避免 CDN 超时阻断 init） */
+function renderWeightSvg(container, labels, mVals, nVals){
+  container.innerHTML='';
+  var W=Math.max(280, container.clientWidth||600);
+  var H=200;
+  var pad={l:36,r:12,t:14,b:28};
+  var all=[];
+  for(var i=0;i<mVals.length;i++)if(mVals[i]!==null&&isFinite(mVals[i]))all.push(mVals[i]);
+  for(var i=0;i<nVals.length;i++)if(nVals[i]!==null&&isFinite(nVals[i]))all.push(nVals[i]);
+  if(all.length<2){
+    container.innerHTML='<div class="empty-hint" style="line-height:200px;text-align:center">数据不足（需 ≥2 条有效体重）</div>';
+    return;
+  }
+  var mn=Math.min.apply(null,all),mx=Math.max.apply(null,all);
+  var range=(mx-mn)||1;
+  if(mn===mx){mn-=1;mx+=1;range=2;}
+  function X(i){ if(labels.length<=1) return pad.l+(W-pad.l-pad.r)/2; return pad.l+(W-pad.l-pad.r)*i/(labels.length-1); }
+  function Y(v){ return pad.t+(H-pad.t-pad.b)*(1-(v-mn)/range); }
+  var html='';
+  if(mVals.some(function(v){return v!==null;}) && nVals.some(function(v){return v!==null;})){
+    html+='<div style="display:flex;gap:14px;font-size:11px;color:#444;align-items:center;margin:0 0 4px 36px"><span><i style="display:inline-block;width:14px;height:2px;background:#3498db;margin-right:4px;vertical-align:middle"></i>空腹</span><span><i style="display:inline-block;width:14px;border-top:2px dashed #f39c12;margin-right:4px;vertical-align:middle"></i>睡前</span></div>';
+  }
+  html+='<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" preserveAspectRatio="none" style="display:block;width:100%;height:'+H+'px">';
+  for(var k=0;k<=3;k++){var yv=mn+range*k/3;var yp=Y(yv);html+='<line x1="'+pad.l+'" x2="'+(W-pad.r)+'" y1="'+yp+'" y2="'+yp+'" stroke="#eef0f3" stroke-width="1"/>';html+='<text x="2" y="'+(yp+3)+'" font-size="10" fill="#888">'+yv.toFixed(1)+'</text>';}
+  var xTickEvery=Math.max(1,Math.floor(labels.length/8));
+  for(var i=0;i<labels.length;i++){
+    if(i%xTickEvery!==0 && i!==labels.length-1)continue;
+    var xp=X(i);html+='<text x="'+xp+'" y="'+(H-8)+'" font-size="10" fill="#888" text-anchor="middle">'+labels[i]+'</text>';
+  }
+  function pathOf(arr){var d='';var started=false;for(var i=0;i<arr.length;i++){var v=arr[i];if(v===null||!isFinite(v))continue;d+=(started?'L':'M')+X(i)+' '+Y(v)+' ';started=true;}return d;}
+  if(mVals.some(function(v){return v!==null;})){var d=pathOf(mVals);html+='<path d="'+d+'" fill="none" stroke="#3498db" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';for(var i=0;i<mVals.length;i++){var v=mVals[i];if(v===null)continue;html+='<circle cx="'+X(i)+'" cy="'+Y(v)+'" r="2.5" fill="#3498db"/>';}}
+  if(nVals.some(function(v){return v!==null;})){var d=pathOf(nVals);html+='<path d="'+d+'" fill="none" stroke="#f39c12" stroke-width="2" stroke-dasharray="5 3" stroke-linejoin="round" stroke-linecap="round"/>';for(var i=0;i<nVals.length;i++){var v=nVals[i];if(v===null)continue;html+='<circle cx="'+X(i)+'" cy="'+Y(v)+'" r="2.5" fill="#f39c12"/>';}}
+  html+='</svg>';
+  container.innerHTML=html;
+}
 
 
 // ============ WATER MODULE ============
@@ -6210,32 +6227,39 @@ function setupIrw(){
 }
 
 // ============ INIT ============
-function init(){
-  startBjClock();
-  startPlantTimer();
-  initSoonThreshold();
-  myWords=gLS('wb_mywords')||{};
-  migrateVocab();
-  // Weight
-  if(typeof renderWeight==='function')renderWeight();
-  if(typeof renderWater==='function')renderWater();
-  // Med
-  initMedication();
-  // Vocab buttons
-  var p=document.getElementById('vocabCount');
-  if(p && p.parentNode && !document.getElementById('addWordBtn')){
-    var b=document.createElement('button');b.id='addWordBtn';b.className='btn btn-sm';b.style.cssText='background:#e8f5e9;color:#2e7d32';b.textContent='+ 添加单词';b.onclick=addWord;
-    var bi=document.createElement('button');bi.id='importVocabBtn';bi.className='btn btn-sm';bi.style.cssText='background:#f0f0f0';bi.textContent='导入词库';bi.onclick=importVocab;
-    p.parentNode.insertBefore(bi,p);
-    p.parentNode.insertBefore(b,p);
+function _safeCall(label, fn){
+  try { fn(); return true; } catch(e){
+    try{ if(window.showErr) window.showErr(label+' 渲染失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):'')); else console.warn(label,e); }catch(_){ console.warn(label,e); }
+    return false;
   }
-  // Render English panels
-  renderVocab();
-  renderSrsReminder(); srsDailyTip();
-  renderListening();
-  renderSentenceBank();
-  renderSpkBank();renderMistakeBook();
-  setupIrw();
+}
+function init(){
+  _safeCall('startBjClock', startBjClock);
+  _safeCall('startPlantTimer', startPlantTimer);
+  _safeCall('initSoonThreshold', initSoonThreshold);
+  try{ myWords=gLS('wb_mywords')||{}; }catch(e){ myWords={}; }
+  _safeCall('migrateVocab', migrateVocab);
+  _safeCall('renderWeight', function(){ if(typeof renderWeight==='function') renderWeight(); });
+  _safeCall('renderWater', function(){ if(typeof renderWater==='function') renderWater(); });
+  _safeCall('initMedication', initMedication);
+  // Vocab buttons
+  try{
+    var p=document.getElementById('vocabCount');
+    if(p && p.parentNode && !document.getElementById('addWordBtn')){
+      var b=document.createElement('button');b.id='addWordBtn';b.className='btn btn-sm';b.style.cssText='background:#e8f5e9;color:#2e7d32';b.textContent='+ 添加单词';b.onclick=addWord;
+      var bi=document.createElement('button');bi.id='importVocabBtn';bi.className='btn btn-sm';bi.style.cssText='background:#f0f0f0';bi.textContent='导入词库';bi.onclick=importVocab;
+      p.parentNode.insertBefore(bi,p);
+      p.parentNode.insertBefore(b,p);
+    }
+  }catch(e){ console.warn('vocab btns',e); }
+  _safeCall('renderVocab', renderVocab);
+  _safeCall('renderSrsReminder', renderSrsReminder);
+  _safeCall('srsDailyTip', srsDailyTip);
+  _safeCall('renderListening', renderListening);
+  _safeCall('renderSentenceBank', renderSentenceBank);
+  _safeCall('renderSpkBank', renderSpkBank);
+  _safeCall('renderMistakeBook', renderMistakeBook);
+  _safeCall('setupIrw', setupIrw);
   // Game
   try{
     gameViewDate=todayStr();
@@ -6244,9 +6268,11 @@ function init(){
     calcBand();
   }catch(e){ try{ if(window.showErr) window.showErr('游戏渲染失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):'')); else console.warn('game render error:',e); }catch(_){ console.warn('game render error:',e); } }
   // cloud auto-sync on load
-  if(gLS('wb_sync_auto')==='1' && getSyncCfg() && !sessionStorage.getItem('wb_just_synced')){ syncDownload(); }
-  sessionStorage.removeItem('wb_just_synced');
-  // 终极兜底：init 跑完后，确保“唯一活动页”可见、其余统一隐藏（不再特殊化 page-weight，否则会挡住切换）
+  try{
+    if(gLS('wb_sync_auto')==='1' && getSyncCfg() && !sessionStorage.getItem('wb_just_synced')){ syncDownload(); }
+    sessionStorage.removeItem('wb_just_synced');
+  }catch(e){ console.warn('sync init',e); }
+  // 终极兜底：init 跑完后，确保"唯一活动页"可见、其余统一隐藏（不再特殊化 page-weight，否则会挡住切换）
   try{
     document.querySelectorAll('.module-page').forEach(function(p){
       if(p.classList.contains('active')) p.style.setProperty('display','block','important');
