@@ -524,6 +524,9 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   var _origReady=document.readyState;
   window.addEventListener('DOMContentLoaded',function(){try{if(typeof init==='function')init();}catch(e){showErr('init错误: '+(e.message||e)+' @'+(e.stack||'').split('\n')[1]);}});
   if(_origReady!=='loading'){setTimeout(function(){try{if(typeof init==='function')init();}catch(e){showErr('init错误: '+(e.message||e)+' @'+(e.stack||'').split('\n')[1]);}},0);}
+  // 抽屉头部显示真实版本号（主脚本若出错，APP_VERSION 可能未定义 → 显示 v?，便于判断缓存/加载问题）
+  window.addEventListener('DOMContentLoaded',function(){try{var dv=document.getElementById('drawerVer');if(dv)dv.textContent='选择模块 · v'+((typeof APP_VERSION!=='undefined'&&APP_VERSION)?APP_VERSION:'?');}catch(_){}});
+  window.addEventListener('load',function(){try{var dv=document.getElementById('drawerVer');if(dv)dv.textContent='选择模块 · v'+((typeof APP_VERSION!=='undefined'&&APP_VERSION)?APP_VERSION:'?');}catch(_){}});
   // 兜底全局函数：保证 inline onclick（如 openDrawer/closeDrawer/switchPage）在主脚本出错时仍能用
   window.openDrawer=function(){var ov=document.getElementById('drawerOverlay');var dr=document.getElementById('drawer');if(ov&&dr){ov.classList.add('show');dr.classList.add('open');}};
   window.closeDrawer=function(){var ov=document.getElementById('drawerOverlay');var dr=document.getElementById('drawer');if(ov&&dr){ov.classList.remove('show');dr.classList.remove('open');}};
@@ -567,7 +570,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <aside class="drawer" id="drawer">
   <div class="drawer-head">
     <h2>&#9776; 个人工作台</h2>
-    <p>选择模块 · 构建 v20260801b</p>
+    <p id="drawerVer">选择模块</p>
   </div>
   <nav class="drawer-nav">
     <button class="drawer-item active" data-page="weight" onclick="switchPage('weight')"><span class="di-icon">&#9878;</span> 每日体重</button>
@@ -1528,7 +1531,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 87;
+var APP_VERSION = 88;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -9460,6 +9463,14 @@ function accDetailHtml(r,idx){
   if(!r || !Array.isArray(r.sheets)) return ''; // 旧格式/损坏记录跳过，避免整页崩溃
   // 老数据兜底：补齐每条 sheet 快照字段 + 就地重算（只对有明细数据的 records 重算）
   _migrateAccRecord(r);
+  // 老格式/无明细记录不会进入重算分支，gemValue/weaponValue/extrasValue/subtotal 可能仍是 undefined，
+  // 这里统一兜底成 0，避免下方 .toFixed 对 undefined 抛错导致整块账号记录空白（v88 修复）
+  if(Array.isArray(r.sheets)) r.sheets.forEach(function(s){
+    if(!isFinite(s.gemValue))s.gemValue=0;
+    if(!isFinite(s.weaponValue))s.weaponValue=0;
+    if(!isFinite(s.extrasValue))s.extrasValue=0;
+    if(!isFinite(s.subtotal))s.subtotal=0;
+  });
   // 视图层缓存：每条 sheet 维护一份包含 ghost 的宝石视图数组（13 种宝石全展示，未填的是 ghost）；
   //   真正的 d 引用与 s.gemDetail 共用，ghost 项不入 s.gemDetail，输入时才被"激活"
   window._accViewCache = window._accViewCache || {};
@@ -9730,18 +9741,23 @@ function renderAccountRecords(){
   if(!recs.length){el.innerHTML='';return;}
   recs.forEach(_migrateAccRecord);
   el.innerHTML=recs.map(function(r,idx){
-    if(!r || !Array.isArray(r.sheets)) return ''; // 旧格式/损坏记录跳过，避免整页崩溃
-    var detail=r.sheets.map(function(s){return escHtml(s.name)+'(宝石'+s.gemRate+'%/神兵'+s.swordRate+'%):'+(isFinite(s.subtotal)?s.subtotal.toFixed(2):'?');}).join(' + ');
-    return '<div class="acc-rec"><div class="acc-rec-time">'+r.time+'</div>'+
-      '<div class="acc-rec-detail">'+detail+'</div>'+
-      '<div class="acc-rec-total">总估价 <b id="accRecTotal-'+idx+'">'+(isFinite(r.total)?r.total.toFixed(2):'0.00')+'</b> 元 '+
-      '<span class="acc-toast" id="accToast-'+idx+'"></span> '+
-      '<button class="btn btn-sm" style="float:right;margin-left:6px" onclick="saveAccEdit('+idx+')">保存修改</button>'+
-      '<button class="btn btn-sm" style="float:right;margin-left:6px" onclick="toggleAccDetail('+idx+')">明细</button>'+
-      '<button class="btn btn-sm" style="float:right" onclick="delAccountRecord('+idx+')">删除</button></div>'+
-      '<div class="acc-detail" id="accDetail-'+idx+'" style="display:none">'+accDetailHtml(r,idx)+
-      '<div style="text-align:center;margin:12px 0"><button class="btn btn-primary" onclick="saveAccEdit('+idx+')">保存修改</button></div>'+
-      '</div></div>';
+    try{
+      if(!r || !Array.isArray(r.sheets)) return ''; // 旧格式/损坏记录跳过，避免整页崩溃
+      var detail=r.sheets.map(function(s){return escHtml(s.name)+'(宝石'+s.gemRate+'%/神兵'+s.swordRate+'%):'+(isFinite(s.subtotal)?s.subtotal.toFixed(2):'?');}).join(' + ');
+      return '<div class="acc-rec"><div class="acc-rec-time">'+r.time+'</div>'+
+        '<div class="acc-rec-detail">'+detail+'</div>'+
+        '<div class="acc-rec-total">总估价 <b id="accRecTotal-'+idx+'">'+(isFinite(r.total)?r.total.toFixed(2):'0.00')+'</b> 元 '+
+        '<span class="acc-toast" id="accToast-'+idx+'"></span> '+
+        '<button class="btn btn-sm" style="float:right;margin-left:6px" onclick="saveAccEdit('+idx+')">保存修改</button>'+
+        '<button class="btn btn-sm" style="float:right;margin-left:6px" onclick="toggleAccDetail('+idx+')">明细</button>'+
+        '<button class="btn btn-sm" style="float:right" onclick="delAccountRecord('+idx+')">删除</button></div>'+
+        '<div class="acc-detail" id="accDetail-'+idx+'" style="display:none">'+accDetailHtml(r,idx)+
+        '<div style="text-align:center;margin:12px 0"><button class="btn btn-primary" onclick="saveAccEdit('+idx+')">保存修改</button></div>'+
+        '</div></div>';
+    }catch(e){
+      // 单条记录渲染异常：隔离处理，绝不让一条坏数据拖垮整个账号记录区（v88 修复）
+      return '<div class="acc-rec"><div class="acc-rec-detail" style="color:#c0392b">该账号记录渲染异常已跳过：'+escHtml((e&&e.message)||String(e))+'</div></div>';
+    }
   }).join('');
 }
 function delAccountRecord(idx){
