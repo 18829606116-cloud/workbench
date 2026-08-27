@@ -544,7 +544,6 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     // 触发页面专属渲染（与主脚本内的 switchPage 同步调用）
     try{
       if(id==='gold' && typeof initGoldPage==='function')initGoldPage();
-      else if(id==='market' && typeof initMarketPage==='function')initMarketPage();
       else if(id==='eng' && typeof renderVocab==='function')renderVocab();
       else if(id==='weather' && typeof initWeather==='function')initWeather();
       else if(id==='dialog' && typeof renderDialog==='function')renderDialog();
@@ -579,7 +578,6 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     <button class="drawer-item" data-page="backup" onclick="switchPage('backup')"><span class="di-icon">&#128190;</span> 数据备份</button>
     <div style="height:1px;background:var(--border);margin:6px 14px"></div>
     <button class="drawer-item" data-page="gold" onclick="switchPage('gold')"><span class="di-icon">&#128176;</span> 黄金财经</button>
-    <button class="drawer-item" data-page="market" onclick="switchPage('market')"><span class="di-icon">&#128202;</span> 市场复盘</button>
     <button class="drawer-item" data-page="weather" onclick="switchPage('weather')"><span class="di-icon">&#127782;</span> 天气预报</button>
     <button class="drawer-item" data-page="dialog" onclick="switchPage('dialog')"><span class="di-icon">&#128172;</span> 场景对话</button>
     <button class="drawer-item" data-page="gem" onclick="switchPage('gem')"><span class="di-icon">&#128142;</span> 宝石拆解</button>
@@ -1281,34 +1279,6 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   </div>
 </div>
 
-<!-- ===== PAGE: MARKET REVIEW ===== -->
-<div class="module-page" id="page-market" style="display:none">
-<div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">市场每日复盘</span></div>
-
-<div class="fin-header">
-<h3>&#128202; 市场每日复盘</h3>
-<p>A股 / 贵金属收盘复盘，异乎寻常稳健</p>
-<div style="display:flex;gap:8px;margin-top:10px">
-<button class="btn btn-sm" id="mktTabToday" style="background:var(--primary);color:#fff" onclick="setMktTab('today')">今日内容</button>
-<button class="btn btn-sm" id="mktTabHistory" style="background:#f0f0f0" onclick="setMktTab('history')">历史记录</button>
-</div>
-</div>
-
-<div class="fin-date" id="mktDate"></div>
-
-<div class="fin-card">
-<h4>&#128200; A股收盘数据 <span id="mktCloseDate"></span></h4>
-<div id="mktCloseList"></div>
-</div>
-
-<div class="fin-card">
-<h4>&#128221; 盘面复盘</h4>
-      <div class="review-text" id="mktReviewText"></div>
-    </div>
-  </div>
-</div><!-- /page-market (补回缺失的闭合标签，否则 page-dialog/page-gem 会被嵌套进 page-market 而永远隐藏) -->
-
-
 <div class="module-page" id="page-dialog" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">&#128172; 场景对话</span></div>
 <div class="sec-card">
@@ -1480,7 +1450,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
     <div class="sheet-sec-title">宝石（按本单折损率折算）</div>
     <div id="sheetGemList" class="sheet-gem-list"></div>
 
-    <div class="sheet-sec-title">神兵（按本单折损率折算）</div>
+    <div class="sheet-sec-title" id="gemSwordSection">神兵（按本单折损率折算）</div>
     <div class="sheet-sword-bar">
       <label>神兵等级档
         <select id="sheetSwordLevel" onchange="onSwordLevelChange()"></select></label>
@@ -1558,7 +1528,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 82;
+var APP_VERSION = 86;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -1619,12 +1589,16 @@ function closeDrawer(){
   document.getElementById('drawerOverlay').classList.remove('show');
   document.getElementById('drawer').classList.remove('open');
 }
-function switchPage(id){
+function switchPage(origId){
   // 先关抽屉遮罩，避免残留拦截后续点击
   closeDrawer();
+  // 神兵拆解已并入「账号估价」页（宝石+神兵合一），统一跳到该页并定位神兵区
+  var id=(origId==='sword')?'gem':origId;
   // 统一显隐：目标页用 !important 强制显示，其余用 !important 强制隐藏。
   // 全部页面一视同仁（含默认首页 page-weight），不再特殊化，否则首页会永远压在最上层挡住切换。
   var target=document.getElementById('page-'+id);
+  // 防御：目标页不存在则不切换（保持当前页），避免所有子页面被强制隐藏导致整片空白（v84 修复）
+  if(!target){ return; }
   document.querySelectorAll('.module-page').forEach(function(p){
     if(p===target){
       p.classList.add('active');
@@ -1634,18 +1608,17 @@ function switchPage(id){
       p.style.setProperty('display','none','important');
     }
   });
-  // 更新抽屉高亮
+  // 更新抽屉高亮（用原始 id，保持用户在抽屉里点的按钮高亮）
   document.querySelectorAll('.drawer-item').forEach(function(d){d.classList.remove('active')});
-  var di=document.querySelector('.drawer-item[data-page="'+id+'"]');
+  var di=document.querySelector('.drawer-item[data-page="'+origId+'"]');
   if(di)di.classList.add('active');
   // 更新底部导航高亮
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
-  var ni=document.querySelector('.nav-item[data-mod="'+id+'"]');
+  var ni=document.querySelector('.nav-item[data-mod="'+origId+'"]');
   if(ni)ni.classList.add('active');
   // 页面专属初始化（每个独立 try，失败时把错误推到红色横幅，绝不沉默）
   function _e(tag, e){ try{ if(window.showErr) window.showErr(tag+' 渲染失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):'')); else console.warn(tag,e); }catch(_){ console.warn(tag,e); } }
   try{ if(id==='gold')initGoldPage(); }catch(e){_e('initGoldPage',e);}
-  try{ if(id==='market')initMarketPage(); }catch(e){_e('initMarketPage',e);}
   try{ if(id==='eng')renderVocab(); }catch(e){_e('renderVocab',e);}
   try{ if(id==='weather')initWeather(); }catch(e){_e('initWeather',e);}
   try{ if(id==='dialog')renderDialog(); }catch(e){_e('renderDialog',e);}
@@ -1653,6 +1626,11 @@ function switchPage(id){
   try{ if(id==='water')renderWater(); }catch(e){_e('renderWater',e);}
   // 回到顶部（真机一定存在，但仍包 try 防止个别环境抛错阻断）
   try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
+  // 神兵拆解：定位到神兵区，让用户直接看到神兵内容
+  if(origId==='sword'){
+    var sec=document.getElementById('gemSwordSection');
+    if(sec){ try{ sec.scrollIntoView({behavior:'smooth',block:'start'}); }catch(_){} }
+  }
 }
 
 // ============ WEIGHT MODULE ============
@@ -3903,58 +3881,6 @@ function renderGoldCore(){
     html+='</div>';
   });
   document.getElementById('goldCoreList').innerHTML=html;
-}
-
-// ============ MARKET REVIEW MODULE ============
-function setMktTab(tab){
-  document.getElementById('mktTabToday').style.background=(tab==='today')?'var(--primary)':'#f0f0f0';
-  document.getElementById('mktTabToday').style.color=(tab==='today')?'#fff':'';
-  document.getElementById('mktTabHistory').style.background=(tab==='history')?'var(--primary)':'#f0f0f0';
-  document.getElementById('mktTabHistory').style.color=(tab==='history')?'#fff':'';
-}
-function initMarketPage(){
-  try{
-  var d=new Date();
-  var ds=d.getFullYear()+'\u5E74'+(d.getMonth()+1)+'\u6708'+d.getDate()+'\u65E5';
-  var wd=['\u5468\u65E5','\u5468\u4E00','\u5468\u4E8C','\u5468\u4E09','\u5468\u56DB','\u5468\u4E94','\u5468\u516D'][d.getDay()];
-  document.getElementById('mktDate').textContent='\uD83D\uDCC5 '+ds+'\uFF08'+wd+'\uFF09\uFF08\u4ECA\u5929\uFF09';
-  document.getElementById('mktCloseDate').textContent='\uFF08'+ds+'\uFF09';
-  renderMktClose();
-  renderMktReview();
-  }catch(e){
-    // 不再静默吞错：把真实错误打到红色横幅，方便真机定位
-    try{ if(window.showErr) window.showErr('市场复盘渲染失败: '+((e&&e.message)||e)+((e&&e.stack)?('\n'+e.stack):'')); else console.error('initMarketPage error:',e); }catch(_){ console.error('initMarketPage error:',e); }
-  }
-}
-function renderMktClose(){
-  var items=[
-    {n:'\u4E0A\u8BC1\u6307\u6570',v:'3828.47',c:'+0.40%'},
-    {n:'\u6DF1\u8BC1\u6210\u6307',v:'13658.44',c:'+1.10%'},
-    {n:'\u521B\u4E1A\u677F\u6307',v:'3378.70',c:'+1.55%'},
-    {n:'\u79D1\u521550',v:'1678.74',c:'-0.87%'},
-    {n:'\u6CAA\u6DF1300',v:'4600.26',c:'+0.67%'},
-    {n:'\u4E24\u5E02\u6210\u4EA4\u989D',v:'2.30 \u4E07\u4EBF',c:'\uFF08\u653E\u91CF 2708 \u4EBF\uFF09',special:true},
-    {n:'\u4E0A\u6DA8\u5BB6\u6570',v:'\u8D85 4200 \u53EA\u4E2A\u80A1\u98DD\u7EA2',c:'',special:true,red:true}
-  ];
-  var html='';
-  items.forEach(function(ix){
-    html+='<div class="index-row">';
-    html+='<span class="index-name">'+ix.n+'</span>';
-    if(ix.special){
-      html+='<span class="index-val" style="'+(ix.red?'color:#c62828;font-weight:700':'')+'">'+ix.v+'</span>';
-      html+='<span class="index-chg" style="'+(ix.red?'color:#c62828':'')+'">'+(ix.c||'')+'</span>';
-    } else {
-      html+='<span class="index-val">'+ix.v+'</span>';
-      var up=!ix.c.startsWith('-');
-      html+='<span class="index-chg '+(up?'chg-up':'chg-down')+'">'+ix.c+'</span>';
-    }
-    html+='</div>';
-  });
-  document.getElementById('mktCloseList').innerHTML=html;
-}
-function renderMktReview(){
-  var text='\u5E02\u573A\u8282\u594F\uFF1A\u5168\u5929\u63A2\u5E95\u56DE\u5347\uFF0C\u65E9\u76D8\u4E00\u5EA6\u4E0B\u63A2 3782 \u70B9\u540E\u8D44\u91D1\u8FDB\u573A\uFF0C\u5348\u540E\u7A33\u6B65\u8D70\u9AD8\uFF0C\u8D5A\u94B1\u6548\u5E94\u5168\u9762\u4FEE\u590D\u3002\u5317\u5411\u8D44\u91D1\u51C0\u6D41\u5165\u8D85 80 \u4EBF\uFF0C\u4E3B\u529B\u8D44\u91D1\u56DE\u6D79\u79D1\u6280\u4E0E\u6D88\u8D39\u677F\u5757\u3002\u77ED\u7EBF\u60C5\u7EEA\u56DE\u6696\uFF0C\u8FDE\u677F\u9AD8\u5EA6\u56DE\u5347\u81F3 5 \u677F\uFF0C\u9898\u6750\u8F6E\u52A8\u52A0\u5FEB\u3002\u5173\u6CE8\u540E\u7EED\u91CF\u80FD\u80FD\u5426\u6301\u7EED\u653E\u5927\uFF0C\u82E5\u7F29\u91CF\u5219\u9700\u8B66\u60D5\u51B2\u9AD8\u56DE\u843D\u98CE\u9669\u3002';
-  document.getElementById('mktReviewText').textContent=text;
 }
 
 // ============ STUDY QUEUE + IMPORT ============
