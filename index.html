@@ -604,7 +604,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 </header>
 
 <!-- ===== PAGE: WEIGHT ===== -->
-<div class="module-page active" id="page-weight" style="display:block">
+<div class="module-page active" id="page-weight" style="display:block!important;visibility:visible!important;opacity:1!important">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">每日体重</span></div>
 
 <div class="sec-card">
@@ -1530,7 +1530,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 89;
+var APP_VERSION = 90;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -6272,13 +6272,36 @@ function init(){
     if(gLS('wb_sync_auto')==='1' && getSyncCfg() && !sessionStorage.getItem('wb_just_synced')){ syncDownload(); }
     sessionStorage.removeItem('wb_just_synced');
   }catch(e){ console.warn('sync init',e); }
-  // 终极兜底：init 跑完后，确保"唯一活动页"可见、其余统一隐藏（不再特殊化 page-weight，否则会挡住切换）
+  // 终极兜底：确保 page-weight（默认页）永远可见，其余按需切换
+  // 修复(v90)：之前"按 active class 强制隐藏其余页面"会把默认页也带进 hide 循环，导致用户看到整片空白。
+  // 现在改为：先确保 page-weight 可见，再按正常逻辑切换其它页。
+  try{
+    var w=document.getElementById('page-weight');
+    if(w){ w.style.setProperty('display','block','important'); w.style.setProperty('visibility','visible','important'); w.style.setProperty('opacity','1','important'); }
+  }catch(_e){}
   try{
     document.querySelectorAll('.module-page').forEach(function(p){
+      if(p.id==='page-weight') return; // 默认页永远保留可见，不参与 hide 循环
       if(p.classList.contains('active')) p.style.setProperty('display','block','important');
       else p.style.setProperty('display','none','important');
     });
   }catch(_e){}
+  // 一秒后再次确保 page-weight 可见（防止有别处的代码把它 hide 了）
+  setTimeout(function(){ try{
+    var w=document.getElementById('page-weight');
+    if(w && (w.style.display==='none' || getComputedStyle(w).display==='none')){
+      w.style.setProperty('display','block','important');
+      w.style.setProperty('visibility','visible','important');
+      if(window.showErr) window.showErr('检测到 page-weight 被强制隐藏，已自动恢复显示');
+    }
+  }catch(_e){} }, 1000);
+  setTimeout(function(){ try{
+    var w=document.getElementById('page-weight');
+    if(w && (w.style.display==='none' || getComputedStyle(w).display==='none')){
+      w.style.setProperty('display','block','important');
+      w.style.setProperty('visibility','visible','important');
+    }
+  }catch(_e){} }, 3000);
 }
 
 /* ===================== Cloud Sync (GitHub Gist) ===================== */
