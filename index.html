@@ -1281,6 +1281,9 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
   </div>
 </div>
 
+</div><!-- /page-gold -->
+
+<!-- ===== PAGE: DIALOG ===== -->
 <div class="module-page" id="page-dialog" style="display:none">
 <div class="sub-header"><span class="ham" onclick="openDrawer()">&#9776;</span><span class="sub-title">&#128172; 场景对话</span></div>
 <div class="sec-card">
@@ -1530,7 +1533,7 @@ textarea.w-full{width:100%;min-height:80px;padding:10px;border:2px solid var(--b
 <script>
 
 // ============ APP VERSION ============
-var APP_VERSION = 90;
+var APP_VERSION = 91;
 
 // ============ 北京时间（秒级）时钟 ============
 var bjFmt=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -6272,9 +6275,12 @@ function init(){
     if(gLS('wb_sync_auto')==='1' && getSyncCfg() && !sessionStorage.getItem('wb_just_synced')){ syncDownload(); }
     sessionStorage.removeItem('wb_just_synced');
   }catch(e){ console.warn('sync init',e); }
-  // 终极兜底：确保 page-weight（默认页）永远可见，其余按需切换
-  // 修复(v90)：之前"按 active class 强制隐藏其余页面"会把默认页也带进 hide 循环，导致用户看到整片空白。
-  // 现在改为：先确保 page-weight 可见，再按正常逻辑切换其它页。
+  // v91 兜底：只确保 page-weight 默认显示正确，不做定时干扰
+  // 之前 v90 的 "1秒/3秒后强制 page-weight 可见" 会破坏导航——用户切到 dialog/gem 后，
+  // 该定时器无条件把 page-weight 重新显示出来（display:block!important），覆盖目标页，导致
+  // 用户切到 dialog/gem/sword 看不到内容（实际是 page-weight 又被强制重现）。
+  // 现在：CSS `.module-page.active{display:block!important}` + HTML 内联 `style="display:block!important"`
+  // + init() 这一次的 setProperty 已足够，无需定时复查。导航由 switchPage 全权负责。
   try{
     var w=document.getElementById('page-weight');
     if(w){ w.style.setProperty('display','block','important'); w.style.setProperty('visibility','visible','important'); w.style.setProperty('opacity','1','important'); }
@@ -6286,22 +6292,6 @@ function init(){
       else p.style.setProperty('display','none','important');
     });
   }catch(_e){}
-  // 一秒后再次确保 page-weight 可见（防止有别处的代码把它 hide 了）
-  setTimeout(function(){ try{
-    var w=document.getElementById('page-weight');
-    if(w && (w.style.display==='none' || getComputedStyle(w).display==='none')){
-      w.style.setProperty('display','block','important');
-      w.style.setProperty('visibility','visible','important');
-      if(window.showErr) window.showErr('检测到 page-weight 被强制隐藏，已自动恢复显示');
-    }
-  }catch(_e){} }, 1000);
-  setTimeout(function(){ try{
-    var w=document.getElementById('page-weight');
-    if(w && (w.style.display==='none' || getComputedStyle(w).display==='none')){
-      w.style.setProperty('display','block','important');
-      w.style.setProperty('visibility','visible','important');
-    }
-  }catch(_e){} }, 3000);
 }
 
 /* ===================== Cloud Sync (GitHub Gist) ===================== */
